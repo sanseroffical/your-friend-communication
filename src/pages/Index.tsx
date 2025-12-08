@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import ChatHeader from "@/components/ChatHeader";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -11,45 +13,29 @@ interface Message {
   senderName?: string;
 }
 
+interface ChatHistoryMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 const initialMessages: Message[] = [
   {
     id: "1",
     text: "Hey! How are you doing? 😊",
     isOwn: false,
-    timestamp: "10:30 AM",
-    senderName: "Alex",
-  },
-  {
-    id: "2",
-    text: "I'm doing great, thanks! Just finished that project we talked about.",
-    isOwn: true,
-    timestamp: "10:32 AM",
-  },
-  {
-    id: "3",
-    text: "That's awesome! Can't wait to see it. Want to grab coffee later and tell me about it?",
-    isOwn: false,
-    timestamp: "10:33 AM",
-    senderName: "Alex",
-  },
-  {
-    id: "4",
-    text: "Sounds perfect! How about 3pm at the usual spot?",
-    isOwn: true,
-    timestamp: "10:35 AM",
-  },
-  {
-    id: "5",
-    text: "Perfect! See you then! ☕",
-    isOwn: false,
-    timestamp: "10:36 AM",
+    timestamp: "Just now",
     senderName: "Alex",
   },
 ];
 
 const Index = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [isLoading, setIsLoading] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatHistoryMessage[]>([
+    { role: "assistant", content: "Hey! How are you doing? 😊" }
+  ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,40 +45,60 @@ const Index = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = async (text: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
       text,
       isOwn: true,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
+    
     setMessages((prev) => [...prev, newMessage]);
+    
+    const updatedHistory: ChatHistoryMessage[] = [
+      ...chatHistory,
+      { role: "user", content: text }
+    ];
+    setChatHistory(updatedHistory);
+    
+    setIsLoading(true);
 
-    // Simulate friend's response after a short delay
-    setTimeout(() => {
-      const responses = [
-        "That's interesting! Tell me more.",
-        "Haha, I totally agree! 😄",
-        "Nice! What do you think about...",
-        "I was just thinking the same thing!",
-        "Sounds good to me! 👍",
-      ];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    try {
+      const { data, error } = await supabase.functions.invoke("chat", {
+        body: { messages: updatedHistory },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const aiResponse = data?.message || "Sorry, I didn't catch that. Can you say it again?";
       
       const friendMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: randomResponse,
+        text: aiResponse,
         isOwn: false,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         senderName: "Alex",
       };
+      
       setMessages((prev) => [...prev, friendMessage]);
-    }, 1000 + Math.random() * 2000);
+      setChatHistory((prev) => [...prev, { role: "assistant", content: aiResponse }]);
+    } catch (error) {
+      console.error("Error getting AI response:", error);
+      toast({
+        title: "Oops!",
+        description: "Alex is having trouble responding. Try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <ChatHeader friendName="Alex" isOnline />
+      <ChatHeader friendName="Alex" isOnline={!isLoading} />
       
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-3xl mx-auto">
@@ -105,12 +111,23 @@ const Index = () => {
               senderName={message.senderName}
             />
           ))}
+          {isLoading && (
+            <div className="flex justify-start mb-4">
+              <div className="bg-card text-card-foreground rounded-2xl rounded-bl-sm border border-border px-4 py-3 shadow-sm">
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto w-full">
-        <ChatInput onSend={handleSendMessage} />
+        <ChatInput onSend={handleSendMessage} disabled={isLoading} />
       </div>
     </div>
   );
