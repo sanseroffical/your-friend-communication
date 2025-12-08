@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+// Chat with AI-powered responses
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import ChatHeader from "@/components/ChatHeader";
