@@ -4,6 +4,7 @@ import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import ChatHeader from "@/components/ChatHeader";
 import JoinRoom from "@/components/JoinRoom";
+import ClippyButton from "@/components/ClippyButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useClipUser } from "@/hooks/useClipUser";
@@ -216,6 +217,8 @@ const Index = () => {
       <div className="max-w-3xl mx-auto w-full">
         <ChatInput onSend={handleSendMessage} disabled={isLoading} />
       </div>
+
+      <ClippyButton />
     </div>
   );
 };
