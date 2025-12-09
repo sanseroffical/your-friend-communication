@@ -6,13 +6,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, LogIn, UserPlus } from "lucide-react";
+import { ArrowLeft, LogIn, UserPlus, Copy, Check } from "lucide-react";
+
+const generateClipId = () => {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
 
 const Auth = () => {
-  const [mode, setMode] = useState<"choose" | "login" | "signup">("choose");
+  const [mode, setMode] = useState<"choose" | "login" | "signup" | "welcome">("choose");
   const [clipId, setClipId] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [generatedClipId, setGeneratedClipId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -45,7 +56,6 @@ const Auth = () => {
         return;
       }
 
-      // Store user in localStorage
       localStorage.setItem("clipUser", JSON.stringify(user));
       toast({
         title: "Welcome back!",
@@ -64,19 +74,19 @@ const Auth = () => {
   };
 
   const handleSignup = async () => {
-    if (!clipId.trim()) {
+    if (!displayName.trim()) {
       toast({
         title: "Error",
-        description: "Please enter a clipID",
+        description: "Please enter a username",
         variant: "destructive",
       });
       return;
     }
 
-    if (clipId.trim().length < 3) {
+    if (displayName.trim().length < 2) {
       toast({
         title: "Error",
-        description: "clipID must be at least 3 characters",
+        description: "Username must be at least 2 characters",
         variant: "destructive",
       });
       return;
@@ -84,41 +94,38 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
-      // Check if clipID already exists
-      const { data: existing } = await supabase
-        .from("users")
-        .select("id")
-        .eq("clip_id", clipId.trim().toLowerCase())
-        .maybeSingle();
-
-      if (existing) {
-        toast({
-          title: "Already taken",
-          description: "This clipID is already in use",
-          variant: "destructive",
-        });
-        return;
+      let newClipId = generateClipId();
+      
+      // Ensure uniqueness
+      let exists = true;
+      while (exists) {
+        const { data: existing } = await supabase
+          .from("users")
+          .select("id")
+          .eq("clip_id", newClipId)
+          .maybeSingle();
+        
+        if (!existing) {
+          exists = false;
+        } else {
+          newClipId = generateClipId();
+        }
       }
 
-      // Create new user
       const { data: newUser, error } = await supabase
         .from("users")
         .insert({
-          clip_id: clipId.trim().toLowerCase(),
-          display_name: displayName.trim() || clipId.trim(),
+          clip_id: newClipId,
+          display_name: displayName.trim(),
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      // Store user in localStorage
       localStorage.setItem("clipUser", JSON.stringify(newUser));
-      toast({
-        title: "Account created!",
-        description: `Welcome, ${newUser.display_name}!`,
-      });
-      navigate("/");
+      setGeneratedClipId(newClipId);
+      setMode("welcome");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -129,6 +136,48 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  const copyClipId = () => {
+    navigator.clipboard.writeText(generatedClipId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({
+      title: "Copied!",
+      description: "Your clipID has been copied to clipboard",
+    });
+  };
+
+  const continueToApp = () => {
+    navigate("/");
+  };
+
+  if (mode === "welcome") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Welcome to FriendChat!</CardTitle>
+            <CardDescription>Your account has been created</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-muted rounded-lg text-center space-y-2">
+              <p className="text-sm text-muted-foreground">Your unique clipID is:</p>
+              <div className="flex items-center justify-center gap-2">
+                <code className="text-2xl font-mono font-bold text-primary">{generatedClipId}</code>
+                <Button variant="ghost" size="icon" onClick={copyClipId}>
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Save this! You'll need it to log back in.</p>
+            </div>
+            <Button onClick={continueToApp} className="w-full" size="lg">
+              Continue to Chat
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (mode === "choose") {
     return (
@@ -179,31 +228,34 @@ const Auth = () => {
           <CardDescription>
             {mode === "login"
               ? "Enter your clipID to login"
-              : "Choose a unique clipID for your account"}
+              : "Choose a username to get started"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="clipId">clipID</Label>
-            <Input
-              id="clipId"
-              placeholder="Enter your clipID"
-              value={clipId}
-              onChange={(e) => setClipId(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && (mode === "login" ? handleLogin() : handleSignup())}
-            />
-          </div>
-
-          {mode === "signup" && (
+          {mode === "login" ? (
             <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name (optional)</Label>
+              <Label htmlFor="clipId">clipID</Label>
+              <Input
+                id="clipId"
+                placeholder="Enter your clipID"
+                value={clipId}
+                onChange={(e) => setClipId(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Username</Label>
               <Input
                 id="displayName"
-                placeholder="How others will see you"
+                placeholder="Choose a username"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSignup()}
               />
+              <p className="text-xs text-muted-foreground">
+                You'll receive a unique clipID after signup
+              </p>
             </div>
           )}
 
