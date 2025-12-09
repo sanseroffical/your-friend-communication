@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageCircle, Users } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, MessageSquare, Users } from "lucide-react";
 
 interface JoinRoomProps {
-  onJoinRoom: (roomCode: string, userName: string) => void;
+  onJoinRoom: (roomCode: string) => void;
+  userName: string;
 }
 
 const generateRoomCode = () => {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let code = "";
   for (let i = 0; i < 6; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -16,110 +18,87 @@ const generateRoomCode = () => {
   return code;
 };
 
-const JoinRoom = ({ onJoinRoom }: JoinRoomProps) => {
-  const [userName, setUserName] = useState("");
+const JoinRoom = ({ onJoinRoom, userName }: JoinRoomProps) => {
   const [roomCode, setRoomCode] = useState("");
-  const [mode, setMode] = useState<"choose" | "create" | "join">("choose");
+  const [mode, setMode] = useState<"choose" | "join">("choose");
 
   const handleCreateRoom = () => {
-    if (userName.trim()) {
-      const newCode = generateRoomCode();
-      onJoinRoom(newCode, userName.trim());
-    }
+    const newCode = generateRoomCode();
+    onJoinRoom(newCode);
   };
 
   const handleJoinRoom = () => {
-    if (userName.trim() && roomCode.trim()) {
-      onJoinRoom(roomCode.trim().toUpperCase(), userName.trim());
+    if (roomCode.trim()) {
+      onJoinRoom(roomCode.trim().toUpperCase());
     }
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <MessageCircle className="w-8 h-8 text-primary" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">FriendChat</h1>
-          <p className="text-muted-foreground">Connect with your friend in real-time</p>
-        </div>
-
-        <div className="bg-card border border-border p-6 shadow-lg">
-          {mode === "choose" && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Your Name</label>
-                <Input
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  placeholder="Enter your name"
-                  className="bg-background"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <Button
-                  onClick={() => userName.trim() && setMode("create")}
-                  disabled={!userName.trim()}
-                  className="flex flex-col items-center gap-2 h-auto py-4"
-                >
-                  <Users className="w-5 h-5" />
-                  <span>Create Room</span>
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => userName.trim() && setMode("join")}
-                  disabled={!userName.trim()}
-                  className="flex flex-col items-center gap-2 h-auto py-4"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Join Room</span>
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {mode === "create" && (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground text-center">
-                Create a new room and share the code with your friend
-              </p>
-              <Button onClick={handleCreateRoom} className="w-full">
-                Create & Get Room Code
-              </Button>
-              <Button variant="ghost" onClick={() => setMode("choose")} className="w-full">
-                Back
-              </Button>
-            </div>
-          )}
-
-          {mode === "join" && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Room Code</label>
-                <Input
-                  value={roomCode}
-                  onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                  placeholder="Enter 6-character code"
-                  maxLength={6}
-                  className="bg-background text-center text-2xl tracking-widest font-mono"
-                />
-              </div>
-              <Button 
-                onClick={handleJoinRoom} 
-                className="w-full"
-                disabled={roomCode.length !== 6}
-              >
-                Join Room
-              </Button>
-              <Button variant="ghost" onClick={() => setMode("choose")} className="w-full">
-                Back
-              </Button>
-            </div>
-          )}
-        </div>
+  if (mode === "choose") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Welcome, {userName}!</CardTitle>
+            <CardDescription>Create a new chat room or join an existing one</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={handleCreateRoom}
+              className="w-full"
+              size="lg"
+            >
+              <MessageSquare className="mr-2 h-5 w-5" />
+              Create New Room
+            </Button>
+            <Button
+              onClick={() => setMode("join")}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              <Users className="mr-2 h-5 w-5" />
+              Join Existing Room
+            </Button>
+          </CardContent>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMode("choose")}
+            className="w-fit -ml-2 mb-2"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back
+          </Button>
+          <CardTitle>Join Room</CardTitle>
+          <CardDescription>Enter the 6-character room code</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Input
+            placeholder="Room code (e.g., ABC123)"
+            value={roomCode}
+            onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+            maxLength={6}
+            className="text-center text-lg tracking-widest font-mono"
+            onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
+          />
+          <Button
+            onClick={handleJoinRoom}
+            className="w-full"
+            disabled={roomCode.trim().length !== 6}
+          >
+            Join Room
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

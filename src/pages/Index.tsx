@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import ChatHeader from "@/components/ChatHeader";
 import JoinRoom from "@/components/JoinRoom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useClipUser } from "@/hooks/useClipUser";
 
 interface Message {
   id: string;
@@ -18,9 +20,10 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [roomCode, setRoomCode] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user, isLoading: userLoading } = useClipUser();
+  const navigate = useNavigate();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -30,9 +33,16 @@ const Index = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!userLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, userLoading, navigate]);
+
   // Load existing messages when joining a room
   useEffect(() => {
-    if (!roomCode) return;
+    if (!roomCode || !user) return;
 
     const loadMessages = async () => {
       const { data, error } = await supabase
@@ -50,7 +60,7 @@ const Index = () => {
         const formattedMessages: Message[] = data.map((msg) => ({
           id: msg.id,
           text: msg.content,
-          isOwn: msg.sender_name === userName,
+          isOwn: msg.user_id === user.id,
           timestamp: new Date(msg.created_at).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
@@ -80,6 +90,7 @@ const Index = () => {
             content: string;
             sender_name: string;
             created_at: string;
+            user_id: string | null;
           };
           
           setMessages((prev) => {
@@ -91,7 +102,7 @@ const Index = () => {
               {
                 id: newMsg.id,
                 text: newMsg.content,
-                isOwn: newMsg.sender_name === userName,
+                isOwn: newMsg.user_id === user.id,
                 timestamp: new Date(newMsg.created_at).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -107,11 +118,10 @@ const Index = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [roomCode, userName]);
+  }, [roomCode, user]);
 
-  const handleJoinRoom = (code: string, name: string) => {
+  const handleJoinRoom = (code: string) => {
     setRoomCode(code);
-    setUserName(name);
     toast({
       title: "Joined room!",
       description: `Share code "${code}" with your friend to start chatting.`,
@@ -120,20 +130,20 @@ const Index = () => {
 
   const handleLeaveRoom = () => {
     setRoomCode(null);
-    setUserName(null);
     setMessages([]);
   };
 
   const handleSendMessage = async (text: string) => {
-    if (!roomCode || !userName) return;
+    if (!roomCode || !user) return;
     
     setIsLoading(true);
 
     try {
       const { error } = await supabase.from("messages").insert({
         room_code: roomCode,
-        sender_name: userName,
+        sender_name: user.display_name || user.clip_id,
         content: text,
+        user_id: user.id,
       });
 
       if (error) {
@@ -151,13 +161,25 @@ const Index = () => {
     }
   };
 
-  if (!roomCode || !userName) {
-    return <JoinRoom onJoinRoom={handleJoinRoom} />;
+  if (userLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to /auth
+  }
+
+  if (!roomCode) {
+    return <JoinRoom onJoinRoom={handleJoinRoom} userName={user.display_name ?? user.clip_id} />;
   }
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <ChatHeader roomCode={roomCode} onLeaveRoom={handleLeaveRoom} />
+      <ChatHeader roomCode={roomCode} onLeaveRoom={handleLeaveRoom} userName={user.display_name || user.clip_id} />
       
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-3xl mx-auto">

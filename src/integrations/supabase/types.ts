@@ -21,6 +21,7 @@ export type Database = {
           id: string
           room_code: string
           sender_name: string
+          user_id: string | null
         }
         Insert: {
           content: string
@@ -28,6 +29,7 @@ export type Database = {
           id?: string
           room_code: string
           sender_name: string
+          user_id?: string | null
         }
         Update: {
           content?: string
@@ -35,6 +37,36 @@ export type Database = {
           id?: string
           room_code?: string
           sender_name?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          clip_id: string
+          created_at: string
+          display_name: string | null
+          id: string
+        }
+        Insert: {
+          clip_id: string
+          created_at?: string
+          display_name?: string | null
+          id?: string
+        }
+        Update: {
+          clip_id?: string
+          created_at?: string
+          display_name?: string | null
+          id?: string
         }
         Relationships: []
       }
