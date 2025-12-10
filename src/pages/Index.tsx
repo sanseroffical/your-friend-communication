@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import ChatHeader from "@/components/ChatHeader";
-import JoinRoom from "@/components/JoinRoom";
+import MainMenu from "@/components/MainMenu";
 import ClippyButton from "@/components/ClippyButton";
+import VideoCall from "@/components/VideoCall";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useClipUser } from "@/hooks/useClipUser";
@@ -21,6 +22,8 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [isCallOpen, setIsCallOpen] = useState(false);
+  const [isVideoCall, setIsVideoCall] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading } = useClipUser();
@@ -40,6 +43,25 @@ const Index = () => {
       navigate("/auth");
     }
   }, [user, userLoading, navigate]);
+
+  // Save room to chat history when joining
+  const saveToHistory = async (code: string) => {
+    if (!authUser?.id) return;
+    
+    try {
+      await supabase
+        .from("chat_history")
+        .upsert({
+          user_id: authUser.id,
+          room_code: code,
+          last_accessed_at: new Date().toISOString(),
+        }, {
+          onConflict: "user_id,room_code",
+        });
+    } catch (error) {
+      console.error("Error saving to history:", error);
+    }
+  };
 
   // Load existing messages when joining a room
   useEffect(() => {
@@ -73,6 +95,7 @@ const Index = () => {
     };
 
     loadMessages();
+    saveToHistory(roomCode);
 
     // Subscribe to real-time updates
     const channel = supabase
@@ -134,6 +157,11 @@ const Index = () => {
     setMessages([]);
   };
 
+  const handleStartCall = (video: boolean) => {
+    setIsVideoCall(video);
+    setIsCallOpen(true);
+  };
+
   const handleSendMessage = async (text: string) => {
     if (!roomCode || !user) return;
     
@@ -175,12 +203,24 @@ const Index = () => {
   }
 
   if (!roomCode) {
-    return <JoinRoom onJoinRoom={handleJoinRoom} userName={user.display_name ?? user.clip_id} />;
+    return (
+      <MainMenu 
+        onJoinRoom={handleJoinRoom} 
+        userName={user.display_name ?? user.clip_id} 
+        clipId={user.clip_id}
+        userId={authUser?.id || ""}
+      />
+    );
   }
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <ChatHeader roomCode={roomCode} onLeaveRoom={handleLeaveRoom} userName={user.display_name || user.clip_id} />
+      <ChatHeader 
+        roomCode={roomCode} 
+        onLeaveRoom={handleLeaveRoom} 
+        userName={user.display_name || user.clip_id}
+        onStartCall={handleStartCall}
+      />
       
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-3xl mx-auto">
@@ -219,6 +259,13 @@ const Index = () => {
       </div>
 
       <ClippyButton />
+      
+      <VideoCall 
+        isOpen={isCallOpen} 
+        onClose={() => setIsCallOpen(false)} 
+        roomCode={roomCode}
+        isVideoCall={isVideoCall}
+      />
     </div>
   );
 };
