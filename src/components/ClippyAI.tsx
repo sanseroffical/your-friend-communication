@@ -42,7 +42,7 @@ const ClippyAI = ({ isOpen, onClose }: ClippyAIProps) => {
       if (data.error) {
         setMessages(prev => [...prev, { role: "assistant", content: `Sorry, I encountered an error: ${data.error}` }]);
       } else {
-        setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
+        setMessages(prev => [...prev, { role: "assistant", content: data.message || "I'm here to help! 📎" }]);
       }
     } catch (error: any) {
       setMessages(prev => [...prev, { 
