@@ -3,6 +3,7 @@ import { Phone, Video, Copy, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatHeaderProps {
   roomCode: string;
@@ -22,8 +23,8 @@ const ChatHeader = ({ roomCode, onLeaveRoom, userName }: ChatHeaderProps) => {
     });
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("clipUser");
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     navigate("/auth");
   };
 

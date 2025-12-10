@@ -23,7 +23,7 @@ const Index = () => {
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { user, isLoading: userLoading } = useClipUser();
+  const { user, authUser, isLoading: userLoading } = useClipUser();
   const navigate = useNavigate();
 
   const scrollToBottom = () => {
@@ -61,7 +61,7 @@ const Index = () => {
         const formattedMessages: Message[] = data.map((msg) => ({
           id: msg.id,
           text: msg.content,
-          isOwn: msg.user_id === user.id,
+          isOwn: msg.user_id === authUser?.id,
           timestamp: new Date(msg.created_at).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
@@ -103,7 +103,7 @@ const Index = () => {
               {
                 id: newMsg.id,
                 text: newMsg.content,
-                isOwn: newMsg.user_id === user.id,
+                isOwn: newMsg.user_id === authUser?.id,
                 timestamp: new Date(newMsg.created_at).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -119,7 +119,7 @@ const Index = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [roomCode, user]);
+  }, [roomCode, user, authUser]);
 
   const handleJoinRoom = (code: string) => {
     setRoomCode(code);
@@ -144,7 +144,7 @@ const Index = () => {
         room_code: roomCode,
         sender_name: user.display_name || user.clip_id,
         content: text,
-        user_id: user.id,
+        user_id: authUser?.id,
       });
 
       if (error) {

@@ -39,17 +39,9 @@ export type Database = {
           sender_name?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      users: {
+      profiles: {
         Row: {
           clip_id: string
           created_at: string
@@ -60,7 +52,7 @@ export type Database = {
           clip_id: string
           created_at?: string
           display_name?: string | null
-          id?: string
+          id: string
         }
         Update: {
           clip_id?: string
@@ -75,7 +67,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_clip_id: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
