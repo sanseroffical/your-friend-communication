@@ -265,6 +265,8 @@ const Index = () => {
         onClose={() => setIsCallOpen(false)} 
         roomCode={roomCode}
         isVideoCall={isVideoCall}
+        userId={authUser?.id || ""}
+        userName={user.display_name || user.clip_id}
       />
     </div>
   );
