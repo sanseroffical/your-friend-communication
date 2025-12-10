@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,18 +8,10 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, LogIn, UserPlus, Copy, Check } from "lucide-react";
 
-const generateClipId = () => {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-};
-
 const Auth = () => {
   const [mode, setMode] = useState<"choose" | "login" | "signup" | "welcome">("choose");
-  const [clipId, setClipId] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [generatedClipId, setGeneratedClipId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -27,11 +19,20 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Check if already logged in
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/");
+      }
+    });
+  }, [navigate]);
+
   const handleLogin = async () => {
-    if (!clipId.trim()) {
+    if (!email.trim() || !password.trim()) {
       toast({
         title: "Error",
-        description: "Please enter your clipID",
+        description: "Please enter your email and password",
         variant: "destructive",
       });
       return;
@@ -39,27 +40,16 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
-      const { data: user, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("clip_id", clipId.trim().toLowerCase())
-        .maybeSingle();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      });
 
       if (error) throw error;
 
-      if (!user) {
-        toast({
-          title: "Not found",
-          description: "No account found with that clipID",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      localStorage.setItem("clipUser", JSON.stringify(user));
       toast({
         title: "Welcome back!",
-        description: `Logged in as ${user.display_name || user.clip_id}`,
+        description: "Successfully logged in",
       });
       navigate("/");
     } catch (error: any) {
@@ -74,6 +64,15 @@ const Auth = () => {
   };
 
   const handleSignup = async () => {
+    if (!email.trim() || !password.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your email and password",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!displayName.trim()) {
       toast({
         title: "Error",
@@ -83,10 +82,10 @@ const Auth = () => {
       return;
     }
 
-    if (displayName.trim().length < 2) {
+    if (password.length < 6) {
       toast({
         title: "Error",
-        description: "Username must be at least 2 characters",
+        description: "Password must be at least 6 characters",
         variant: "destructive",
       });
       return;
@@ -94,37 +93,34 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
-      let newClipId = generateClipId();
+      const redirectUrl = `${window.location.origin}/`;
       
-      // Ensure uniqueness
-      let exists = true;
-      while (exists) {
-        const { data: existing } = await supabase
-          .from("users")
-          .select("id")
-          .eq("clip_id", newClipId)
-          .maybeSingle();
-        
-        if (!existing) {
-          exists = false;
-        } else {
-          newClipId = generateClipId();
-        }
-      }
-
-      const { data: newUser, error } = await supabase
-        .from("users")
-        .insert({
-          clip_id: newClipId,
-          display_name: displayName.trim(),
-        })
-        .select()
-        .single();
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            display_name: displayName.trim(),
+          },
+        },
+      });
 
       if (error) throw error;
 
-      localStorage.setItem("clipUser", JSON.stringify(newUser));
-      setGeneratedClipId(newClipId);
+      // Fetch the generated clipId from the profile
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("clip_id")
+          .eq("id", data.user.id)
+          .single();
+
+        if (profile) {
+          setGeneratedClipId(profile.clip_id);
+        }
+      }
+
       setMode("welcome");
     } catch (error: any) {
       toast({
@@ -168,7 +164,7 @@ const Auth = () => {
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">Save this! You'll need it to log back in.</p>
+              <p className="text-xs text-muted-foreground">This is your unique identifier for sharing with friends.</p>
             </div>
             <Button onClick={continueToApp} className="w-full" size="lg">
               Continue to Chat
@@ -185,7 +181,7 @@ const Auth = () => {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">FriendChat</CardTitle>
-            <CardDescription>Connect with friends using your clipID</CardDescription>
+            <CardDescription>Connect with friends securely</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button
@@ -194,7 +190,7 @@ const Auth = () => {
               size="lg"
             >
               <LogIn className="mr-2 h-5 w-5" />
-              Login with clipID
+              Login
             </Button>
             <Button
               onClick={() => setMode("signup")}
@@ -227,23 +223,35 @@ const Auth = () => {
           <CardTitle>{mode === "login" ? "Login" : "Create Account"}</CardTitle>
           <CardDescription>
             {mode === "login"
-              ? "Enter your clipID to login"
-              : "Choose a username to get started"}
+              ? "Enter your credentials to login"
+              : "Create your account to get started"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {mode === "login" ? (
-            <div className="space-y-2">
-              <Label htmlFor="clipId">clipID</Label>
-              <Input
-                id="clipId"
-                placeholder="Enter your clipID"
-                value={clipId}
-                onChange={(e) => setClipId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              />
-            </div>
-          ) : (
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && (mode === "login" ? handleLogin() : handleSignup())}
+            />
+          </div>
+
+          {mode === "signup" && (
             <div className="space-y-2">
               <Label htmlFor="displayName">Username</Label>
               <Input
