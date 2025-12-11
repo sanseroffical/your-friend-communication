@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Monitor, MonitorOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { WebRTCSignaling, WebRTCConnection } from "@/utils/webrtc";
 
@@ -26,11 +25,14 @@ interface Participant {
 const VideoCall = ({ isOpen, onClose, roomCode, isVideoCall, userId, userName }: VideoCallProps) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(isVideoCall);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const [participants, setParticipants] = useState<Map<string, Participant>>(new Map());
   const [isConnecting, setIsConnecting] = useState(true);
   
   const localVideoRef = useRef<HTMLVideoElement>(null);
+  const originalVideoTrackRef = useRef<MediaStreamTrack | null>(null);
   const signalingRef = useRef<WebRTCSignaling | null>(null);
   const connectionsRef = useRef<Map<string, WebRTCConnection>>(new Map());
   const { toast } = useToast();
@@ -250,7 +252,86 @@ const VideoCall = ({ isOpen, onClose, roomCode, isVideoCall, userId, userName }:
     }
   };
 
+  const toggleScreenShare = async () => {
+    if (isScreenSharing) {
+      // Stop screen sharing, restore camera
+      if (screenStream) {
+        screenStream.getTracks().forEach(track => track.stop());
+        setScreenStream(null);
+      }
+      
+      if (originalVideoTrackRef.current && localStream) {
+        // Replace screen track with camera track in all connections
+        connectionsRef.current.forEach((connection) => {
+          connection.replaceVideoTrack(originalVideoTrackRef.current!);
+        });
+        
+        // Update local video display
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = localStream;
+        }
+      }
+      
+      setIsScreenSharing(false);
+      toast({
+        title: "Screen sharing stopped",
+        description: "Switched back to camera",
+      });
+    } else {
+      // Start screen sharing
+      try {
+        const screen = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false,
+        });
+        
+        setScreenStream(screen);
+        
+        // Save original video track for later
+        if (localStream) {
+          const videoTrack = localStream.getVideoTracks()[0];
+          if (videoTrack) {
+            originalVideoTrackRef.current = videoTrack;
+          }
+        }
+        
+        const screenTrack = screen.getVideoTracks()[0];
+        
+        // Replace camera track with screen track in all connections
+        connectionsRef.current.forEach((connection) => {
+          connection.replaceVideoTrack(screenTrack);
+        });
+        
+        // Update local video display to show screen
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = screen;
+        }
+        
+        // Handle when user stops sharing via browser UI
+        screenTrack.onended = () => {
+          toggleScreenShare();
+        };
+        
+        setIsScreenSharing(true);
+        toast({
+          title: "Screen sharing started",
+          description: "Others can now see your screen",
+        });
+      } catch (error) {
+        console.error("Error sharing screen:", error);
+        toast({
+          title: "Screen sharing failed",
+          description: "Could not share screen. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const endCall = () => {
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+    }
     cleanup();
     onClose();
     toast({
@@ -360,15 +441,27 @@ const VideoCall = ({ isOpen, onClose, roomCode, isVideoCall, userId, userName }:
         </Button>
         
         {isVideoCall && (
-          <Button
-            variant={!isVideoEnabled ? "destructive" : "secondary"}
-            size="lg"
-            className="rounded-full h-14 w-14"
-            onClick={toggleVideo}
-            title={isVideoEnabled ? "Turn off camera" : "Turn on camera"}
-          >
-            {isVideoEnabled ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
-          </Button>
+          <>
+            <Button
+              variant={!isVideoEnabled ? "destructive" : "secondary"}
+              size="lg"
+              className="rounded-full h-14 w-14"
+              onClick={toggleVideo}
+              title={isVideoEnabled ? "Turn off camera" : "Turn on camera"}
+              disabled={isScreenSharing}
+            >
+              {isVideoEnabled ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
+            </Button>
+            <Button
+              variant={isScreenSharing ? "default" : "secondary"}
+              size="lg"
+              className="rounded-full h-14 w-14"
+              onClick={toggleScreenShare}
+              title={isScreenSharing ? "Stop sharing" : "Share screen"}
+            >
+              {isScreenSharing ? <MonitorOff className="h-6 w-6" /> : <Monitor className="h-6 w-6" />}
+            </Button>
+          </>
         )}
         
         <Button
