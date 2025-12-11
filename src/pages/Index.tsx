@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
@@ -6,9 +6,13 @@ import ChatHeader from "@/components/ChatHeader";
 import MainMenu from "@/components/MainMenu";
 import ClippyButton from "@/components/ClippyButton";
 import VideoCall from "@/components/VideoCall";
+import TypingIndicator from "@/components/TypingIndicator";
+import MessageSearch from "@/components/MessageSearch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useClipUser } from "@/hooks/useClipUser";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
+import { useMessageReactions } from "@/hooks/useMessageReactions";
 
 interface Message {
   id: string;
@@ -19,6 +23,14 @@ interface Message {
   attachmentUrl?: string | null;
   attachmentType?: string | null;
   attachmentName?: string | null;
+  editedAt?: string | null;
+  parentId?: string | null;
+}
+
+interface ReplyTo {
+  id: string;
+  senderName: string;
+  content: string;
 }
 
 const Index = () => {
@@ -27,13 +39,30 @@ const Index = () => {
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [isCallOpen, setIsCallOpen] = useState(false);
   const [isVideoCall, setIsVideoCall] = useState(false);
+  const [replyTo, setReplyTo] = useState<ReplyTo | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading } = useClipUser();
   const navigate = useNavigate();
 
+  const userId = authUser?.id || "";
+  const userName = user?.display_name || user?.clip_id || "";
+
+  const { typingUsers, setTyping } = useTypingIndicator(roomCode, userId, userName);
+  const { reactions, fetchReactions, toggleReaction, AVAILABLE_EMOJIS } = useMessageReactions(roomCode, userId);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const scrollToMessage = (messageId: string) => {
+    const element = document.getElementById(`message-${messageId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      element.classList.add("bg-primary/10");
+      setTimeout(() => element.classList.remove("bg-primary/10"), 2000);
+    }
   };
 
   useEffect(() => {
@@ -95,8 +124,13 @@ const Index = () => {
           attachmentUrl: msg.attachment_url,
           attachmentType: msg.attachment_type,
           attachmentName: msg.attachment_name,
+          editedAt: msg.edited_at,
+          parentId: msg.parent_id,
         }));
         setMessages(formattedMessages);
+        
+        // Fetch reactions for all messages
+        fetchReactions(data.map(m => m.id));
       }
     };
 
@@ -115,19 +149,9 @@ const Index = () => {
           filter: `room_code=eq.${roomCode}`,
         },
         (payload) => {
-          const newMsg = payload.new as {
-            id: string;
-            content: string;
-            sender_name: string;
-            created_at: string;
-            user_id: string | null;
-            attachment_url: string | null;
-            attachment_type: string | null;
-            attachment_name: string | null;
-          };
+          const newMsg = payload.new as any;
           
           setMessages((prev) => {
-            // Avoid duplicates
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             
             return [
@@ -144,9 +168,43 @@ const Index = () => {
                 attachmentUrl: newMsg.attachment_url,
                 attachmentType: newMsg.attachment_type,
                 attachmentName: newMsg.attachment_name,
+                editedAt: newMsg.edited_at,
+                parentId: newMsg.parent_id,
               },
             ];
           });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `room_code=eq.${roomCode}`,
+        },
+        (payload) => {
+          const updatedMsg = payload.new as any;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === updatedMsg.id
+                ? { ...m, text: updatedMsg.content, editedAt: updatedMsg.edited_at }
+                : m
+            )
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+          filter: `room_code=eq.${roomCode}`,
+        },
+        (payload) => {
+          const deletedId = (payload.old as any).id;
+          setMessages((prev) => prev.filter((m) => m.id !== deletedId));
         }
       )
       .subscribe();
@@ -154,7 +212,7 @@ const Index = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [roomCode, user, authUser]);
+  }, [roomCode, user, authUser, fetchReactions]);
 
   const handleJoinRoom = (code: string) => {
     setRoomCode(code);
@@ -167,6 +225,7 @@ const Index = () => {
   const handleLeaveRoom = () => {
     setRoomCode(null);
     setMessages([]);
+    setReplyTo(null);
   };
 
   const handleStartCall = (video: boolean) => {
@@ -174,10 +233,14 @@ const Index = () => {
     setIsCallOpen(true);
   };
 
-  const handleSendMessage = async (text: string, attachment?: { url: string; type: string; name: string }) => {
+  const handleSendMessage = async (
+    text: string,
+    attachment?: { url: string; type: string; name: string },
+    replyToId?: string
+  ) => {
     if (!roomCode || !user) return;
     if (!text && !attachment) return;
-    
+
     setIsLoading(true);
 
     try {
@@ -189,11 +252,10 @@ const Index = () => {
         attachment_url: attachment?.url || null,
         attachment_type: attachment?.type || null,
         attachment_name: attachment?.name || null,
+        parent_id: replyToId || null,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
@@ -206,6 +268,61 @@ const Index = () => {
     }
   };
 
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ content: newContent, edited_at: new Date().toISOString() })
+        .eq("id", messageId)
+        .eq("user_id", authUser?.id);
+
+      if (error) throw error;
+      toast({ title: "Message edited" });
+    } catch (error) {
+      console.error("Error editing message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to edit message.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .delete()
+        .eq("id", messageId)
+        .eq("user_id", authUser?.id);
+
+      if (error) throw error;
+      toast({ title: "Message deleted" });
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete message.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReply = (message: Message) => {
+    setReplyTo({
+      id: message.id,
+      senderName: message.senderName,
+      content: message.text,
+    });
+  };
+
+  const getParentMessage = (parentId: string | null | undefined) => {
+    if (!parentId) return null;
+    const parent = messages.find((m) => m.id === parentId);
+    if (!parent) return null;
+    return { senderName: parent.senderName, content: parent.text };
+  };
+
   if (userLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -215,14 +332,14 @@ const Index = () => {
   }
 
   if (!user) {
-    return null; // Will redirect to /auth
+    return null;
   }
 
   if (!roomCode) {
     return (
-      <MainMenu 
-        onJoinRoom={handleJoinRoom} 
-        userName={user.display_name ?? user.clip_id} 
+      <MainMenu
+        onJoinRoom={handleJoinRoom}
+        userName={user.display_name ?? user.clip_id}
         clipId={user.clip_id}
         userId={authUser?.id || ""}
       />
@@ -231,24 +348,36 @@ const Index = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <ChatHeader 
-        roomCode={roomCode} 
-        onLeaveRoom={handleLeaveRoom} 
+      <ChatHeader
+        roomCode={roomCode}
+        onLeaveRoom={handleLeaveRoom}
         userName={user.display_name || user.clip_id}
         onStartCall={handleStartCall}
+        onSearch={() => setIsSearchOpen(true)}
       />
-      
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+
+      <div className="flex-1 overflow-y-auto px-4 py-6 relative">
+        {isSearchOpen && (
+          <MessageSearch
+            roomCode={roomCode}
+            onSelectMessage={scrollToMessage}
+            onClose={() => setIsSearchOpen(false)}
+          />
+        )}
+
         <div className="max-w-3xl mx-auto">
           {messages.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <p>No messages yet. Start the conversation!</p>
-              <p className="text-sm mt-2">Share code <span className="font-mono font-bold">{roomCode}</span> with your friend.</p>
+              <p className="text-sm mt-2">
+                Share code <span className="font-mono font-bold">{roomCode}</span> with your friend.
+              </p>
             </div>
           )}
           {messages.map((message) => (
             <ChatMessage
               key={message.id}
+              id={message.id}
               message={message.text}
               isOwn={message.isOwn}
               timestamp={message.timestamp}
@@ -256,6 +385,14 @@ const Index = () => {
               attachmentUrl={message.attachmentUrl}
               attachmentType={message.attachmentType}
               attachmentName={message.attachmentName}
+              editedAt={message.editedAt}
+              parentMessage={getParentMessage(message.parentId)}
+              reactions={reactions[message.id] || []}
+              onReply={() => handleReply(message)}
+              onEdit={(newContent) => handleEditMessage(message.id, newContent)}
+              onDelete={() => handleDeleteMessage(message.id)}
+              onReact={(emoji) => toggleReaction(message.id, emoji)}
+              availableEmojis={AVAILABLE_EMOJIS}
             />
           ))}
           {isLoading && (
@@ -274,14 +411,21 @@ const Index = () => {
       </div>
 
       <div className="max-w-3xl mx-auto w-full">
-        <ChatInput onSend={handleSendMessage} disabled={isLoading} />
+        <TypingIndicator typingUsers={typingUsers} />
+        <ChatInput
+          onSend={handleSendMessage}
+          disabled={isLoading}
+          replyTo={replyTo}
+          onCancelReply={() => setReplyTo(null)}
+          onTyping={setTyping}
+        />
       </div>
 
       <ClippyButton />
-      
-      <VideoCall 
-        isOpen={isCallOpen} 
-        onClose={() => setIsCallOpen(false)} 
+
+      <VideoCall
+        isOpen={isCallOpen}
+        onClose={() => setIsCallOpen(false)}
         roomCode={roomCode}
         isVideoCall={isVideoCall}
         userId={authUser?.id || ""}
