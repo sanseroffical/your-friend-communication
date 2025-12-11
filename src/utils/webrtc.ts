@@ -89,7 +89,7 @@ export class WebRTCSignaling {
     await this.channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         await this.channel?.track({
-          oderId: this.userId,
+          userId: this.userId,
           userName: this.userName,
           online_at: new Date().toISOString(),
         });
@@ -223,12 +223,19 @@ export class WebRTCConnection {
     };
   }
 
-  async setLocalStream(stream: MediaStream) {
+  setLocalStream(stream: MediaStream) {
     this.localStream = stream;
     stream.getTracks().forEach((track) => {
       console.log('Adding local track:', track.kind);
       this.peerConnection.addTrack(track, stream);
     });
+  }
+
+  replaceVideoTrack(newTrack: MediaStreamTrack) {
+    const sender = this.peerConnection.getSenders().find(s => s.track?.kind === 'video');
+    if (sender) {
+      sender.replaceTrack(newTrack);
+    }
   }
 
   async createOffer(): Promise<RTCSessionDescriptionInit> {
