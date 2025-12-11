@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Phone, Video, Copy, LogOut } from "lucide-react";
+import { Phone, Video, Copy, LogOut, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -10,9 +10,10 @@ interface ChatHeaderProps {
   onLeaveRoom: () => void;
   userName: string;
   onStartCall?: (video: boolean) => void;
+  onSearch?: () => void;
 }
 
-const ChatHeader = ({ roomCode, onLeaveRoom, userName, onStartCall }: ChatHeaderProps) => {
+const ChatHeader = ({ roomCode, onLeaveRoom, userName, onStartCall, onSearch }: ChatHeaderProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -59,6 +60,15 @@ const ChatHeader = ({ roomCode, onLeaveRoom, userName, onStartCall }: ChatHeader
         </div>
       </div>
       <div className="flex items-center gap-1">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-muted-foreground hover:text-foreground"
+          onClick={onSearch}
+          title="Search messages"
+        >
+          <Search className="h-5 w-5" />
+        </Button>
         <Button 
           variant="ghost" 
           size="icon" 

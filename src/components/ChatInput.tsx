@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Send, Paperclip, X, FileIcon, ImageIcon } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Send, Paperclip, X, FileIcon, Reply } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,23 +10,39 @@ interface Attachment {
   preview?: string;
 }
 
-interface ChatInputProps {
-  onSend: (message: string, attachment?: { url: string; type: string; name: string }) => void;
-  disabled?: boolean;
+interface ReplyTo {
+  id: string;
+  senderName: string;
+  content: string;
 }
 
-const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
+interface ChatInputProps {
+  onSend: (message: string, attachment?: { url: string; type: string; name: string }, replyToId?: string) => void;
+  disabled?: boolean;
+  replyTo?: ReplyTo | null;
+  onCancelReply?: () => void;
+  onTyping?: () => void;
+}
+
+const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Focus input when reply is set
+  useEffect(() => {
+    if (replyTo && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [replyTo]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 10MB limit
     if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -36,13 +52,12 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
       return;
     }
 
-    const preview = file.type.startsWith("image/") 
-      ? URL.createObjectURL(file) 
+    const preview = file.type.startsWith("image/")
+      ? URL.createObjectURL(file)
       : undefined;
-    
+
     setAttachment({ file, preview });
-    
-    // Reset input
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -90,10 +105,10 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
     if ((!message.trim() && !attachment) || disabled || isUploading) return;
 
     setIsUploading(true);
-    
+
     try {
       let attachmentData: { url: string; type: string; name: string } | undefined;
-      
+
       if (attachment) {
         const uploaded = await uploadFile(attachment.file);
         if (uploaded) {
@@ -102,25 +117,53 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
         removeAttachment();
       }
 
-      onSend(message.trim() || (attachmentData ? "" : ""), attachmentData);
+      onSend(message.trim() || (attachmentData ? "" : ""), attachmentData, replyTo?.id);
       setMessage("");
+      onCancelReply?.();
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+    onTyping?.();
   };
 
   const isImage = attachment?.file.type.startsWith("image/");
 
   return (
     <form onSubmit={handleSubmit} className="bg-card border-t border-border">
+      {/* Reply preview */}
+      {replyTo && (
+        <div className="px-4 pt-3 flex items-center gap-2">
+          <div className="flex-1 flex items-center gap-2 bg-muted rounded-lg p-2 text-sm">
+            <Reply className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="font-medium">{replyTo.senderName}</span>
+              <p className="truncate text-muted-foreground">{replyTo.content}</p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 shrink-0"
+              onClick={onCancelReply}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Attachment preview */}
       {attachment && (
         <div className="px-4 pt-3">
           <div className="inline-flex items-center gap-2 bg-muted rounded-lg p-2 pr-3">
             {isImage && attachment.preview ? (
-              <img 
-                src={attachment.preview} 
-                alt="Preview" 
+              <img
+                src={attachment.preview}
+                alt="Preview"
                 className="h-12 w-12 rounded object-cover"
               />
             ) : (
@@ -146,7 +189,7 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
           </div>
         </div>
       )}
-      
+
       {/* Input row */}
       <div className="flex items-center gap-2 p-4">
         <input
@@ -167,14 +210,15 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
           <Paperclip className="h-5 w-5" />
         </Button>
         <Input
+          ref={inputRef}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleInputChange}
           placeholder="Type a message..."
           className="flex-1 bg-background border-border focus-visible:ring-primary"
           disabled={disabled || isUploading}
         />
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           size="icon"
           disabled={(!message.trim() && !attachment) || disabled || isUploading}
           className="shrink-0"
