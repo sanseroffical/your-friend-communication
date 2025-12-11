@@ -16,6 +16,9 @@ interface Message {
   isOwn: boolean;
   timestamp: string;
   senderName: string;
+  attachmentUrl?: string | null;
+  attachmentType?: string | null;
+  attachmentName?: string | null;
 }
 
 const Index = () => {
@@ -89,6 +92,9 @@ const Index = () => {
             minute: "2-digit",
           }),
           senderName: msg.sender_name,
+          attachmentUrl: msg.attachment_url,
+          attachmentType: msg.attachment_type,
+          attachmentName: msg.attachment_name,
         }));
         setMessages(formattedMessages);
       }
@@ -115,6 +121,9 @@ const Index = () => {
             sender_name: string;
             created_at: string;
             user_id: string | null;
+            attachment_url: string | null;
+            attachment_type: string | null;
+            attachment_name: string | null;
           };
           
           setMessages((prev) => {
@@ -132,6 +141,9 @@ const Index = () => {
                   minute: "2-digit",
                 }),
                 senderName: newMsg.sender_name,
+                attachmentUrl: newMsg.attachment_url,
+                attachmentType: newMsg.attachment_type,
+                attachmentName: newMsg.attachment_name,
               },
             ];
           });
@@ -162,8 +174,9 @@ const Index = () => {
     setIsCallOpen(true);
   };
 
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string, attachment?: { url: string; type: string; name: string }) => {
     if (!roomCode || !user) return;
+    if (!text && !attachment) return;
     
     setIsLoading(true);
 
@@ -171,8 +184,11 @@ const Index = () => {
       const { error } = await supabase.from("messages").insert({
         room_code: roomCode,
         sender_name: user.display_name || user.clip_id,
-        content: text,
+        content: text || "",
         user_id: authUser?.id,
+        attachment_url: attachment?.url || null,
+        attachment_type: attachment?.type || null,
+        attachment_name: attachment?.name || null,
       });
 
       if (error) {
@@ -237,6 +253,9 @@ const Index = () => {
               isOwn={message.isOwn}
               timestamp={message.timestamp}
               senderName={message.isOwn ? undefined : message.senderName}
+              attachmentUrl={message.attachmentUrl}
+              attachmentType={message.attachmentType}
+              attachmentName={message.attachmentName}
             />
           ))}
           {isLoading && (
