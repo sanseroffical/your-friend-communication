@@ -6,6 +6,8 @@ export interface ClipUser {
   id: string;
   clip_id: string;
   display_name: string | null;
+  avatar_url?: string | null;
+  bio?: string | null;
   created_at: string;
 }
 

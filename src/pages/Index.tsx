@@ -8,11 +8,15 @@ import ClippyButton from "@/components/ClippyButton";
 import VideoCall from "@/components/VideoCall";
 import TypingIndicator from "@/components/TypingIndicator";
 import MessageSearch from "@/components/MessageSearch";
+import ProfileEditor from "@/components/ProfileEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useClipUser } from "@/hooks/useClipUser";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useMessageReactions } from "@/hooks/useMessageReactions";
+import { useUserPresence } from "@/hooks/useUserPresence";
+import { useReadReceipts } from "@/hooks/useReadReceipts";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Message {
   id: string;
@@ -41,9 +45,10 @@ const Index = () => {
   const [isVideoCall, setIsVideoCall] = useState(false);
   const [replyTo, setReplyTo] = useState<ReplyTo | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { user, authUser, isLoading: userLoading } = useClipUser();
+  const { user, authUser, isLoading: userLoading, logout } = useClipUser();
   const navigate = useNavigate();
 
   const userId = authUser?.id || "";
@@ -51,6 +56,9 @@ const Index = () => {
 
   const { typingUsers, setTyping } = useTypingIndicator(roomCode, userId, userName);
   const { reactions, fetchReactions, toggleReaction, AVAILABLE_EMOJIS } = useMessageReactions(roomCode, userId);
+  const { onlineUsers } = useUserPresence(roomCode || "", userId, userName);
+  const { fetchReadReceipts, markAsRead, getReadBy } = useReadReceipts(roomCode || "", userId);
+  const { isAdmin, isModerator } = useUserRole(userId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -129,8 +137,10 @@ const Index = () => {
         }));
         setMessages(formattedMessages);
         
-        // Fetch reactions for all messages
-        fetchReactions(data.map(m => m.id));
+        // Fetch reactions and read receipts for all messages
+        const messageIds = data.map(m => m.id);
+        fetchReactions(messageIds);
+        fetchReadReceipts(messageIds);
       }
     };
 
@@ -212,7 +222,12 @@ const Index = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [roomCode, user, authUser, fetchReactions]);
+  }, [roomCode, user, authUser, fetchReactions, fetchReadReceipts]);
+
+  const refreshProfile = useCallback(() => {
+    // This is a simple approach - in production you'd refetch the user profile
+    window.location.reload();
+  }, []);
 
   const handleJoinRoom = (code: string) => {
     setRoomCode(code);
@@ -352,8 +367,13 @@ const Index = () => {
         roomCode={roomCode}
         onLeaveRoom={handleLeaveRoom}
         userName={user.display_name || user.clip_id}
+        avatarUrl={(user as any).avatar_url}
         onStartCall={handleStartCall}
         onSearch={() => setIsSearchOpen(true)}
+        onEditProfile={() => setIsProfileEditorOpen(true)}
+        onlineUsers={onlineUsers}
+        isAdmin={isAdmin}
+        isModerator={isModerator}
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-6 relative">
@@ -388,10 +408,12 @@ const Index = () => {
               editedAt={message.editedAt}
               parentMessage={getParentMessage(message.parentId)}
               reactions={reactions[message.id] || []}
+              readBy={getReadBy(message.id)}
               onReply={() => handleReply(message)}
               onEdit={(newContent) => handleEditMessage(message.id, newContent)}
               onDelete={() => handleDeleteMessage(message.id)}
               onReact={(emoji) => toggleReaction(message.id, emoji)}
+              onVisible={() => markAsRead(message.id)}
               availableEmojis={AVAILABLE_EMOJIS}
             />
           ))}
@@ -431,6 +453,21 @@ const Index = () => {
         userId={authUser?.id || ""}
         userName={user.display_name || user.clip_id}
       />
+
+      {user && (
+        <ProfileEditor
+          isOpen={isProfileEditorOpen}
+          onClose={() => setIsProfileEditorOpen(false)}
+          profile={{
+            id: user.id,
+            display_name: user.display_name,
+            clip_id: user.clip_id,
+            avatar_url: (user as any).avatar_url,
+            bio: (user as any).bio,
+          }}
+          onProfileUpdated={refreshProfile}
+        />
+      )}
     </div>
   );
 };
