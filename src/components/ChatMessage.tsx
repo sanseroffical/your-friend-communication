@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { FileIcon, Download, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MessageActions from "@/components/MessageActions";
+import ReadReceiptIndicator from "@/components/ReadReceiptIndicator";
 import { Reaction } from "@/hooks/useMessageReactions";
 
 interface ChatMessageProps {
@@ -18,10 +19,12 @@ interface ChatMessageProps {
   editedAt?: string | null;
   parentMessage?: { senderName: string; content: string } | null;
   reactions?: Reaction[];
+  readBy?: string[];
   onReply: () => void;
   onEdit: (newContent: string) => void;
   onDelete: () => void;
   onReact: (emoji: string) => void;
+  onVisible?: () => void;
   availableEmojis: string[];
 }
 
@@ -37,14 +40,38 @@ const ChatMessage = ({
   editedAt,
   parentMessage,
   reactions = [],
+  readBy = [],
   onReply,
   onEdit,
   onDelete,
   onReact,
+  onVisible,
   availableEmojis,
 }: ChatMessageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message);
+  const messageRef = useRef<HTMLDivElement>(null);
+
+  // Intersection observer for marking messages as read
+  useEffect(() => {
+    if (isOwn || !onVisible) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          onVisible();
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (messageRef.current) {
+      observer.observe(messageRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isOwn, onVisible]);
 
   const isImage = attachmentType?.startsWith("image/");
   const hasAttachment = !!attachmentUrl;
@@ -64,6 +91,7 @@ const ChatMessage = ({
 
   return (
     <div
+      ref={messageRef}
       id={`message-${id}`}
       className={cn("flex w-full mb-4 group", isOwn ? "justify-end" : "justify-start")}
     >
@@ -215,12 +243,13 @@ const ChatMessage = ({
           </div>
         )}
 
-        {/* Timestamp and edited indicator */}
+        {/* Timestamp, edited indicator, and read receipts */}
         <div className="flex items-center gap-1.5 mt-1 px-1">
           <span className="text-xs text-muted-foreground">{timestamp}</span>
           {editedAt && (
             <span className="text-xs text-muted-foreground italic">(edited)</span>
           )}
+          <ReadReceiptIndicator isSent={true} readBy={readBy} isOwnMessage={isOwn} />
         </div>
       </div>
     </div>

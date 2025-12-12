@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { containsProfanity, filterProfanity } from "@/utils/profanityFilter";
 
 interface Attachment {
   file: File;
@@ -104,6 +105,17 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatI
     e.preventDefault();
     if ((!message.trim() && !attachment) || disabled || isUploading) return;
 
+    // Check for profanity
+    const messageToSend = message.trim();
+    if (messageToSend && containsProfanity(messageToSend)) {
+      toast({
+        title: "Message blocked",
+        description: "Your message contains inappropriate language. Please rephrase it.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUploading(true);
 
     try {
@@ -117,7 +129,7 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatI
         removeAttachment();
       }
 
-      onSend(message.trim() || (attachmentData ? "" : ""), attachmentData, replyTo?.id);
+      onSend(messageToSend || (attachmentData ? "" : ""), attachmentData, replyTo?.id);
       setMessage("");
       onCancelReply?.();
     } finally {
