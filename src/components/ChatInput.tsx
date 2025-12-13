@@ -44,10 +44,10 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatI
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 100 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Maximum file size is 10MB",
+        description: "Maximum file size is 100MB",
         variant: "destructive",
       });
       return;
@@ -209,7 +209,7 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatI
           type="file"
           className="hidden"
           onChange={handleFileSelect}
-          accept="image/*,.pdf,.doc,.docx,.txt,.zip"
+          accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip,.mp3,.wav,.mp4,.mov,.avi,.webm"
         />
         <Button
           type="button"
