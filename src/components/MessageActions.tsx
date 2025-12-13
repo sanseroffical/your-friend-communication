@@ -15,18 +15,22 @@ import {
 
 interface MessageActionsProps {
   isOwn: boolean;
+  canModerate?: boolean;
   onReply: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onModDelete?: () => void;
   onReact: (emoji: string) => void;
   availableEmojis: string[];
 }
 
 const MessageActions = ({
   isOwn,
+  canModerate,
   onReply,
   onEdit,
   onDelete,
+  onModDelete,
   onReact,
   availableEmojis,
 }: MessageActionsProps) => {
@@ -61,19 +65,20 @@ const MessageActions = ({
         </Button>
 
         {isOwn && (
-          <>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit}>
-              <Edit2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-destructive hover:text-destructive"
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit}>
+            <Edit2 className="h-4 w-4" />
+          </Button>
+        )}
+        {(isOwn || canModerate) && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-destructive hover:text-destructive"
+            onClick={() => setShowDeleteDialog(true)}
+            title={!isOwn && canModerate ? "Delete as moderator" : "Delete"}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         )}
       </div>
 
@@ -88,7 +93,7 @@ const MessageActions = ({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={onDelete}
+              onClick={isOwn ? onDelete : onModDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete

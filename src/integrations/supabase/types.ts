@@ -38,6 +38,33 @@ export type Database = {
         }
         Relationships: []
       }
+      community_rules: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          rule_number: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          rule_number: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          rule_number?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           created_at: string
@@ -176,6 +203,33 @@ export type Database = {
           },
         ]
       }
+      room_themes: {
+        Row: {
+          created_at: string
+          id: string
+          room_code: string
+          set_by: string | null
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          room_code: string
+          set_by?: string | null
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          room_code?: string
+          set_by?: string | null
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       typing_status: {
         Row: {
           id: string
@@ -200,6 +254,33 @@ export type Database = {
         }
         Relationships: []
       }
+      update_log: {
+        Row: {
+          changes: Json | null
+          description: string | null
+          id: string
+          released_at: string
+          title: string
+          version: string
+        }
+        Insert: {
+          changes?: Json | null
+          description?: string | null
+          id?: string
+          released_at?: string
+          title: string
+          version: string
+        }
+        Update: {
+          changes?: Json | null
+          description?: string | null
+          id?: string
+          released_at?: string
+          title?: string
+          version?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -217,6 +298,51 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          bonzi_chaos_level: number | null
+          bonzi_enabled: boolean | null
+          created_at: string
+          font_family: string | null
+          font_size: string | null
+          high_contrast: boolean | null
+          id: string
+          reduce_motion: boolean | null
+          screen_reader_mode: boolean | null
+          theme: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bonzi_chaos_level?: number | null
+          bonzi_enabled?: boolean | null
+          created_at?: string
+          font_family?: string | null
+          font_size?: string | null
+          high_contrast?: boolean | null
+          id?: string
+          reduce_motion?: boolean | null
+          screen_reader_mode?: boolean | null
+          theme?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bonzi_chaos_level?: number | null
+          bonzi_enabled?: boolean | null
+          created_at?: string
+          font_family?: string | null
+          font_size?: string | null
+          high_contrast?: boolean | null
+          id?: string
+          reduce_motion?: boolean | null
+          screen_reader_mode?: boolean | null
+          theme?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

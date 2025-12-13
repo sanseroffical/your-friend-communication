@@ -9,6 +9,9 @@ import VideoCall from "@/components/VideoCall";
 import TypingIndicator from "@/components/TypingIndicator";
 import MessageSearch from "@/components/MessageSearch";
 import ProfileEditor from "@/components/ProfileEditor";
+import SettingsPanel from "@/components/SettingsPanel";
+import AdminPanel from "@/components/AdminPanel";
+import BonziBuddy from "@/components/BonziBuddy";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useClipUser } from "@/hooks/useClipUser";
@@ -17,6 +20,8 @@ import { useMessageReactions } from "@/hooks/useMessageReactions";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { useReadReceipts } from "@/hooks/useReadReceipts";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { useAdminActions } from "@/hooks/useAdminActions";
 
 interface Message {
   id: string;
@@ -59,6 +64,15 @@ const Index = () => {
   const { onlineUsers } = useUserPresence(roomCode || "", userId, userName);
   const { fetchReadReceipts, markAsRead, getReadBy } = useReadReceipts(roomCode || "", userId);
   const { isAdmin, isModerator } = useUserRole(userId);
+  const { settings, subscribeToRoomTheme } = useUserSettings(userId);
+  const { deleteUserMessage } = useAdminActions(isAdmin, isModerator);
+
+  // Subscribe to room theme when in a room
+  useEffect(() => {
+    if (roomCode) {
+      return subscribeToRoomTheme(roomCode);
+    }
+  }, [roomCode, subscribeToRoomTheme]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -303,16 +317,20 @@ const Index = () => {
     }
   };
 
-  const handleDeleteMessage = async (messageId: string) => {
+  const handleDeleteMessage = async (messageId: string, isModAction = false) => {
     try {
-      const { error } = await supabase
-        .from("messages")
-        .delete()
-        .eq("id", messageId)
-        .eq("user_id", authUser?.id);
+      if (isModAction) {
+        await deleteUserMessage(messageId);
+      } else {
+        const { error } = await supabase
+          .from("messages")
+          .delete()
+          .eq("id", messageId)
+          .eq("user_id", authUser?.id);
 
-      if (error) throw error;
-      toast({ title: "Message deleted" });
+        if (error) throw error;
+        toast({ title: "Message deleted" });
+      }
     } catch (error) {
       console.error("Error deleting message:", error);
       toast({

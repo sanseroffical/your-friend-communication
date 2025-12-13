@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import ClippyButton from "./ClippyButton";
-
+import UpdateLog from "./UpdateLog";
+import CommunityRules from "./CommunityRules";
 interface ChatHistoryItem {
   id: string;
   room_code: string;
@@ -230,6 +231,10 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
             <History className="mr-2 h-5 w-5" />
             Chat History
           </Button>
+          <div className="flex gap-2 justify-center">
+            <UpdateLog />
+            <CommunityRules />
+          </div>
           <div className="pt-2">
             <Button onClick={handleLogout} variant="ghost" className="w-full text-muted-foreground">
               <LogOut className="mr-2 h-4 w-4" />

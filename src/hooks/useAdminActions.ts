@@ -1,0 +1,139 @@
+import { useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+export function useAdminActions(isAdmin: boolean, isModerator: boolean) {
+  const { toast } = useToast();
+  const canModerate = isAdmin || isModerator;
+
+  const deleteUserMessage = useCallback(async (messageId: string) => {
+    if (!canModerate) {
+      toast({
+        title: "Unauthorized",
+        description: "You don't have permission to delete this message.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('messages')
+      .delete()
+      .eq('id', messageId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete message.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    toast({ title: "Message deleted by moderator" });
+    return true;
+  }, [canModerate, toast]);
+
+  const deleteUserAccount = useCallback(async (targetUserId: string) => {
+    if (!isAdmin) {
+      toast({
+        title: "Unauthorized",
+        description: "Only admins can delete accounts.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Delete profile (cascade will handle related data)
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', targetUserId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete account. The user's auth account remains.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    toast({ title: "User profile deleted" });
+    return true;
+  }, [isAdmin, toast]);
+
+  const grantRole = useCallback(async (targetUserId: string, role: 'admin' | 'moderator') => {
+    if (!isAdmin) {
+      toast({
+        title: "Unauthorized",
+        description: "Only admins can grant roles.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('user_roles')
+      .insert({
+        user_id: targetUserId,
+        role,
+      });
+
+    if (error) {
+      if (error.code === '23505') {
+        toast({
+          title: "Already assigned",
+          description: `User already has the ${role} role.`,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to grant role.",
+          variant: "destructive",
+        });
+      }
+      return false;
+    }
+
+    toast({ title: `${role} role granted` });
+    return true;
+  }, [isAdmin, toast]);
+
+  const revokeRole = useCallback(async (targetUserId: string, role: 'admin' | 'moderator') => {
+    if (!isAdmin) {
+      toast({
+        title: "Unauthorized",
+        description: "Only admins can revoke roles.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('user_roles')
+      .delete()
+      .eq('user_id', targetUserId)
+      .eq('role', role);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to revoke role.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    toast({ title: `${role} role revoked` });
+    return true;
+  }, [isAdmin, toast]);
+
+  return {
+    canModerate,
+    deleteUserMessage,
+    deleteUserAccount,
+    grantRole,
+    revokeRole,
+  };
+}

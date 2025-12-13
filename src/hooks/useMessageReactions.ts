@@ -11,7 +11,7 @@ export interface MessageReactions {
   [messageId: string]: Reaction[];
 }
 
-const AVAILABLE_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🎉"];
+const AVAILABLE_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🎉", "🔥", "👀", "💀", "🙏", "💯", "🤔", "😍", "🥺", "✨", "🎊"];
 
 export function useMessageReactions(roomCode: string | null, userId: string) {
   const [reactions, setReactions] = useState<MessageReactions>({});
