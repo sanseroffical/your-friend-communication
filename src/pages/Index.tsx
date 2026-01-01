@@ -386,6 +386,7 @@ const Index = () => {
         onLeaveRoom={handleLeaveRoom}
         userName={user.display_name || user.clip_id}
         avatarUrl={(user as any).avatar_url}
+        userId={authUser?.id || ""}
         onStartCall={handleStartCall}
         onSearch={() => setIsSearchOpen(true)}
         onEditProfile={() => setIsProfileEditorOpen(true)}

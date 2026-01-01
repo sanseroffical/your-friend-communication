@@ -13,6 +13,8 @@ interface ChatMessageProps {
   isOwn: boolean;
   timestamp: string;
   senderName?: string;
+  senderId?: string;
+  senderAvatarUrl?: string | null;
   attachmentUrl?: string | null;
   attachmentType?: string | null;
   attachmentName?: string | null;
@@ -23,9 +25,11 @@ interface ChatMessageProps {
   onReply: () => void;
   onEdit: (newContent: string) => void;
   onDelete: () => void;
+  onModDelete?: () => void;
   onReact: (emoji: string) => void;
   onVisible?: () => void;
   availableEmojis: string[];
+  canModerate?: boolean;
 }
 
 const ChatMessage = ({
@@ -34,6 +38,8 @@ const ChatMessage = ({
   isOwn,
   timestamp,
   senderName,
+  senderId,
+  senderAvatarUrl,
   attachmentUrl,
   attachmentType,
   attachmentName,
@@ -44,9 +50,11 @@ const ChatMessage = ({
   onReply,
   onEdit,
   onDelete,
+  onModDelete,
   onReact,
   onVisible,
   availableEmojis,
+  canModerate,
 }: ChatMessageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message);
@@ -216,8 +224,10 @@ const ChatMessage = ({
               onReply={onReply}
               onEdit={() => setIsEditing(true)}
               onDelete={onDelete}
+              onModDelete={canModerate ? onModDelete : undefined}
               onReact={onReact}
               availableEmojis={availableEmojis}
+              canModerate={canModerate}
             />
           )}
         </div>

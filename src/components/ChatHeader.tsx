@@ -1,11 +1,14 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Phone, Video, Copy, LogOut, Search, Settings } from "lucide-react";
+import { Phone, Video, Copy, LogOut, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import UserPresenceIndicator from "./UserPresenceIndicator";
 import AdminBadge from "./AdminBadge";
+import SettingsPanel from "./SettingsPanel";
+import NotificationSettings from "./NotificationSettings";
+import ModerationBotPanel from "./ModerationBotPanel";
 
 interface PresenceUser {
   id: string;
@@ -18,6 +21,7 @@ interface ChatHeaderProps {
   onLeaveRoom: () => void;
   userName: string;
   avatarUrl?: string | null;
+  userId: string;
   onStartCall?: (video: boolean) => void;
   onSearch?: () => void;
   onEditProfile?: () => void;
@@ -31,6 +35,7 @@ const ChatHeader = ({
   onLeaveRoom, 
   userName, 
   avatarUrl,
+  userId,
   onStartCall, 
   onSearch,
   onEditProfile,
@@ -121,15 +126,9 @@ const ChatHeader = ({
         >
           <Video className="h-5 w-5" />
         </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-muted-foreground hover:text-foreground"
-          onClick={onEditProfile}
-          title="Edit profile"
-        >
-          <Settings className="h-5 w-5" />
-        </Button>
+        <NotificationSettings />
+        {isAdmin && <ModerationBotPanel isAdmin={isAdmin} />}
+        <SettingsPanel userId={userId} roomCode={roomCode} isAdmin={isAdmin} />
         <Button 
           variant="ghost" 
           size="icon" 
