@@ -3,13 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Users, History, ArrowLeft, Trash2, LogOut, Copy, Check } from "lucide-react";
+import { MessageSquare, Users, History, ArrowLeft, Trash2, LogOut, Copy, Check, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import ClippyButton from "./ClippyButton";
 import UpdateLog from "./UpdateLog";
 import CommunityRules from "./CommunityRules";
+import LegalPages from "./LegalPages";
+
+const PUBLIC_ROOM_CODE = "C6ZC9N";
+
 interface ChatHistoryItem {
   id: string;
   room_code: string;
@@ -219,9 +223,13 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button onClick={handleCreateRoom} className="w-full" size="lg">
+          <Button onClick={() => onJoinRoom(PUBLIC_ROOM_CODE)} variant="default" className="w-full" size="lg">
+            <Globe className="mr-2 h-5 w-5" />
+            Join Public Chat
+          </Button>
+          <Button onClick={handleCreateRoom} variant="outline" className="w-full" size="lg">
             <MessageSquare className="mr-2 h-5 w-5" />
-            Create New Room
+            Create Private Room
           </Button>
           <Button onClick={() => setMode("join")} variant="outline" className="w-full" size="lg">
             <Users className="mr-2 h-5 w-5" />
@@ -231,7 +239,7 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
             <History className="mr-2 h-5 w-5" />
             Chat History
           </Button>
-          <div className="flex gap-2 justify-center">
+          <div className="flex gap-2 justify-center pt-2">
             <UpdateLog />
             <CommunityRules />
           </div>
@@ -240,6 +248,9 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
+          </div>
+          <div className="flex justify-center pt-2">
+            <LegalPages />
           </div>
         </CardContent>
       </Card>
