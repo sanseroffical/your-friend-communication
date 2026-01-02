@@ -9,6 +9,7 @@ import AdminBadge from "./AdminBadge";
 import SettingsPanel from "./SettingsPanel";
 import NotificationSettings from "./NotificationSettings";
 import ModerationBotPanel from "./ModerationBotPanel";
+import AdminPanel from "./AdminPanel";
 
 interface PresenceUser {
   id: string;
@@ -127,7 +128,8 @@ const ChatHeader = ({
           <Video className="h-5 w-5" />
         </Button>
         <NotificationSettings />
-        {isAdmin && <ModerationBotPanel isAdmin={isAdmin} />}
+        <ModerationBotPanel isAdmin={isAdmin || false} roomCode={roomCode} />
+        {(isAdmin || isModerator) && <AdminPanel isAdmin={isAdmin || false} isModerator={isModerator || false} />}
         <SettingsPanel userId={userId} roomCode={roomCode} isAdmin={isAdmin} />
         <Button 
           variant="ghost" 

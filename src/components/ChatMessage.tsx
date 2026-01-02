@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MessageActions from "@/components/MessageActions";
 import ReadReceiptIndicator from "@/components/ReadReceiptIndicator";
+import UserProfileCard from "@/components/UserProfileCard";
 import { Reaction } from "@/hooks/useMessageReactions";
 
 interface ChatMessageProps {
@@ -105,7 +106,13 @@ const ChatMessage = ({
     >
       <div className={cn("max-w-[70%] flex flex-col", isOwn ? "items-end" : "items-start")}>
         {!isOwn && senderName && (
-          <span className="text-xs text-muted-foreground mb-1 px-1">{senderName}</span>
+          <div className="mb-1 px-1">
+            <UserProfileCard
+              userId={senderId || ""}
+              displayName={senderName}
+              avatarUrl={senderAvatarUrl}
+            />
+          </div>
         )}
 
         <div className="flex items-start gap-1">
