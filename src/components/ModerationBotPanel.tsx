@@ -1,17 +1,61 @@
+import { useState, useEffect } from 'react';
 import { Bot, Shield, ShieldOff, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useModerationBot } from '@/hooks/useModerationBot';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ModerationBotPanelProps {
   isAdmin: boolean;
+  roomCode: string;
 }
 
-const ModerationBotPanel = ({ isAdmin }: ModerationBotPanelProps) => {
-  const { isActive, toggleBot } = useModerationBot();
+const ModerationBotPanel = ({ isAdmin, roomCode }: ModerationBotPanelProps) => {
+  const [isActive, setIsActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  // Load persisted bot state for this room from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem(`modbot-${roomCode}`);
+    if (stored !== null) {
+      setIsActive(stored === 'true');
+    }
+    setIsLoading(false);
+  }, [roomCode]);
+
+  const toggleBot = async () => {
+    const newState = !isActive;
+    setIsActive(newState);
+    localStorage.setItem(`modbot-${roomCode}`, String(newState));
+
+    // Send a system message to the room
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('messages').insert({
+          room_code: roomCode,
+          sender_name: '🤖 System',
+          content: newState
+            ? '🛡️ Moderation Bot has been enabled. Messages will now be automatically moderated.'
+            : '⚠️ Moderation Bot has been disabled. Messages are no longer moderated.',
+          user_id: user.id,
+        });
+      }
+    } catch (error) {
+      console.error('Error sending bot notification:', error);
+    }
+
+    toast({
+      title: newState ? 'Moderation Bot Enabled' : 'Moderation Bot Disabled',
+      description: newState
+        ? 'Messages will now be automatically moderated'
+        : 'Automatic moderation is now off',
+    });
+  };
 
   if (!isAdmin) return null;
 
@@ -65,6 +109,7 @@ const ModerationBotPanel = ({ isAdmin }: ModerationBotPanelProps) => {
             <Switch
               checked={isActive}
               onCheckedChange={toggleBot}
+              disabled={isLoading}
             />
           </div>
 

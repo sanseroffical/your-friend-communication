@@ -29,6 +29,7 @@ interface Message {
   isOwn: boolean;
   timestamp: string;
   senderName: string;
+  senderId?: string | null;
   attachmentUrl?: string | null;
   attachmentType?: string | null;
   attachmentName?: string | null;
@@ -143,6 +144,7 @@ const Index = () => {
             minute: "2-digit",
           }),
           senderName: msg.sender_name,
+          senderId: msg.user_id,
           attachmentUrl: msg.attachment_url,
           attachmentType: msg.attachment_type,
           attachmentName: msg.attachment_name,
@@ -189,6 +191,7 @@ const Index = () => {
                   minute: "2-digit",
                 }),
                 senderName: newMsg.sender_name,
+                senderId: newMsg.user_id,
                 attachmentUrl: newMsg.attachment_url,
                 attachmentType: newMsg.attachment_type,
                 attachmentName: newMsg.attachment_name,
@@ -421,6 +424,7 @@ const Index = () => {
               isOwn={message.isOwn}
               timestamp={message.timestamp}
               senderName={message.isOwn ? undefined : message.senderName}
+              senderId={message.isOwn ? undefined : message.senderId || undefined}
               attachmentUrl={message.attachmentUrl}
               attachmentType={message.attachmentType}
               attachmentName={message.attachmentName}
@@ -487,6 +491,13 @@ const Index = () => {
           onProfileUpdated={refreshProfile}
         />
       )}
+
+      {/* BonziBuddy */}
+      <BonziBuddy
+        enabled={settings.bonzi_enabled}
+        chaosLevel={settings.bonzi_chaos_level}
+        userName={userName}
+      />
     </div>
   );
 };
