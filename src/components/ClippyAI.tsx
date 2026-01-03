@@ -18,7 +18,7 @@ interface ClippyAIProps {
 
 const ClippyAI = ({ isOpen, onClose }: ClippyAIProps) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! I'm Clippy, your friendly AI assistant. How can I help you today? 📎" }
+    { role: "assistant", content: "Hey! I'm Clippy, here to help you navigate this chat. Got questions about features or need tips? Just ask! 📎" }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
