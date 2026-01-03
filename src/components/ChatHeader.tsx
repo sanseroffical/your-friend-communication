@@ -1,15 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Phone, Video, Copy, LogOut, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import UserPresenceIndicator from "./UserPresenceIndicator";
 import AdminBadge from "./AdminBadge";
-import SettingsPanel from "./SettingsPanel";
-import NotificationSettings from "./NotificationSettings";
-import ModerationBotPanel from "./ModerationBotPanel";
-import AdminPanel from "./AdminPanel";
 
 interface PresenceUser {
   id: string;
@@ -19,13 +12,8 @@ interface PresenceUser {
 
 interface ChatHeaderProps {
   roomCode: string;
-  onLeaveRoom: () => void;
   userName: string;
   avatarUrl?: string | null;
-  userId: string;
-  onStartCall?: (video: boolean) => void;
-  onSearch?: () => void;
-  onEditProfile?: () => void;
   onlineUsers?: PresenceUser[];
   isAdmin?: boolean;
   isModerator?: boolean;
@@ -33,19 +21,13 @@ interface ChatHeaderProps {
 
 const ChatHeader = ({ 
   roomCode, 
-  onLeaveRoom, 
   userName, 
   avatarUrl,
-  userId,
-  onStartCall, 
-  onSearch,
-  onEditProfile,
   onlineUsers = [],
   isAdmin,
   isModerator,
 }: ChatHeaderProps) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const copyRoomCode = () => {
     navigator.clipboard.writeText(roomCode);
@@ -53,19 +35,6 @@ const ChatHeader = ({
       title: "Copied!",
       description: "Room code copied to clipboard. Share it with your friend!",
     });
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
-
-  const handleVoiceCall = () => {
-    onStartCall?.(false);
-  };
-
-  const handleVideoCall = () => {
-    onStartCall?.(true);
   };
 
   return (
@@ -98,56 +67,6 @@ const ChatHeader = ({
             <UserPresenceIndicator onlineUsers={onlineUsers} />
           </div>
         )}
-      </div>
-      <div className="flex items-center gap-1">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-muted-foreground hover:text-foreground"
-          onClick={onSearch}
-          title="Search messages"
-        >
-          <Search className="h-5 w-5" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-muted-foreground hover:text-foreground"
-          onClick={handleVoiceCall}
-          title="Start voice call"
-        >
-          <Phone className="h-5 w-5" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-muted-foreground hover:text-foreground"
-          onClick={handleVideoCall}
-          title="Start video call"
-        >
-          <Video className="h-5 w-5" />
-        </Button>
-        <NotificationSettings />
-        <ModerationBotPanel isAdmin={isAdmin || false} roomCode={roomCode} />
-        {(isAdmin || isModerator) && <AdminPanel isAdmin={isAdmin || false} isModerator={isModerator || false} />}
-        <SettingsPanel userId={userId} roomCode={roomCode} isAdmin={isAdmin} />
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-muted-foreground hover:text-destructive"
-          onClick={onLeaveRoom}
-          title="Leave room"
-        >
-          <LogOut className="h-5 w-5" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-muted-foreground hover:text-destructive ml-2"
-          onClick={handleLogout}
-        >
-          Logout
-        </Button>
       </div>
     </div>
   );
