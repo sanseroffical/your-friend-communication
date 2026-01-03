@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import ChatHeader from "@/components/ChatHeader";
+import ChatSidebar from "@/components/ChatSidebar";
 import MainMenu from "@/components/MainMenu";
 import ClippyButton from "@/components/ClippyButton";
 import VideoCall from "@/components/VideoCall";
@@ -11,7 +12,9 @@ import MessageSearch from "@/components/MessageSearch";
 import ProfileEditor from "@/components/ProfileEditor";
 import SettingsPanel from "@/components/SettingsPanel";
 import AdminPanel from "@/components/AdminPanel";
+import ModerationBotPanel from "@/components/ModerationBotPanel";
 import BonziBuddy from "@/components/BonziBuddy";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useClipUser } from "@/hooks/useClipUser";
@@ -52,6 +55,9 @@ const Index = () => {
   const [replyTo, setReplyTo] = useState<ReplyTo | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isModBotOpen, setIsModBotOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading, logout } = useClipUser();
@@ -383,122 +389,159 @@ const Index = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <ChatHeader
-        roomCode={roomCode}
-        onLeaveRoom={handleLeaveRoom}
-        userName={user.display_name || user.clip_id}
-        avatarUrl={(user as any).avatar_url}
-        userId={authUser?.id || ""}
-        onStartCall={handleStartCall}
-        onSearch={() => setIsSearchOpen(true)}
-        onEditProfile={() => setIsProfileEditorOpen(true)}
-        onlineUsers={onlineUsers}
-        isAdmin={isAdmin}
-        isModerator={isModerator}
-      />
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background">
+        <ChatSidebar
+          roomCode={roomCode}
+          userId={authUser?.id || ""}
+          isAdmin={isAdmin}
+          isModerator={isModerator}
+          onLeaveRoom={handleLeaveRoom}
+          onStartCall={handleStartCall}
+          onSearch={() => setIsSearchOpen(true)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenAdmin={() => setIsAdminOpen(true)}
+          onOpenModBot={() => setIsModBotOpen(true)}
+        />
 
-      <div className="flex-1 overflow-y-auto px-4 py-6 relative">
-        {isSearchOpen && (
-          <MessageSearch
+        <div className="flex flex-col flex-1 min-w-0">
+          <ChatHeader
             roomCode={roomCode}
-            onSelectMessage={scrollToMessage}
-            onClose={() => setIsSearchOpen(false)}
+            userName={user.display_name || user.clip_id}
+            avatarUrl={(user as any).avatar_url}
+            onlineUsers={onlineUsers}
+            isAdmin={isAdmin}
+            isModerator={isModerator}
+          />
+
+          <div className="flex-1 overflow-y-auto px-4 py-6 relative">
+            {isSearchOpen && (
+              <MessageSearch
+                roomCode={roomCode}
+                onSelectMessage={scrollToMessage}
+                onClose={() => setIsSearchOpen(false)}
+              />
+            )}
+
+            <div className="max-w-3xl mx-auto">
+              {messages.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p>No messages yet. Start the conversation!</p>
+                  <p className="text-sm mt-2">
+                    Share code <span className="font-mono font-bold">{roomCode}</span> with your friend.
+                  </p>
+                </div>
+              )}
+              {messages.map((message) => (
+                <ChatMessage
+                  key={message.id}
+                  id={message.id}
+                  message={message.text}
+                  isOwn={message.isOwn}
+                  timestamp={message.timestamp}
+                  senderName={message.isOwn ? undefined : message.senderName}
+                  senderId={message.isOwn ? undefined : message.senderId || undefined}
+                  attachmentUrl={message.attachmentUrl}
+                  attachmentType={message.attachmentType}
+                  attachmentName={message.attachmentName}
+                  editedAt={message.editedAt}
+                  parentMessage={getParentMessage(message.parentId)}
+                  reactions={reactions[message.id] || []}
+                  readBy={getReadBy(message.id)}
+                  onReply={() => handleReply(message)}
+                  onEdit={(newContent) => handleEditMessage(message.id, newContent)}
+                  onDelete={() => handleDeleteMessage(message.id)}
+                  onReact={(emoji) => toggleReaction(message.id, emoji)}
+                  onVisible={() => markAsRead(message.id)}
+                  availableEmojis={AVAILABLE_EMOJIS}
+                />
+              ))}
+              {isLoading && (
+                <div className="flex justify-end mb-4">
+                  <div className="bg-primary/50 text-primary-foreground rounded-2xl rounded-br-sm px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-primary-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 bg-primary-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 bg-primary-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+
+          <div className="max-w-3xl mx-auto w-full">
+            <TypingIndicator typingUsers={typingUsers} />
+            <ChatInput
+              onSend={handleSendMessage}
+              disabled={isLoading}
+              replyTo={replyTo}
+              onCancelReply={() => setReplyTo(null)}
+              onTyping={setTyping}
+            />
+          </div>
+        </div>
+
+        <ClippyButton />
+
+        <VideoCall
+          isOpen={isCallOpen}
+          onClose={() => setIsCallOpen(false)}
+          roomCode={roomCode}
+          isVideoCall={isVideoCall}
+          userId={authUser?.id || ""}
+          userName={user.display_name || user.clip_id}
+        />
+
+        {user && (
+          <ProfileEditor
+            isOpen={isProfileEditorOpen}
+            onClose={() => setIsProfileEditorOpen(false)}
+            profile={{
+              id: user.id,
+              display_name: user.display_name,
+              clip_id: user.clip_id,
+              avatar_url: (user as any).avatar_url,
+              bio: (user as any).bio,
+            }}
+            onProfileUpdated={refreshProfile}
           />
         )}
 
-        <div className="max-w-3xl mx-auto">
-          {messages.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No messages yet. Start the conversation!</p>
-              <p className="text-sm mt-2">
-                Share code <span className="font-mono font-bold">{roomCode}</span> with your friend.
-              </p>
-            </div>
-          )}
-          {messages.map((message) => (
-            <ChatMessage
-              key={message.id}
-              id={message.id}
-              message={message.text}
-              isOwn={message.isOwn}
-              timestamp={message.timestamp}
-              senderName={message.isOwn ? undefined : message.senderName}
-              senderId={message.isOwn ? undefined : message.senderId || undefined}
-              attachmentUrl={message.attachmentUrl}
-              attachmentType={message.attachmentType}
-              attachmentName={message.attachmentName}
-              editedAt={message.editedAt}
-              parentMessage={getParentMessage(message.parentId)}
-              reactions={reactions[message.id] || []}
-              readBy={getReadBy(message.id)}
-              onReply={() => handleReply(message)}
-              onEdit={(newContent) => handleEditMessage(message.id, newContent)}
-              onDelete={() => handleDeleteMessage(message.id)}
-              onReact={(emoji) => toggleReaction(message.id, emoji)}
-              onVisible={() => markAsRead(message.id)}
-              availableEmojis={AVAILABLE_EMOJIS}
-            />
-          ))}
-          {isLoading && (
-            <div className="flex justify-end mb-4">
-              <div className="bg-primary/50 text-primary-foreground rounded-2xl rounded-br-sm px-4 py-3 shadow-sm">
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 bg-primary-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-2 h-2 bg-primary-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-2 h-2 bg-primary-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
+        {/* Settings Sheet - controlled */}
+        <SettingsPanel 
+          userId={authUser?.id || ""} 
+          roomCode={roomCode} 
+          isAdmin={isAdmin}
+          isOpen={isSettingsOpen}
+          onOpenChange={setIsSettingsOpen}
+        />
 
-      <div className="max-w-3xl mx-auto w-full">
-        <TypingIndicator typingUsers={typingUsers} />
-        <ChatInput
-          onSend={handleSendMessage}
-          disabled={isLoading}
-          replyTo={replyTo}
-          onCancelReply={() => setReplyTo(null)}
-          onTyping={setTyping}
+        {/* Admin Panel - controlled */}
+        <AdminPanel 
+          isAdmin={isAdmin} 
+          isModerator={isModerator}
+          isOpen={isAdminOpen}
+          onOpenChange={setIsAdminOpen}
+        />
+
+        {/* Moderation Bot Panel - controlled */}
+        <ModerationBotPanel 
+          isAdmin={isAdmin} 
+          roomCode={roomCode}
+          isOpen={isModBotOpen}
+          onOpenChange={setIsModBotOpen}
+        />
+
+        {/* BonziBuddy */}
+        <BonziBuddy
+          enabled={settings.bonzi_enabled}
+          chaosLevel={settings.bonzi_chaos_level}
+          userName={userName}
         />
       </div>
-
-      <ClippyButton />
-
-      <VideoCall
-        isOpen={isCallOpen}
-        onClose={() => setIsCallOpen(false)}
-        roomCode={roomCode}
-        isVideoCall={isVideoCall}
-        userId={authUser?.id || ""}
-        userName={user.display_name || user.clip_id}
-      />
-
-      {user && (
-        <ProfileEditor
-          isOpen={isProfileEditorOpen}
-          onClose={() => setIsProfileEditorOpen(false)}
-          profile={{
-            id: user.id,
-            display_name: user.display_name,
-            clip_id: user.clip_id,
-            avatar_url: (user as any).avatar_url,
-            bio: (user as any).bio,
-          }}
-          onProfileUpdated={refreshProfile}
-        />
-      )}
-
-      {/* BonziBuddy */}
-      <BonziBuddy
-        enabled={settings.bonzi_enabled}
-        chaosLevel={settings.bonzi_chaos_level}
-        userName={userName}
-      />
-    </div>
+    </SidebarProvider>
   );
 };
 

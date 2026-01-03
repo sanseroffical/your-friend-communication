@@ -11,14 +11,15 @@ import { useToast } from '@/hooks/use-toast';
 interface ModerationBotPanelProps {
   isAdmin: boolean;
   roomCode: string;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const ModerationBotPanel = ({ isAdmin, roomCode }: ModerationBotPanelProps) => {
+const ModerationBotPanel = ({ isAdmin, roomCode, isOpen, onOpenChange }: ModerationBotPanelProps) => {
   const [isActive, setIsActive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // Load persisted bot state for this room from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(`modbot-${roomCode}`);
     if (stored !== null) {
@@ -32,7 +33,6 @@ const ModerationBotPanel = ({ isAdmin, roomCode }: ModerationBotPanelProps) => {
     setIsActive(newState);
     localStorage.setItem(`modbot-${roomCode}`, String(newState));
 
-    // Send a system message to the room
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -59,6 +59,100 @@ const ModerationBotPanel = ({ isAdmin, roomCode }: ModerationBotPanelProps) => {
 
   if (!isAdmin) return null;
 
+  const content = (
+    <SheetContent className="w-full sm:max-w-md">
+      <SheetHeader>
+        <SheetTitle className="flex items-center gap-2">
+          <Bot className="h-5 w-5" />
+          Moderation Bot
+        </SheetTitle>
+        <SheetDescription>
+          Automatic message moderation for this room
+        </SheetDescription>
+      </SheetHeader>
+
+      <div className="mt-6 space-y-6">
+        <Alert>
+          <Zap className="h-4 w-4" />
+          <AlertDescription>
+            The moderation bot automatically filters profanity, detects spam, and enforces chat rules.
+          </AlertDescription>
+        </Alert>
+
+        <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
+          <div className="flex items-center gap-3">
+            {isActive ? (
+              <Shield className="h-8 w-8 text-primary" />
+            ) : (
+              <ShieldOff className="h-8 w-8 text-muted-foreground" />
+            )}
+            <div>
+              <Label className="text-base font-medium">
+                {isActive ? 'Bot Active' : 'Bot Inactive'}
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {isActive ? 'Moderating messages' : 'Messages unmoderated'}
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={isActive}
+            onCheckedChange={toggleBot}
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="font-medium">What the bot does:</h3>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li className="flex items-start gap-2">
+              <span className="text-primary">•</span>
+              <span>Filters profanity and replaces with asterisks</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">•</span>
+              <span>Detects and warns about spam messages</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">•</span>
+              <span>Reduces excessive CAPS to lowercase</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">•</span>
+              <span>Enforces message length limits</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">•</span>
+              <span>Rate limits rapid message sending</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="p-4 rounded-lg border border-border bg-card">
+          <h4 className="font-medium mb-2">Rate Limits</h4>
+          <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+            <span>Max messages/min:</span>
+            <span className="font-mono">10</span>
+            <span>Max duplicates:</span>
+            <span className="font-mono">3</span>
+            <span>Max message length:</span>
+            <span className="font-mono">2000</span>
+          </div>
+        </div>
+      </div>
+    </SheetContent>
+  );
+
+  // Controlled mode
+  if (isOpen !== undefined && onOpenChange) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        {content}
+      </Sheet>
+    );
+  }
+
+  // Uncontrolled mode
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -71,87 +165,7 @@ const ModerationBotPanel = ({ isAdmin, roomCode }: ModerationBotPanelProps) => {
           <Bot className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            Moderation Bot
-          </SheetTitle>
-          <SheetDescription>
-            Automatic message moderation for this room
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="mt-6 space-y-6">
-          <Alert>
-            <Zap className="h-4 w-4" />
-            <AlertDescription>
-              The moderation bot automatically filters profanity, detects spam, and enforces chat rules.
-            </AlertDescription>
-          </Alert>
-
-          <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
-            <div className="flex items-center gap-3">
-              {isActive ? (
-                <Shield className="h-8 w-8 text-primary" />
-              ) : (
-                <ShieldOff className="h-8 w-8 text-muted-foreground" />
-              )}
-              <div>
-                <Label className="text-base font-medium">
-                  {isActive ? 'Bot Active' : 'Bot Inactive'}
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  {isActive ? 'Moderating messages' : 'Messages unmoderated'}
-                </p>
-              </div>
-            </div>
-            <Switch
-              checked={isActive}
-              onCheckedChange={toggleBot}
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="font-medium">What the bot does:</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Filters profanity and replaces with asterisks</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Detects and warns about spam messages</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Reduces excessive CAPS to lowercase</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Enforces message length limits</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Rate limits rapid message sending</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <h4 className="font-medium mb-2">Rate Limits</h4>
-            <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-              <span>Max messages/min:</span>
-              <span className="font-mono">10</span>
-              <span>Max duplicates:</span>
-              <span className="font-mono">3</span>
-              <span>Max message length:</span>
-              <span className="font-mono">2000</span>
-            </div>
-          </div>
-        </div>
-      </SheetContent>
+      {content}
     </Sheet>
   );
 };
