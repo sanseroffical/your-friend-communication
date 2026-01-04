@@ -65,6 +65,81 @@ export type Database = {
         }
         Relationships: []
       }
+      direct_messages: {
+        Row: {
+          attachment_name: string | null
+          attachment_type: string | null
+          attachment_url: string | null
+          content: string
+          created_at: string
+          id: string
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_type?: string | null
+          attachment_url?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_type?: string | null
+          attachment_url?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      game_sessions: {
+        Row: {
+          created_at: string
+          created_by: string
+          game_type: string
+          id: string
+          is_active: boolean | null
+          players: string[] | null
+          room_code: string
+          state: Json | null
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          game_type: string
+          id?: string
+          is_active?: boolean | null
+          players?: string[] | null
+          room_code: string
+          state?: Json | null
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          game_type?: string
+          id?: string
+          is_active?: boolean | null
+          players?: string[] | null
+          room_code?: string
+          state?: Json | null
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           created_at: string
@@ -344,6 +419,33 @@ export type Database = {
           theme?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      whispers: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          recipient_id: string
+          room_code: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          recipient_id: string
+          room_code: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          recipient_id?: string
+          room_code?: string
+          sender_id?: string
         }
         Relationships: []
       }
