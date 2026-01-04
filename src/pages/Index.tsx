@@ -14,6 +14,8 @@ import SettingsPanel from "@/components/SettingsPanel";
 import AdminPanel from "@/components/AdminPanel";
 import ModerationBotPanel from "@/components/ModerationBotPanel";
 import BonziBuddy from "@/components/BonziBuddy";
+import GamePanel from "@/components/GamePanel";
+import DirectMessagesPanel from "@/components/DirectMessagesPanel";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -58,6 +60,8 @@ const Index = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isModBotOpen, setIsModBotOpen] = useState(false);
+  const [isGamesOpen, setIsGamesOpen] = useState(false);
+  const [isDMsOpen, setIsDMsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading, logout } = useClipUser();
@@ -394,6 +398,7 @@ const Index = () => {
         <ChatSidebar
           roomCode={roomCode}
           userId={authUser?.id || ""}
+          userName={userName}
           isAdmin={isAdmin}
           isModerator={isModerator}
           onLeaveRoom={handleLeaveRoom}
@@ -402,6 +407,8 @@ const Index = () => {
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenAdmin={() => setIsAdminOpen(true)}
           onOpenModBot={() => setIsModBotOpen(true)}
+          onOpenGames={() => setIsGamesOpen(true)}
+          onOpenDMs={() => setIsDMsOpen(true)}
         />
 
         <div className="flex flex-col flex-1 min-w-0">
@@ -532,6 +539,23 @@ const Index = () => {
           roomCode={roomCode}
           isOpen={isModBotOpen}
           onOpenChange={setIsModBotOpen}
+        />
+
+        {/* Game Panel */}
+        <GamePanel 
+          roomCode={roomCode} 
+          userId={authUser?.id || ""} 
+          userName={userName}
+          isOpen={isGamesOpen}
+          onOpenChange={setIsGamesOpen}
+        />
+
+        {/* Direct Messages Panel */}
+        <DirectMessagesPanel 
+          userId={authUser?.id || ""} 
+          userName={userName}
+          isOpen={isDMsOpen}
+          onOpenChange={setIsDMsOpen}
         />
 
         {/* BonziBuddy */}

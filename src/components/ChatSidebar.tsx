@@ -1,4 +1,4 @@
-import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot } from "lucide-react";
+import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 interface ChatSidebarProps {
   roomCode: string;
   userId: string;
+  userName: string;
   isAdmin: boolean;
   isModerator: boolean;
   onLeaveRoom: () => void;
@@ -27,11 +28,14 @@ interface ChatSidebarProps {
   onOpenSettings: () => void;
   onOpenAdmin: () => void;
   onOpenModBot: () => void;
+  onOpenGames: () => void;
+  onOpenDMs: () => void;
 }
 
 const ChatSidebar = ({
   roomCode,
   userId,
+  userName,
   isAdmin,
   isModerator,
   onLeaveRoom,
@@ -40,6 +44,8 @@ const ChatSidebar = ({
   onOpenSettings,
   onOpenAdmin,
   onOpenModBot,
+  onOpenGames,
+  onOpenDMs,
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -114,6 +120,18 @@ const ChatSidebar = ({
                 <SidebarMenuButton onClick={() => onStartCall(true)} tooltip="Video call">
                   <Video className="h-4 w-4" />
                   {!collapsed && <span>Video Call</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenGames} tooltip="Games">
+                  <Gamepad2 className="h-4 w-4" />
+                  {!collapsed && <span>Games</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenDMs} tooltip="Direct Messages">
+                  <MessageSquare className="h-4 w-4" />
+                  {!collapsed && <span>DMs</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
