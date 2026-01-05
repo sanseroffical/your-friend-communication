@@ -31,6 +31,7 @@ interface ChatMessageProps {
   onVisible?: () => void;
   availableEmojis: string[];
   canModerate?: boolean;
+  commandPromptMode?: boolean;
 }
 
 const ChatMessage = ({
@@ -56,6 +57,7 @@ const ChatMessage = ({
   onVisible,
   availableEmojis,
   canModerate,
+  commandPromptMode = false,
 }: ChatMessageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message);
@@ -97,6 +99,27 @@ const ChatMessage = ({
     setEditContent(message);
     setIsEditing(false);
   };
+
+  // Command prompt mode rendering
+  if (commandPromptMode) {
+    return (
+      <div
+        ref={messageRef}
+        id={`message-${id}`}
+        className="font-mono text-sm mb-1 group"
+      >
+        <span className="text-green-500">{timestamp}</span>
+        <span className="text-muted-foreground"> {isOwn ? "you" : senderName || "user"}</span>
+        <span className="text-primary">@chat</span>
+        <span className="text-muted-foreground">:~$ </span>
+        <span className="text-foreground">{message}</span>
+        {editedAt && <span className="text-muted-foreground text-xs ml-1">(edited)</span>}
+        {hasAttachment && (
+          <span className="text-blue-400 ml-2">[attachment: {attachmentName}]</span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div

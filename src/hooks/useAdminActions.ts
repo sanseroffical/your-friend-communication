@@ -129,11 +129,90 @@ export function useAdminActions(isAdmin: boolean, isModerator: boolean) {
     return true;
   }, [isAdmin, toast]);
 
+  const clearAllMessages = useCallback(async () => {
+    if (!isAdmin) {
+      toast({
+        title: "Unauthorized",
+        description: "Only admins can clear all messages.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('messages')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear messages.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    toast({ title: "All messages cleared" });
+    return true;
+  }, [isAdmin, toast]);
+
+  const createAnnouncement = useCallback(async (content: string, userId: string) => {
+    if (!isAdmin) {
+      toast({
+        title: "Unauthorized",
+        description: "Only admins can create announcements.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('announcements')
+      .insert({ content, created_by: userId });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create announcement.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    toast({ title: "Announcement sent!" });
+    return true;
+  }, [isAdmin, toast]);
+
+  const deleteAnnouncement = useCallback(async (announcementId: string) => {
+    if (!isAdmin) return false;
+
+    const { error } = await supabase
+      .from('announcements')
+      .delete()
+      .eq('id', announcementId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete announcement.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    toast({ title: "Announcement deleted" });
+    return true;
+  }, [isAdmin, toast]);
+
   return {
     canModerate,
     deleteUserMessage,
     deleteUserAccount,
     grantRole,
     revokeRole,
+    clearAllMessages,
+    createAnnouncement,
+    deleteAnnouncement,
   };
 }

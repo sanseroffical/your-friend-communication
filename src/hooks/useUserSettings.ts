@@ -10,6 +10,7 @@ export interface UserSettings {
   screen_reader_mode: boolean;
   bonzi_enabled: boolean;
   bonzi_chaos_level: number;
+  command_prompt_mode: boolean;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -21,6 +22,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   screen_reader_mode: false,
   bonzi_enabled: false,
   bonzi_chaos_level: 1,
+  command_prompt_mode: false,
 };
 
 export const THEMES = [
@@ -93,6 +95,7 @@ export function useUserSettings(userId: string | null) {
           screen_reader_mode: data.screen_reader_mode || false,
           bonzi_enabled: data.bonzi_enabled || false,
           bonzi_chaos_level: data.bonzi_chaos_level || 1,
+          command_prompt_mode: data.command_prompt_mode || false,
         });
       }
       setIsLoading(false);

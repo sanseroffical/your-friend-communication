@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+        }
+        Relationships: []
+      }
       chat_history: {
         Row: {
           created_at: string
@@ -381,6 +408,7 @@ export type Database = {
         Row: {
           bonzi_chaos_level: number | null
           bonzi_enabled: boolean | null
+          command_prompt_mode: boolean | null
           created_at: string
           font_family: string | null
           font_size: string | null
@@ -395,6 +423,7 @@ export type Database = {
         Insert: {
           bonzi_chaos_level?: number | null
           bonzi_enabled?: boolean | null
+          command_prompt_mode?: boolean | null
           created_at?: string
           font_family?: string | null
           font_size?: string | null
@@ -409,6 +438,7 @@ export type Database = {
         Update: {
           bonzi_chaos_level?: number | null
           bonzi_enabled?: boolean | null
+          command_prompt_mode?: boolean | null
           created_at?: string
           font_family?: string | null
           font_size?: string | null

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Shield, UserX, Users, Search, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Shield, UserX, Users, Search, ShieldCheck, ShieldOff, Megaphone, Trash2, Ban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminActions } from '@/hooks/useAdminActions';
+import { useToast } from '@/hooks/use-toast';
 
 interface User {
   id: string;
@@ -39,7 +41,11 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
-  const { deleteUserAccount, grantRole, revokeRole } = useAdminActions(isAdmin, isModerator);
+  const [announcementText, setAnnouncementText] = useState('');
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const { deleteUserMessage, deleteUserAccount, grantRole, revokeRole, clearAllMessages, createAnnouncement, deleteAnnouncement } = useAdminActions(isAdmin, isModerator);
+  const { toast } = useToast();
+
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -75,7 +81,16 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
       setIsLoading(false);
     };
 
+    const fetchAnnouncements = async () => {
+      const { data } = await supabase
+        .from('announcements')
+        .select('*')
+        .order('created_at', { ascending: false });
+      setAnnouncements(data || []);
+    };
+
     fetchUsers();
+    fetchAnnouncements();
   }, [isAdmin]);
 
   const filteredUsers = users.filter(user => 
@@ -129,7 +144,7 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
       </DialogHeader>
 
       <Tabs defaultValue="users">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="users" className="gap-2">
             <Users className="h-4 w-4" />
             Users
@@ -137,6 +152,10 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
           <TabsTrigger value="roles" className="gap-2">
             <ShieldCheck className="h-4 w-4" />
             Roles
+          </TabsTrigger>
+          <TabsTrigger value="tools" className="gap-2">
+            <Megaphone className="h-4 w-4" />
+            Tools
           </TabsTrigger>
         </TabsList>
 
@@ -256,6 +275,84 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="tools" className="mt-4">
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <h3 className="font-medium flex items-center gap-2">
+                <Megaphone className="h-4 w-4" />
+                Broadcast Announcement
+              </h3>
+              <Textarea
+                placeholder="Type your announcement..."
+                value={announcementText}
+                onChange={(e) => setAnnouncementText(e.target.value)}
+                rows={3}
+              />
+              <Button
+                className="w-full"
+                disabled={!announcementText.trim()}
+                onClick={async () => {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const success = await createAnnouncement(announcementText, user.id);
+                    if (success) {
+                      setAnnouncementText('');
+                      const { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false });
+                      setAnnouncements(data || []);
+                    }
+                  }
+                }}
+              >
+                <Megaphone className="h-4 w-4 mr-2" />
+                Send Announcement
+              </Button>
+            </div>
+
+            {announcements.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-muted-foreground">Recent Announcements</h4>
+                <ScrollArea className="h-32">
+                  {announcements.slice(0, 5).map((ann) => (
+                    <div key={ann.id} className="flex items-center justify-between p-2 bg-muted rounded mb-1">
+                      <span className="text-sm truncate flex-1">{ann.content}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={async () => {
+                          await deleteAnnouncement(ann.id);
+                          setAnnouncements(prev => prev.filter(a => a.id !== ann.id));
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </ScrollArea>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <h3 className="font-medium text-destructive flex items-center gap-2">
+                <Ban className="h-4 w-4" />
+                Danger Zone
+              </h3>
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={async () => {
+                  if (window.confirm('Are you sure you want to clear ALL messages from ALL rooms? This cannot be undone!')) {
+                    await clearAllMessages();
+                  }
+                }}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear All Messages
+              </Button>
             </div>
           </div>
         </TabsContent>

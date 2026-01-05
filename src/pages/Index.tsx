@@ -461,6 +461,7 @@ const Index = () => {
                   onReact={(emoji) => toggleReaction(message.id, emoji)}
                   onVisible={() => markAsRead(message.id)}
                   availableEmojis={AVAILABLE_EMOJIS}
+                  commandPromptMode={settings.command_prompt_mode}
                 />
               ))}
               {isLoading && (
