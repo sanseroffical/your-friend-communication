@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Users, History, ArrowLeft, Trash2, LogOut, Copy, Check, Globe, Mail } from "lucide-react";
+import { MessageSquare, Users, History, ArrowLeft, Trash2, LogOut, Copy, Check, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,7 @@ import UpdateLog from "./UpdateLog";
 import CommunityRules from "./CommunityRules";
 import LegalPages from "./LegalPages";
 import DirectMessagesPanel from "./DirectMessagesPanel";
+import SocialArea from "./SocialArea";
 
 const PUBLIC_ROOM_CODE = "C6ZC9N";
 
@@ -246,6 +247,7 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
           <div className="flex gap-2 justify-center pt-2">
             <UpdateLog />
             <CommunityRules />
+            <SocialArea />
           </div>
           <div className="pt-2">
             <Button onClick={handleLogout} variant="ghost" className="w-full text-muted-foreground">

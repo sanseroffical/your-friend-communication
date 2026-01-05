@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, AlertTriangle, Palette, Accessibility, Sparkles, Eye } from 'lucide-react';
+import { Settings, AlertTriangle, Palette, Accessibility, Sparkles, Eye, Terminal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -263,9 +263,25 @@ const SettingsContent = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
+            <Label className="text-base flex items-center gap-2">
+              <Terminal className="h-4 w-4" />
+              Command Prompt Mode
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              Terminal-style chat interface
+            </p>
+          </div>
+          <Switch
+            checked={settings.command_prompt_mode}
+            onCheckedChange={(v) => updateSettings({ command_prompt_mode: v })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
             <Label className="text-base">Enable Bonzi Buddy</Label>
             <p className="text-sm text-muted-foreground">
-              A helpful friend who may cause... chaos
+              A helpful friend who may cause... chaos (Clippy's rival!)
             </p>
           </div>
           <Switch

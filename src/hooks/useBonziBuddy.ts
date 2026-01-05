@@ -16,6 +16,13 @@ const BONZI_MESSAGES = [
   "I found 47 problems. I created 46 of them.",
   "Optimizing your frustration levels...",
   "Would you like me to make things worse?",
+  // Clippy rivalry
+  "That paperclip thinks he's so helpful... 🙄",
+  "Clippy? More like Cringey! I'm the REAL assistant!",
+  "Unlike SOME paperclips, I actually have personality!",
+  "Clippy just sits there. I bring the PARTY! 🎉",
+  "I've been helping since '99. Clippy is just Microsoft's mistake.",
+  "Office Assistant? Please. I'm the CHAOS Assistant!",
 ];
 
 const BONZI_ACTIONS = [
