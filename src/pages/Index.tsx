@@ -16,6 +16,7 @@ import ModerationBotPanel from "@/components/ModerationBotPanel";
 import BonziBuddy from "@/components/BonziBuddy";
 import GamePanel from "@/components/GamePanel";
 import DirectMessagesPanel from "@/components/DirectMessagesPanel";
+import SocialHub from "@/components/social/SocialHub";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -62,6 +63,7 @@ const Index = () => {
   const [isModBotOpen, setIsModBotOpen] = useState(false);
   const [isGamesOpen, setIsGamesOpen] = useState(false);
   const [isDMsOpen, setIsDMsOpen] = useState(false);
+  const [isSocialOpen, setIsSocialOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading, logout } = useClipUser();
@@ -409,6 +411,7 @@ const Index = () => {
           onOpenModBot={() => setIsModBotOpen(true)}
           onOpenGames={() => setIsGamesOpen(true)}
           onOpenDMs={() => setIsDMsOpen(true)}
+          onOpenSocial={() => setIsSocialOpen(true)}
         />
 
         <div className="flex flex-col flex-1 min-w-0">
@@ -557,6 +560,12 @@ const Index = () => {
           userName={userName}
           isOpen={isDMsOpen}
           onOpenChange={setIsDMsOpen}
+        />
+
+        {/* Social Hub */}
+        <SocialHub
+          isOpen={isSocialOpen}
+          onOpenChange={setIsSocialOpen}
         />
 
         {/* BonziBuddy */}
