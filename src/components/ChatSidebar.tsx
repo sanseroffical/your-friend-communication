@@ -1,4 +1,4 @@
-import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare } from "lucide-react";
+import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -30,6 +30,7 @@ interface ChatSidebarProps {
   onOpenModBot: () => void;
   onOpenGames: () => void;
   onOpenDMs: () => void;
+  onOpenSocial: () => void;
 }
 
 const ChatSidebar = ({
@@ -46,6 +47,7 @@ const ChatSidebar = ({
   onOpenModBot,
   onOpenGames,
   onOpenDMs,
+  onOpenSocial,
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -132,6 +134,12 @@ const ChatSidebar = ({
                 <SidebarMenuButton onClick={onOpenDMs} tooltip="Direct Messages">
                   <MessageSquare className="h-4 w-4" />
                   {!collapsed && <span>DMs</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenSocial} tooltip="Social Hub">
+                  <Users className="h-4 w-4" />
+                  {!collapsed && <span>Social</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
