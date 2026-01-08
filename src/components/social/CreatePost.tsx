@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { Send, ImagePlus, X, Loader2 } from 'lucide-react';
+import { Send, ImagePlus, X, Loader2, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import ImageEditor from './ImageEditor';
 
 interface CreatePostProps {
   onPost: (content: string, imageUrl?: string) => Promise<void>;
@@ -18,7 +19,9 @@ const CreatePost = ({ onPost, userAvatar, userName }: CreatePostProps) => {
   const [isPosting, setIsPosting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -44,19 +47,32 @@ const CreatePost = ({ onPost, userAvatar, userName }: CreatePostProps) => {
       return;
     }
 
-    setImageFile(file);
+    setOriginalFile(file);
+    setIsEditorOpen(true);
+  };
+
+  const handleEditorSave = (croppedBlob: Blob) => {
+    const croppedFile = new File([croppedBlob], originalFile?.name || 'image.jpg', { type: 'image/jpeg' });
+    setImageFile(croppedFile);
     const reader = new FileReader();
     reader.onload = (e) => {
       setImagePreview(e.target?.result as string);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(croppedBlob);
   };
 
   const removeImage = () => {
     setImageFile(null);
     setImagePreview(null);
+    setOriginalFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const openEditorForExisting = () => {
+    if (originalFile) {
+      setIsEditorOpen(true);
     }
   };
 
@@ -139,15 +155,34 @@ const CreatePost = ({ onPost, userAvatar, userName }: CreatePostProps) => {
                   alt="Preview" 
                   className="max-h-48 rounded-lg object-cover"
                 />
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  className="absolute -top-2 -right-2 h-6 w-6"
-                  onClick={removeImage}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+                <div className="absolute -top-2 -right-2 flex gap-1">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={openEditorForExisting}
+                  >
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={removeImage}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
+            )}
+            
+            {originalFile && (
+              <ImageEditor
+                isOpen={isEditorOpen}
+                onClose={() => setIsEditorOpen(false)}
+                imageFile={originalFile}
+                onSave={handleEditorSave}
+              />
             )}
             
             <div className="flex justify-between items-center">

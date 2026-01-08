@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Upload } from 'lucide-react';
+import { Loader2, Upload, Palette } from 'lucide-react';
+import ProfileCustomization from './ProfileCustomization';
 
 interface ProfileEditorProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ interface ProfileEditorProps {
     clip_id: string;
     avatar_url?: string | null;
     bio?: string | null;
+    profile_theme?: string | null;
+    card_style?: string | null;
   };
   onProfileUpdated: () => void;
 }
@@ -28,6 +31,7 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCustomizationOpen, setIsCustomizationOpen] = useState(false);
   const { toast } = useToast();
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,7 +181,27 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
             />
             <p className="text-xs text-muted-foreground">{bio.length}/200</p>
           </div>
+
+          <div className="pt-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsCustomizationOpen(true)}
+              className="w-full gap-2"
+            >
+              <Palette className="h-4 w-4" />
+              Customize Profile Theme & Card Style
+            </Button>
+          </div>
         </div>
+
+        <ProfileCustomization
+          isOpen={isCustomizationOpen}
+          onClose={() => setIsCustomizationOpen(false)}
+          userId={profile.id}
+          currentTheme={profile.profile_theme || 'default'}
+          currentCardStyle={profile.card_style || 'default'}
+          onUpdated={onProfileUpdated}
+        />
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
