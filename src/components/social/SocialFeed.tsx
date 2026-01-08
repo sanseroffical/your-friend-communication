@@ -3,12 +3,10 @@ import { Heart, MessageCircle, Trash2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatDistanceToNow } from 'date-fns';
-import { SocialPost, PostComment, useSocial } from '@/hooks/useSocial';
+import { SocialPost, PostComment } from '@/hooks/useSocial';
+import TranslateButton from '@/components/TranslateButton';
 
 interface SocialFeedProps {
   posts: SocialPost[];
@@ -38,6 +36,8 @@ const PostCard = ({
   const [comments, setComments] = useState<PostComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
+  const [displayContent, setDisplayContent] = useState(post.content);
+  const [translatedLang, setTranslatedLang] = useState<string | null>(null);
 
   const loadComments = async () => {
     setLoadingComments(true);
@@ -94,9 +94,22 @@ const PostCard = ({
         </div>
       </CardHeader>
       <CardContent>
-        <p className="whitespace-pre-wrap">{post.content}</p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="whitespace-pre-wrap flex-1">{displayContent}</p>
+          <TranslateButton
+            text={post.content}
+            textId={post.id}
+            onTranslate={(translated, lang) => {
+              setDisplayContent(lang === 'Original' ? post.content : translated);
+              setTranslatedLang(lang === 'Original' ? null : lang);
+            }}
+          />
+        </div>
+        {translatedLang && (
+          <p className="text-xs text-muted-foreground mt-1">Translated to {translatedLang}</p>
+        )}
         {post.image_url && (
-          <img 
+          <img
             src={post.image_url} 
             alt="Post image" 
             className="mt-3 rounded-lg max-h-96 w-full object-cover"
