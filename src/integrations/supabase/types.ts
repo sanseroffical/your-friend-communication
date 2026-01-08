@@ -335,26 +335,32 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          card_style: string | null
           clip_id: string
           created_at: string
           display_name: string | null
           id: string
+          profile_theme: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          card_style?: string | null
           clip_id: string
           created_at?: string
           display_name?: string | null
           id: string
+          profile_theme?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          card_style?: string | null
           clip_id?: string
           created_at?: string
           display_name?: string | null
           id?: string
+          profile_theme?: string | null
         }
         Relationships: []
       }
