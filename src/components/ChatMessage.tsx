@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import MessageActions from "@/components/MessageActions";
 import ReadReceiptIndicator from "@/components/ReadReceiptIndicator";
 import UserProfileCard from "@/components/UserProfileCard";
+import TranslateButton from "@/components/TranslateButton";
 import { Reaction } from "@/hooks/useMessageReactions";
 
 interface ChatMessageProps {
@@ -61,6 +62,7 @@ const ChatMessage = ({
 }: ChatMessageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message);
+  const [translatedMessage, setTranslatedMessage] = useState<string | null>(null);
   const messageRef = useRef<HTMLDivElement>(null);
 
   // Intersection observer for marking messages as read
@@ -241,7 +243,15 @@ const ChatMessage = ({
                     </Button>
                   </div>
                 ) : (
-                  <p className="text-sm leading-relaxed">{message}</p>
+                  <div>
+                    <p className="text-sm leading-relaxed">{translatedMessage || message}</p>
+                    <TranslateButton 
+                      text={message} 
+                      textId={id}
+                      onTranslate={(translated) => setTranslatedMessage(translated === message ? null : translated)}
+                      size="icon"
+                    />
+                  </div>
                 )}
               </div>
             )}

@@ -19,6 +19,23 @@ interface Filters {
   saturation: number;
 }
 
+interface Preset {
+  id: string;
+  name: string;
+  filters: Filters;
+}
+
+const FILTER_PRESETS: Preset[] = [
+  { id: 'normal', name: 'Normal', filters: { brightness: 100, contrast: 100, saturation: 100 } },
+  { id: 'sepia', name: 'Sepia', filters: { brightness: 95, contrast: 85, saturation: 30 } },
+  { id: 'grayscale', name: 'B&W', filters: { brightness: 100, contrast: 110, saturation: 0 } },
+  { id: 'vintage', name: 'Vintage', filters: { brightness: 90, contrast: 85, saturation: 70 } },
+  { id: 'vivid', name: 'Vivid', filters: { brightness: 105, contrast: 120, saturation: 140 } },
+  { id: 'warm', name: 'Warm', filters: { brightness: 105, contrast: 95, saturation: 110 } },
+  { id: 'cool', name: 'Cool', filters: { brightness: 100, contrast: 105, saturation: 90 } },
+  { id: 'dramatic', name: 'Dramatic', filters: { brightness: 90, contrast: 140, saturation: 80 } },
+];
+
 const ImageEditor = ({ isOpen, onClose, imageFile, onSave }: ImageEditorProps) => {
   const [imageSrc, setImageSrc] = useState<string>('');
   const [zoom, setZoom] = useState(1);
@@ -160,11 +177,32 @@ const ImageEditor = ({ isOpen, onClose, imageFile, onSave }: ImageEditorProps) =
             <canvas ref={canvasRef} className="w-full h-full" />
           </div>
 
-          <Tabs defaultValue="transform" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue="presets" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="presets">Presets</TabsTrigger>
               <TabsTrigger value="transform">Transform</TabsTrigger>
-              <TabsTrigger value="filters">Filters</TabsTrigger>
+              <TabsTrigger value="adjust">Adjust</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="presets" className="mt-4">
+              <div className="grid grid-cols-4 gap-2">
+                {FILTER_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => setFilters(preset.filters)}
+                    className={`p-2 rounded-lg border text-xs font-medium transition-all ${
+                      filters.brightness === preset.filters.brightness &&
+                      filters.contrast === preset.filters.contrast &&
+                      filters.saturation === preset.filters.saturation
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
+            </TabsContent>
 
             <TabsContent value="transform" className="space-y-4 mt-4">
               <div className="flex items-center gap-4">
@@ -188,7 +226,7 @@ const ImageEditor = ({ isOpen, onClose, imageFile, onSave }: ImageEditorProps) =
               </div>
             </TabsContent>
 
-            <TabsContent value="filters" className="space-y-4 mt-4">
+            <TabsContent value="adjust" className="space-y-4 mt-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Sun className="h-4 w-4 text-muted-foreground" />
