@@ -35,7 +35,26 @@ interface Profile {
   avatar_url: string | null;
   bio: string | null;
   clip_id: string;
+  profile_theme: string | null;
+  card_style: string | null;
 }
+
+const PROFILE_THEMES: Record<string, string> = {
+  default: 'bg-gradient-to-r from-primary/20 to-primary/10',
+  ocean: 'bg-gradient-to-r from-blue-500/30 to-cyan-500/20',
+  sunset: 'bg-gradient-to-r from-orange-500/30 to-pink-500/20',
+  forest: 'bg-gradient-to-r from-green-500/30 to-emerald-500/20',
+  purple: 'bg-gradient-to-r from-purple-500/30 to-violet-500/20',
+  dark: 'bg-gradient-to-r from-gray-800/50 to-gray-900/50',
+};
+
+const CARD_STYLES: Record<string, string> = {
+  default: 'rounded-lg border bg-card',
+  glass: 'rounded-lg border bg-card/50 backdrop-blur-sm',
+  solid: 'rounded-lg border-2 border-primary bg-card',
+  minimal: 'rounded-none border-b bg-transparent',
+  rounded: 'rounded-3xl border bg-card shadow-lg',
+};
 
 const UserProfile = ({
   userId,
@@ -140,14 +159,17 @@ const UserProfile = ({
     );
   }
 
+  const themeGradient = PROFILE_THEMES[profile?.profile_theme || 'default'] || PROFILE_THEMES.default;
+  const cardStyleClasses = CARD_STYLES[profile?.card_style || 'default'] || CARD_STYLES.default;
+
   return (
     <div className="space-y-4">
       <Button variant="ghost" onClick={onBack} className="gap-2">
         <ArrowLeft className="h-4 w-4" /> Back to Feed
       </Button>
 
-      <Card>
-        <CardContent className="pt-6">
+      <div className={`p-4 ${themeGradient} rounded-lg`}>
+        <div className={`${cardStyleClasses} p-6`}>
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <Avatar className="h-24 w-24">
               <AvatarImage src={profile.avatar_url || undefined} />
@@ -176,8 +198,8 @@ const UserProfile = ({
               </Button>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Tabs defaultValue="posts" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
