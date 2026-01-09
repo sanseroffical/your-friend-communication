@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, AlertTriangle, Palette, Accessibility, Sparkles, Eye, Terminal } from 'lucide-react';
+import { Settings, AlertTriangle, Palette, Accessibility, Sparkles, Eye, Terminal, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useUserSettings, THEMES, FONTS, FONT_SIZES } from '@/hooks/useUserSettings';
+import ProfileCustomization from './ProfileCustomization';
 import { cn } from '@/lib/utils';
 
 interface SettingsPanelProps {
@@ -117,22 +118,31 @@ const SettingsContent = ({
   handleThemeChange: (id: string) => void;
   handleRoomTheme: (id: string) => void;
   roomCode?: string;
-}) => (
-  <Tabs defaultValue="appearance" className="mt-6">
-    <TabsList className="grid w-full grid-cols-3">
-      <TabsTrigger value="appearance">
-        <Palette className="h-4 w-4 mr-1" />
-        Theme
-      </TabsTrigger>
-      <TabsTrigger value="accessibility">
-        <Accessibility className="h-4 w-4 mr-1" />
-        Access
-      </TabsTrigger>
-      <TabsTrigger value="fun">
-        <Sparkles className="h-4 w-4 mr-1" />
-        Fun
-      </TabsTrigger>
-    </TabsList>
+}) => {
+  const [showProfileCustomization, setShowProfileCustomization] = useState(false);
+  const userId = (settings as any).user_id;
+
+  return (
+    <>
+      <Tabs defaultValue="appearance" className="mt-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="appearance">
+            <Palette className="h-4 w-4 mr-1" />
+            Theme
+          </TabsTrigger>
+          <TabsTrigger value="profile">
+            <User className="h-4 w-4 mr-1" />
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="accessibility">
+            <Accessibility className="h-4 w-4 mr-1" />
+            Access
+          </TabsTrigger>
+          <TabsTrigger value="fun">
+            <Sparkles className="h-4 w-4 mr-1" />
+            Fun
+          </TabsTrigger>
+        </TabsList>
 
     <TabsContent value="appearance" className="space-y-6 mt-4">
       <div className="space-y-3">
@@ -212,6 +222,25 @@ const SettingsContent = ({
             ))}
           </SelectContent>
         </Select>
+      </div>
+    </TabsContent>
+
+    <TabsContent value="profile" className="space-y-6 mt-4">
+      <div className="space-y-4">
+        <div>
+          <Label className="text-base font-medium">Profile Customization</Label>
+          <p className="text-sm text-muted-foreground mt-1">
+            Customize how your profile appears to others with themes and card styles.
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          className="w-full gap-2"
+          onClick={() => setShowProfileCustomization(true)}
+        >
+          <Palette className="h-4 w-4" />
+          Open Profile Customization
+        </Button>
       </div>
     </TabsContent>
 
@@ -315,7 +344,18 @@ const SettingsContent = ({
       </div>
     </TabsContent>
   </Tabs>
-);
+
+  {userId && (
+    <ProfileCustomization
+      isOpen={showProfileCustomization}
+      onClose={() => setShowProfileCustomization(false)}
+      userId={userId}
+      onUpdated={() => {}}
+    />
+  )}
+</>
+  );
+};
 
 const StrobeWarningModal = ({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) => (
   <div className="fixed inset-0 bg-background/80 flex items-center justify-center z-50">

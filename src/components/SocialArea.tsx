@@ -1,4 +1,4 @@
-import { Heart, ExternalLink, Coffee } from 'lucide-react';
+import { Heart, ExternalLink, Coffee, Tv } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -45,6 +45,15 @@ const SupportArea = () => {
                 onClick={() => window.open('https://patreon.com', '_blank')}
               >
                 🎨 Support on Patreon
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="secondary" 
+                className="w-full gap-2"
+                onClick={() => window.open('https://twitch.tv/megapodo', '_blank')}
+              >
+                <Tv className="h-4 w-4" />
+                Sub to Twitch Channel
                 <ExternalLink className="h-4 w-4" />
               </Button>
               <p className="text-xs text-muted-foreground text-center pt-2">
