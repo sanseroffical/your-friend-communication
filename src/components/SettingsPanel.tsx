@@ -59,6 +59,7 @@ const SettingsPanel = ({ userId, roomCode, isAdmin, isOpen, onOpenChange }: Sett
               handleThemeChange={handleThemeChange}
               handleRoomTheme={handleRoomTheme}
               roomCode={roomCode}
+              userId={userId}
             />
           </SheetContent>
         </Sheet>
@@ -92,6 +93,7 @@ const SettingsPanel = ({ userId, roomCode, isAdmin, isOpen, onOpenChange }: Sett
             handleThemeChange={handleThemeChange}
             handleRoomTheme={handleRoomTheme}
             roomCode={roomCode}
+            userId={userId}
           />
         </SheetContent>
       </Sheet>
@@ -111,16 +113,17 @@ const SettingsContent = ({
   updateSettings, 
   handleThemeChange, 
   handleRoomTheme, 
-  roomCode 
+  roomCode,
+  userId
 }: {
   settings: any;
   updateSettings: (s: any) => void;
   handleThemeChange: (id: string) => void;
   handleRoomTheme: (id: string) => void;
   roomCode?: string;
+  userId: string;
 }) => {
   const [showProfileCustomization, setShowProfileCustomization] = useState(false);
-  const userId = (settings as any).user_id;
 
   return (
     <>

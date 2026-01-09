@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, UserPlus, UserMinus, MessageSquare, Send } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, UserPlus, UserMinus, Send, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { SocialPost, WallPost, FollowStats } from '@/hooks/useSocial';
 import SocialFeed from './SocialFeed';
+import { useToast } from '@/hooks/use-toast';
 
 interface UserProfileProps {
   userId: string;
@@ -37,6 +37,7 @@ interface Profile {
   clip_id: string;
   profile_theme: string | null;
   card_style: string | null;
+  banner_url: string | null;
 }
 
 const PROFILE_THEMES: Record<string, string> = {
@@ -80,6 +81,9 @@ const UserProfile = ({
   const [loading, setLoading] = useState(true);
   const [wallMessage, setWallMessage] = useState('');
   const [postingOnWall, setPostingOnWall] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const isOwnProfile = currentUserId === userId;
 
@@ -93,7 +97,7 @@ const UserProfile = ({
       .single();
     
     if (profileData) {
-      setProfile(profileData);
+      setProfile(profileData as Profile);
     }
 
     const [userPosts, stats, wall] = await Promise.all([
@@ -140,6 +144,44 @@ const UserProfile = ({
     setWallPosts(wallPosts.filter(p => p.id !== wallPostId));
   };
 
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !isOwnProfile) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Banner must be less than 5MB', variant: 'destructive' });
+      return;
+    }
+
+    setUploadingBanner(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}/banner.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('social-images')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('social-images')
+        .getPublicUrl(fileName);
+
+      await supabase
+        .from('profiles')
+        .update({ banner_url: publicUrl })
+        .eq('id', userId);
+
+      setProfile(prev => prev ? { ...prev, banner_url: publicUrl } : null);
+      toast({ title: 'Banner updated!' });
+    } catch (error: any) {
+      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -168,7 +210,41 @@ const UserProfile = ({
         <ArrowLeft className="h-4 w-4" /> Back to Feed
       </Button>
 
-      <div className={`p-4 ${themeGradient} rounded-lg`}>
+      {/* Banner Image */}
+      <div className="relative h-32 sm:h-48 rounded-lg overflow-hidden bg-muted">
+        {profile.banner_url ? (
+          <img 
+            src={profile.banner_url} 
+            alt="Profile banner" 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className={`w-full h-full ${themeGradient}`} />
+        )}
+        {isOwnProfile && (
+          <>
+            <input
+              ref={bannerInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleBannerUpload}
+              className="hidden"
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute bottom-2 right-2 gap-2"
+              onClick={() => bannerInputRef.current?.click()}
+              disabled={uploadingBanner}
+            >
+              <ImageIcon className="h-4 w-4" />
+              {uploadingBanner ? 'Uploading...' : 'Change Banner'}
+            </Button>
+          </>
+        )}
+      </div>
+
+      <div className={`p-4 ${themeGradient} rounded-lg -mt-8 relative z-10 mx-4`}>
         <div className={`${cardStyleClasses} p-6`}>
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <Avatar className="h-24 w-24">
