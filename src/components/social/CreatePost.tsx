@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Send, ImagePlus, X, Loader2, Edit2 } from 'lucide-react';
+import { Send, ImagePlus, Video, X, Loader2, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import ImageEditor from './ImageEditor';
 
 interface CreatePostProps {
-  onPost: (content: string, imageUrl?: string) => Promise<void>;
+  onPost: (content: string, imageUrl?: string, videoUrl?: string) => Promise<void>;
   userAvatar?: string | null;
   userName?: string | null;
 }
@@ -20,9 +20,12 @@ const CreatePost = ({ onPost, userAvatar, userName }: CreatePostProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [originalFile, setOriginalFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,6 +73,45 @@ const CreatePost = ({ onPost, userAvatar, userName }: CreatePostProps) => {
     }
   };
 
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 50 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Video must be less than 50MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!file.type.startsWith('video/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please select a video file',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setVideoFile(file);
+    setVideoPreview(URL.createObjectURL(file));
+    // Remove image if video is selected
+    removeImage();
+  };
+
+  const removeVideo = () => {
+    if (videoPreview) {
+      URL.revokeObjectURL(videoPreview);
+    }
+    setVideoFile(null);
+    setVideoPreview(null);
+    if (videoInputRef.current) {
+      videoInputRef.current.value = '';
+    }
+  };
+
   const openEditorForExisting = () => {
     if (originalFile) {
       setIsEditorOpen(true);
@@ -110,12 +152,47 @@ const CreatePost = ({ onPost, userAvatar, userName }: CreatePostProps) => {
     }
   };
 
+  const uploadVideo = async (): Promise<string | null> => {
+    if (!videoFile) return null;
+
+    setIsUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const fileExt = videoFile.name.split('.').pop();
+      const fileName = `${user.id}/video_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('social-images')
+        .upload(fileName, videoFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('social-images')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error: any) {
+      toast({
+        title: 'Upload failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handlePost = async () => {
-    if (!content.trim() && !imageFile) return;
+    if (!content.trim() && !imageFile && !videoFile) return;
     
     setIsPosting(true);
     try {
       let imageUrl: string | undefined;
+      let videoUrl: string | undefined;
       
       if (imageFile) {
         const uploadedUrl = await uploadImage();
@@ -124,9 +201,17 @@ const CreatePost = ({ onPost, userAvatar, userName }: CreatePostProps) => {
         }
       }
 
-      await onPost(content, imageUrl);
+      if (videoFile) {
+        const uploadedUrl = await uploadVideo();
+        if (uploadedUrl) {
+          videoUrl = uploadedUrl;
+        }
+      }
+
+      await onPost(content, imageUrl, videoUrl);
       setContent('');
       removeImage();
+      removeVideo();
     } finally {
       setIsPosting(false);
     }
@@ -175,6 +260,24 @@ const CreatePost = ({ onPost, userAvatar, userName }: CreatePostProps) => {
                 </div>
               </div>
             )}
+
+            {videoPreview && (
+              <div className="relative inline-block">
+                <video 
+                  src={videoPreview} 
+                  className="max-h-48 rounded-lg object-cover"
+                  controls
+                />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-2 -right-2 h-6 w-6"
+                  onClick={removeVideo}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
             
             {originalFile && (
               <ImageEditor
@@ -198,16 +301,33 @@ const CreatePost = ({ onPost, userAvatar, userName }: CreatePostProps) => {
                   variant="ghost"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isPosting || isUploading}
+                  disabled={isPosting || isUploading || !!videoFile}
                   className="gap-2"
                 >
                   <ImagePlus className="h-4 w-4" />
                   Photo
                 </Button>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoSelect}
+                  className="hidden"
+                  ref={videoInputRef}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => videoInputRef.current?.click()}
+                  disabled={isPosting || isUploading || !!imageFile}
+                  className="gap-2"
+                >
+                  <Video className="h-4 w-4" />
+                  Video
+                </Button>
               </div>
               <Button 
                 onClick={handlePost} 
-                disabled={(!content.trim() && !imageFile) || isPosting || isUploading}
+                disabled={(!content.trim() && !imageFile && !videoFile) || isPosting || isUploading}
                 className="gap-2"
               >
                 {(isPosting || isUploading) && <Loader2 className="h-4 w-4 animate-spin" />}
