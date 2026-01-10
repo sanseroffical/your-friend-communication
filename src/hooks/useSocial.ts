@@ -7,6 +7,7 @@ export interface SocialPost {
   user_id: string;
   content: string;
   image_url: string | null;
+  video_url: string | null;
   created_at: string;
   profile?: {
     display_name: string | null;
@@ -108,13 +109,18 @@ export const useSocial = (currentUserId: string | null) => {
     }
   };
 
-  const createPost = async (content: string, imageUrl?: string) => {
+  const createPost = async (content: string, imageUrl?: string, videoUrl?: string) => {
     if (!currentUserId) return;
 
     try {
       const { error } = await supabase
         .from('social_posts')
-        .insert({ user_id: currentUserId, content, image_url: imageUrl || null });
+        .insert({ 
+          user_id: currentUserId, 
+          content, 
+          image_url: imageUrl || null,
+          video_url: videoUrl || null 
+        });
 
       if (error) throw error;
       toast({ title: 'Posted!', description: 'Your post is live.' });

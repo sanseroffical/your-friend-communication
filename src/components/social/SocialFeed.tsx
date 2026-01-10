@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { formatDistanceToNow } from 'date-fns';
 import { SocialPost, PostComment } from '@/hooks/useSocial';
 import TranslateButton from '@/components/TranslateButton';
+import { useMobileUI } from '@/components/MobileUIToggle';
 
 interface SocialFeedProps {
   posts: SocialPost[];
@@ -112,6 +113,13 @@ const PostCard = ({
           <img
             src={post.image_url} 
             alt="Post image" 
+            className="mt-3 rounded-lg max-h-96 w-full object-cover"
+          />
+        )}
+        {post.video_url && (
+          <video
+            src={post.video_url}
+            controls
             className="mt-3 rounded-lg max-h-96 w-full object-cover"
           />
         )}
