@@ -1,15 +1,21 @@
-import { useState } from 'react';
-import { Settings, AlertTriangle, Palette, Accessibility, Sparkles, Eye, Terminal, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Settings, AlertTriangle, Palette, Accessibility, Sparkles, Eye, Terminal, User, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useUserSettings, THEMES, FONTS, FONT_SIZES } from '@/hooks/useUserSettings';
 import ProfileCustomization from './ProfileCustomization';
+import SeasonalClock from './SeasonalClock';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 interface SettingsPanelProps {
@@ -124,6 +130,118 @@ const SettingsContent = ({
   userId: string;
 }) => {
   const [showProfileCustomization, setShowProfileCustomization] = useState(false);
+  const [profile, setProfile] = useState<{
+    display_name: string;
+    bio: string;
+    avatar_url: string;
+    profile_theme: string;
+    card_style: string;
+  }>({ display_name: '', bio: '', avatar_url: '', profile_theme: 'default', card_style: 'default' });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+
+  // Fetch profile data
+  useEffect(() => {
+    if (!userId) return;
+    
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('display_name, bio, avatar_url, profile_theme, card_style')
+        .eq('id', userId)
+        .single();
+      
+      if (data) {
+        setProfile({
+          display_name: data.display_name || '',
+          bio: data.bio || '',
+          avatar_url: data.avatar_url || '',
+          profile_theme: data.profile_theme || 'default',
+          card_style: data.card_style || 'default',
+        });
+      }
+    };
+    
+    fetchProfile();
+  }, [userId]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Avatar must be less than 2MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}/avatar.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('chat-attachments')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-attachments')
+        .getPublicUrl(fileName);
+
+      setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
+      
+      // Save immediately
+      await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', userId);
+      toast({ title: 'Avatar updated!' });
+    } catch (error: any) {
+      toast({
+        title: 'Upload failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleProfileSave = async () => {
+    if (!profile.display_name.trim()) {
+      toast({
+        title: 'Name required',
+        description: 'Please enter a display name',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          display_name: profile.display_name.trim(),
+          bio: profile.bio.trim() || null,
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+      toast({ title: 'Profile saved!' });
+    } catch (error: any) {
+      toast({
+        title: 'Update failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -170,6 +288,11 @@ const SettingsContent = ({
           ))}
         </div>
       </div>
+
+      {/* Seasonal Clock - only show when seasonal theme is active */}
+      {settings.theme === 'seasonal' && (
+        <SeasonalClock className="mt-4" />
+      )}
 
       {roomCode && (
         <div className="space-y-3">
@@ -229,11 +352,76 @@ const SettingsContent = ({
     </TabsContent>
 
     <TabsContent value="profile" className="space-y-6 mt-4">
-      <div className="space-y-4">
+      {/* Avatar Section */}
+      <div className="flex flex-col items-center gap-4">
+        <Avatar className="h-20 w-20">
+          <AvatarImage src={profile.avatar_url} />
+          <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+            {profile.display_name.charAt(0).toUpperCase() || '?'}
+          </AvatarFallback>
+        </Avatar>
+        
+        <div className="relative">
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarUpload}
+            className="hidden"
+            id="settings-avatar-upload"
+            disabled={isUploading}
+          />
+          <Label htmlFor="settings-avatar-upload" className="cursor-pointer">
+            <Button variant="outline" size="sm" asChild disabled={isUploading}>
+              <span>
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                Change Avatar
+              </span>
+            </Button>
+          </Label>
+        </div>
+      </div>
+
+      {/* Display Name */}
+      <div className="space-y-2">
+        <Label htmlFor="settings-display-name">Display Name</Label>
+        <Input
+          id="settings-display-name"
+          value={profile.display_name}
+          onChange={(e) => setProfile(prev => ({ ...prev, display_name: e.target.value }))}
+          placeholder="Your display name"
+          maxLength={50}
+        />
+      </div>
+
+      {/* Bio */}
+      <div className="space-y-2">
+        <Label htmlFor="settings-bio">Bio</Label>
+        <Textarea
+          id="settings-bio"
+          value={profile.bio}
+          onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
+          placeholder="Tell others about yourself..."
+          rows={3}
+          maxLength={200}
+        />
+        <p className="text-xs text-muted-foreground">{profile.bio.length}/200</p>
+      </div>
+
+      <Button onClick={handleProfileSave} disabled={isLoading} className="w-full">
+        {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+        Save Profile
+      </Button>
+
+      {/* Profile Customization */}
+      <div className="pt-4 border-t space-y-3">
         <div>
-          <Label className="text-base font-medium">Profile Customization</Label>
+          <Label className="text-base font-medium">Profile Theme & Card Style</Label>
           <p className="text-sm text-muted-foreground mt-1">
-            Customize how your profile appears to others with themes and card styles.
+            Customize how your profile appears to others.
           </p>
         </div>
         <Button 
@@ -242,7 +430,7 @@ const SettingsContent = ({
           onClick={() => setShowProfileCustomization(true)}
         >
           <Palette className="h-4 w-4" />
-          Open Profile Customization
+          Open Theme Customization
         </Button>
       </div>
     </TabsContent>
@@ -353,7 +541,27 @@ const SettingsContent = ({
       isOpen={showProfileCustomization}
       onClose={() => setShowProfileCustomization(false)}
       userId={userId}
-      onUpdated={() => {}}
+      currentTheme={profile.profile_theme}
+      currentCardStyle={profile.card_style}
+      onUpdated={() => {
+        // Refresh profile after customization update
+        supabase
+          .from('profiles')
+          .select('display_name, bio, avatar_url, profile_theme, card_style')
+          .eq('id', userId)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              setProfile({
+                display_name: data.display_name || '',
+                bio: data.bio || '',
+                avatar_url: data.avatar_url || '',
+                profile_theme: data.profile_theme || 'default',
+                card_style: data.card_style || 'default',
+              });
+            }
+          });
+      }}
     />
   )}
 </>
