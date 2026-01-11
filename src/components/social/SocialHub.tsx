@@ -79,7 +79,7 @@ const SocialHub = ({ isOpen, onOpenChange }: SocialHubProps) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-xl">
+      <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-3xl p-4 sm:p-6">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
