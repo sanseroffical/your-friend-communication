@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import MobileUIToggle, { MobileUIProvider } from "./components/MobileUIToggle";
+import ClippyButton from "./components/ClippyButton";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
         <MobileUIToggle />
+        <ClippyButton />
       </MobileUIProvider>
     </TooltipProvider>
   </QueryClientProvider>
