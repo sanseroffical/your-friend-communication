@@ -11,7 +11,7 @@ const ClippyButton = () => {
       <Button
         onClick={() => setIsOpen(!isOpen)}
         size="icon"
-        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg z-40"
+        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg z-[60] bg-primary hover:bg-primary/90"
       >
         <Sparkles className="h-5 w-5" />
       </Button>
