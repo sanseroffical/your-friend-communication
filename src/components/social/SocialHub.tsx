@@ -6,9 +6,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { supabase } from '@/integrations/supabase/client';
 import { useSocial } from '@/hooks/useSocial';
+import { useStories } from '@/hooks/useStories';
 import SocialFeed from './SocialFeed';
 import CreatePost from './CreatePost';
 import UserProfile from './UserProfile';
+import StoriesBar from './StoriesBar';
 
 interface SocialHubProps {
   isOpen: boolean;
@@ -39,6 +41,13 @@ const SocialHub = ({ isOpen, onOpenChange }: SocialHubProps) => {
     deleteWallPost,
     getUserPosts
   } = useSocial(currentUserId);
+
+  const {
+    storyGroups,
+    createStory,
+    viewStory,
+    deleteStory
+  } = useStories(currentUserId);
 
   useEffect(() => {
     const getUser = async () => {
@@ -99,6 +108,16 @@ const SocialHub = ({ isOpen, onOpenChange }: SocialHubProps) => {
             />
           ) : (
             <>
+              {/* Stories Section */}
+              <StoriesBar
+                storyGroups={storyGroups}
+                currentUserId={currentUserId}
+                userAvatar={userProfile?.avatar_url || null}
+                onCreateStory={createStory}
+                onViewStory={viewStory}
+                onDeleteStory={deleteStory}
+              />
+
               <Tabs value={feedType} onValueChange={(v) => setFeedType(v as 'all' | 'following')} className="mb-4">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="all" className="gap-2">
