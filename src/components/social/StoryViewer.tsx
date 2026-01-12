@@ -5,10 +5,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { StoryGroup, Story } from '@/hooks/useStories';
 import { formatDistanceToNow } from 'date-fns';
+import StoryReactions from './StoryReactions';
 
 interface StoryViewerProps {
   storyGroup: StoryGroup;
   isOwner: boolean;
+  currentUserId: string | null;
   onClose: () => void;
   onViewStory: (storyId: string) => void;
   onDeleteStory: (storyId: string) => void;
@@ -17,6 +19,7 @@ interface StoryViewerProps {
 const StoryViewer = ({
   storyGroup,
   isOwner,
+  currentUserId,
   onClose,
   onViewStory,
   onDeleteStory
@@ -185,12 +188,19 @@ const StoryViewer = ({
 
         {/* Caption */}
         {currentStory.content && (
-          <div className="absolute bottom-16 left-4 right-4 text-center">
+          <div className="absolute bottom-32 left-4 right-4 text-center">
             <p className="text-white text-lg font-medium drop-shadow-lg bg-black/30 rounded-lg px-3 py-2">
               {currentStory.content}
             </p>
           </div>
         )}
+
+        {/* Story Reactions */}
+        <StoryReactions
+          storyId={currentStory.id}
+          storyOwnerId={storyGroup.userId}
+          currentUserId={currentUserId}
+        />
 
         {/* Navigation Areas */}
         <button
