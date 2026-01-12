@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, MessageCircle, Trash2, Send } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Send, Bookmark, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,6 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { SocialPost, PostComment } from '@/hooks/useSocial';
 import TranslateButton from '@/components/TranslateButton';
 import { useMobileUI } from '@/components/MobileUIToggle';
+import { useBookmarks } from '@/hooks/useBookmarks';
 
 interface SocialFeedProps {
   posts: SocialPost[];
@@ -28,10 +29,14 @@ const PostCard = ({
   getComments,
   addComment,
   deleteComment,
-  onUserClick
+  onUserClick,
+  isBookmarked,
+  onToggleBookmark
 }: { 
   post: SocialPost;
   currentUserId: string | null;
+  isBookmarked: boolean;
+  onToggleBookmark: (postId: string) => void;
 } & Omit<SocialFeedProps, 'posts'>) => {
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<PostComment[]>([]);
@@ -144,6 +149,13 @@ const PostCard = ({
             <MessageCircle className="h-4 w-4" />
             {post.comments_count}
           </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => onToggleBookmark(post.id)}
+          >
+            <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-primary text-primary' : ''}`} />
+          </Button>
         </div>
 
         {showComments && (
@@ -211,6 +223,8 @@ const SocialFeed = ({
   deleteComment,
   onUserClick
 }: SocialFeedProps) => {
+  const { isBookmarked, toggleBookmark } = useBookmarks(currentUserId);
+
   if (posts.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -232,6 +246,8 @@ const SocialFeed = ({
           addComment={addComment}
           deleteComment={deleteComment}
           onUserClick={onUserClick}
+          isBookmarked={isBookmarked(post.id)}
+          onToggleBookmark={toggleBookmark}
         />
       ))}
     </div>

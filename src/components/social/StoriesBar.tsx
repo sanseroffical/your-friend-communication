@@ -94,6 +94,7 @@ const StoriesBar = ({
         <StoryViewer
           storyGroup={viewingGroup}
           isOwner={viewingGroup.userId === currentUserId}
+          currentUserId={currentUserId}
           onClose={() => setViewingGroup(null)}
           onViewStory={onViewStory}
           onDeleteStory={onDeleteStory}
