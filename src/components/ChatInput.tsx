@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { containsProfanity, filterProfanity } from "@/utils/profanityFilter";
+import { containsProfanity } from "@/utils/profanityFilter";
+import { useMentions } from "@/hooks/useMentions";
+import MentionSuggestions from "@/components/MentionSuggestions";
 
 interface Attachment {
   file: File;
@@ -29,9 +31,11 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatI
   const [message, setMessage] = useState("");
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showMentions, setShowMentions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { suggestions, isLoading: mentionsLoading, searchUsers, clearSuggestions, getMentionAtCursor } = useMentions();
 
   // Focus input when reply is set
   useEffect(() => {
@@ -138,8 +142,34 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatI
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMessage(e.target.value);
+    const value = e.target.value;
+    setMessage(value);
     onTyping?.();
+    
+    // Check for mention
+    const cursorPos = e.target.selectionStart || value.length;
+    const mentionQuery = getMentionAtCursor(value, cursorPos);
+    if (mentionQuery !== null) {
+      setShowMentions(true);
+      searchUsers(mentionQuery);
+    } else {
+      setShowMentions(false);
+      clearSuggestions();
+    }
+  };
+
+  const handleSelectMention = (user: { clip_id: string }) => {
+    const cursorPos = inputRef.current?.selectionStart || message.length;
+    const beforeCursor = message.slice(0, cursorPos);
+    const afterCursor = message.slice(cursorPos);
+    const mentionMatch = beforeCursor.match(/@(\w*)$/);
+    if (mentionMatch) {
+      const newMessage = beforeCursor.slice(0, -mentionMatch[0].length) + `@${user.clip_id} ` + afterCursor;
+      setMessage(newMessage);
+    }
+    setShowMentions(false);
+    clearSuggestions();
+    inputRef.current?.focus();
   };
 
   const isImage = attachment?.file.type.startsWith("image/");
@@ -203,7 +233,14 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatI
       )}
 
       {/* Input row */}
-      <div className="flex items-center gap-2 p-4">
+      <div className="relative flex items-center gap-2 p-4">
+        {showMentions && (
+          <MentionSuggestions 
+            suggestions={suggestions} 
+            onSelect={handleSelectMention}
+            isLoading={mentionsLoading}
+          />
+        )}
         <input
           ref={fileInputRef}
           type="file"

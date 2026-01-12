@@ -7,8 +7,13 @@ import HangmanGame from "./HangmanGame";
 import Game2048 from "./Game2048";
 import MinesweeperGame from "./MinesweeperGame";
 import TypingRaceGame from "./TypingRaceGame";
+import SimonSaysGame from "./SimonSaysGame";
+import PongGame from "./PongGame";
+import FlappyGame from "./FlappyGame";
+import BrickBreakerGame from "./BrickBreakerGame";
+import TetrisGame from "./TetrisGame";
 
-type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing";
+type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing" | "simon" | "pong" | "flappy" | "brickbreaker" | "tetris";
 
 const miniGames = [
   { id: "snake" as MiniGame, name: "🐍 Snake", desc: "Classic snake game" },
@@ -18,6 +23,11 @@ const miniGames = [
   { id: "2048" as MiniGame, name: "🔢 2048", desc: "Slide & merge tiles" },
   { id: "minesweeper" as MiniGame, name: "💣 Minesweeper", desc: "Avoid the mines" },
   { id: "typing" as MiniGame, name: "⌨️ Typing Race", desc: "Test your speed" },
+  { id: "simon" as MiniGame, name: "🎨 Simon Says", desc: "Memory pattern game" },
+  { id: "pong" as MiniGame, name: "🏓 Pong", desc: "Classic arcade game" },
+  { id: "flappy" as MiniGame, name: "🐤 Flappy Bird", desc: "Fly through pipes" },
+  { id: "brickbreaker" as MiniGame, name: "🧱 Brick Breaker", desc: "Break all bricks" },
+  { id: "tetris" as MiniGame, name: "🟦 Tetris", desc: "Stack the blocks" },
 ];
 
 const MiniGamesPanel = () => {
@@ -25,22 +35,19 @@ const MiniGamesPanel = () => {
 
   const renderGame = () => {
     switch (activeGame) {
-      case "snake":
-        return <SnakeGame />;
-      case "memory":
-        return <MemoryGame />;
-      case "clicker":
-        return <ClickerGame />;
-      case "hangman":
-        return <HangmanGame />;
-      case "2048":
-        return <Game2048 />;
-      case "minesweeper":
-        return <MinesweeperGame />;
-      case "typing":
-        return <TypingRaceGame />;
-      default:
-        return null;
+      case "snake": return <SnakeGame />;
+      case "memory": return <MemoryGame />;
+      case "clicker": return <ClickerGame />;
+      case "hangman": return <HangmanGame />;
+      case "2048": return <Game2048 />;
+      case "minesweeper": return <MinesweeperGame />;
+      case "typing": return <TypingRaceGame />;
+      case "simon": return <SimonSaysGame />;
+      case "pong": return <PongGame />;
+      case "flappy": return <FlappyGame />;
+      case "brickbreaker": return <BrickBreakerGame />;
+      case "tetris": return <TetrisGame />;
+      default: return null;
     }
   };
 
