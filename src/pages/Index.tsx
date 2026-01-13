@@ -64,7 +64,6 @@ const Index = () => {
   const [isGamesOpen, setIsGamesOpen] = useState(false);
   const [isDMsOpen, setIsDMsOpen] = useState(false);
   const [isSocialOpen, setIsSocialOpen] = useState(false);
-  const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading, logout } = useClipUser();
@@ -495,7 +494,6 @@ const Index = () => {
           </div>
         </div>
 
-        <MobileSidebarButton />
         <ClippyButton />
 
         <VideoCall
@@ -562,13 +560,6 @@ const Index = () => {
           userName={userName}
           isOpen={isDMsOpen}
           onOpenChange={setIsDMsOpen}
-        />
-
-        {/* Friends Panel */}
-        <FriendsPanel
-          userId={authUser?.id || ""}
-          isOpen={isFriendsOpen}
-          onOpenChange={setIsFriendsOpen}
         />
 
         {/* Social Hub */}
