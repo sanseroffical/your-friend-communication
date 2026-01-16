@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_whitelist: {
+        Row: {
+          added_at: string | null
+          added_by: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          notes: string | null
+        }
+        Insert: {
+          added_at?: string | null
+          added_by?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+        }
+        Update: {
+          added_at?: string | null
+          added_by?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           content: string
@@ -175,6 +202,33 @@ export type Database = {
           follower_id?: string
           following_id?: string
           id?: string
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -803,6 +857,27 @@ export type Database = {
           earned_at?: string
           id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
         }
         Relationships: []
       }
