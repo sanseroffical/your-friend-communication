@@ -54,7 +54,15 @@
 </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Critical LCP content - shows immediately while JS loads -->
+      <div id="app-skeleton" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:hsl(0 0% 100%);font-family:system-ui,-apple-system,sans-serif">
+        <div style="width:100%;max-width:28rem;padding:1rem;text-align:center">
+          <h1 style="font-size:1.5rem;font-weight:bold;margin-bottom:0.5rem;color:hsl(0 0% 0%)">FriendChat</h1>
+          <p style="color:hsl(0 0% 45%);font-size:0.875rem">Connect with friends securely</p>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
