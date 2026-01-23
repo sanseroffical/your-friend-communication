@@ -17,6 +17,8 @@ import BonziBuddy from "@/components/BonziBuddy";
 import GamePanel from "@/components/GamePanel";
 import DirectMessagesPanel from "@/components/DirectMessagesPanel";
 import SocialHub from "@/components/social/SocialHub";
+import MobileSidebarButton from "@/components/MobileSidebarButton";
+import FriendsPanel from "@/components/FriendsPanel";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
