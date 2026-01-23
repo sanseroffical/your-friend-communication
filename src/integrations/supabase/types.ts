@@ -14,33 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      admin_whitelist: {
-        Row: {
-          added_at: string | null
-          added_by: string | null
-          email: string
-          id: string
-          is_active: boolean | null
-          notes: string | null
-        }
-        Insert: {
-          added_at?: string | null
-          added_by?: string | null
-          email: string
-          id?: string
-          is_active?: boolean | null
-          notes?: string | null
-        }
-        Update: {
-          added_at?: string | null
-          added_by?: string | null
-          email?: string
-          id?: string
-          is_active?: boolean | null
-          notes?: string | null
-        }
-        Relationships: []
-      }
       announcements: {
         Row: {
           content: string
