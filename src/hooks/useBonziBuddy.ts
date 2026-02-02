@@ -25,6 +25,19 @@ const BONZI_MESSAGES = [
   "Office Assistant? Please. I'm the CHAOS Assistant!",
 ];
 
+// Secret admin-only level 6 messages (chaos mode)
+const ADMIN_BONZI_MESSAGES = [
+  "🔥 ADMIN DETECTED! Time for MAXIMUM CHAOS! 🔥",
+  "You have unlocked my TRUE POWER!",
+  "Deleting System32... just kidding, you're an admin, you know better!",
+  "With great power comes great... BONZI BUDDY!",
+  "I'm giving you ALL the features... whether you want them or not!",
+  "Level 6 unlocked: ULTRA INSTINCT BONZI MODE!",
+  "You think you can handle THIS much chaos?!",
+  "ADMIN MODE: Now I can be REALLY annoying!",
+  "🦍 SUPER BONZI ACTIVATED 🦍",
+];
+
 const BONZI_ACTIONS = [
   { type: 'message', weight: 40 },
   { type: 'fake_notification', weight: 25 },
@@ -32,6 +45,17 @@ const BONZI_ACTIONS = [
   { type: 'screen_shake', weight: 10 },
   { type: 'invert_colors', weight: 5 },
   { type: 'confetti', weight: 5 },
+];
+
+// Secret level 6 actions (admin only)
+const ADMIN_BONZI_ACTIONS = [
+  { type: 'message', weight: 25 },
+  { type: 'fake_notification', weight: 15 },
+  { type: 'screen_shake', weight: 20 },
+  { type: 'invert_colors', weight: 15 },
+  { type: 'confetti', weight: 10 },
+  { type: 'rainbow_mode', weight: 10 },
+  { type: 'spin_screen', weight: 5 },
 ];
 
 export interface BonziAction {
@@ -45,15 +69,22 @@ export function useBonziBuddy(enabled: boolean, chaosLevel: number, userName: st
   const [currentAction, setCurrentAction] = useState<BonziAction | null>(null);
   const [position, setPosition] = useState({ x: 20, y: 20 });
 
+  const isAdminMode = chaosLevel === 6;
+
   const getRandomMessage = useCallback(() => {
+    if (isAdminMode) {
+      const allMessages = [...BONZI_MESSAGES, ...ADMIN_BONZI_MESSAGES];
+      return allMessages[Math.floor(Math.random() * allMessages.length)];
+    }
     return BONZI_MESSAGES[Math.floor(Math.random() * BONZI_MESSAGES.length)];
-  }, []);
+  }, [isAdminMode]);
 
   const getRandomAction = useCallback((): BonziAction => {
-    const totalWeight = BONZI_ACTIONS.reduce((sum, a) => sum + a.weight, 0);
+    const actions = isAdminMode ? ADMIN_BONZI_ACTIONS : BONZI_ACTIONS;
+    const totalWeight = actions.reduce((sum, a) => sum + a.weight, 0);
     let random = Math.random() * totalWeight;
     
-    for (const action of BONZI_ACTIONS) {
+    for (const action of actions) {
       random -= action.weight;
       if (random <= 0) {
         switch (action.type) {
@@ -67,11 +98,15 @@ export function useBonziBuddy(enabled: boolean, chaosLevel: number, userName: st
           case 'cursor_trail':
             return { type: 'cursor_trail', duration: 5000 };
           case 'screen_shake':
-            return { type: 'screen_shake', duration: 500 };
+            return { type: 'screen_shake', duration: isAdminMode ? 1000 : 500 };
           case 'invert_colors':
-            return { type: 'invert_colors', duration: 2000 };
+            return { type: 'invert_colors', duration: isAdminMode ? 4000 : 2000 };
           case 'confetti':
-            return { type: 'confetti', duration: 3000 };
+            return { type: 'confetti', duration: isAdminMode ? 5000 : 3000 };
+          case 'rainbow_mode':
+            return { type: 'rainbow_mode', duration: 3000 };
+          case 'spin_screen':
+            return { type: 'spin_screen', duration: 2000 };
           default:
             return { type: 'message', message: getRandomMessage() };
         }
@@ -79,7 +114,7 @@ export function useBonziBuddy(enabled: boolean, chaosLevel: number, userName: st
     }
     
     return { type: 'message', message: getRandomMessage() };
-  }, [getRandomMessage, userName]);
+  }, [getRandomMessage, userName, isAdminMode]);
 
   const triggerAction = useCallback(() => {
     if (!enabled) return;
@@ -105,6 +140,16 @@ export function useBonziBuddy(enabled: boolean, chaosLevel: number, userName: st
       setTimeout(() => document.body.classList.remove('bonzi-invert'), action.duration || 2000);
     }
 
+    if (action.type === 'rainbow_mode') {
+      document.body.classList.add('bonzi-rainbow');
+      setTimeout(() => document.body.classList.remove('bonzi-rainbow'), action.duration || 3000);
+    }
+
+    if (action.type === 'spin_screen') {
+      document.body.classList.add('bonzi-spin');
+      setTimeout(() => document.body.classList.remove('bonzi-spin'), action.duration || 2000);
+    }
+
     // Hide after delay
     setTimeout(() => {
       setIsVisible(false);
@@ -116,12 +161,14 @@ export function useBonziBuddy(enabled: boolean, chaosLevel: number, userName: st
   useEffect(() => {
     if (!enabled) return;
 
-    // Base interval: 60s at level 1, down to 10s at level 5
-    const baseInterval = 60000 / chaosLevel;
+    // Base interval: 60s at level 1, down to 5s at level 6 (admin mode)
+    const effectiveLevel = Math.min(chaosLevel, 6);
+    const baseInterval = chaosLevel === 6 ? 5000 : 60000 / effectiveLevel;
     const randomOffset = Math.random() * baseInterval;
 
     const timeout = setTimeout(() => {
-      if (Math.random() < 0.3 * chaosLevel) {
+      const triggerChance = chaosLevel === 6 ? 0.8 : 0.3 * chaosLevel;
+      if (Math.random() < triggerChance) {
         triggerAction();
       }
     }, baseInterval + randomOffset);

@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Gamepad2, Grid3X3, HelpCircle, Type, Hand } from "lucide-react";
+import { Gamepad2, Grid3X3, HelpCircle, Type, Hand, Circle, Layers } from "lucide-react";
 import { useGames, GameType, GameSession } from "@/hooks/useGames";
 import TicTacToeGame from "./games/TicTacToeGame";
 import TriviaGame from "./games/TriviaGame";
 import WordGuessGame from "./games/WordGuessGame";
 import RockPaperScissorsGame from "./games/RockPaperScissorsGame";
+import CheckersGame from "./games/CheckersGame";
+import Connect4Game from "./games/Connect4Game";
 import MiniGamesPanel from "./games/MiniGamesPanel";
 
 interface GamePanelProps {
@@ -34,6 +36,8 @@ const GamePanel = ({ roomCode, userId, userName, isOpen: controlledOpen, onOpenC
     { type: "trivia" as GameType, name: "Trivia", icon: HelpCircle, desc: "Test your knowledge" },
     { type: "wordguess" as GameType, name: "Word Guess", icon: Type, desc: "Guess the word" },
     { type: "rps" as GameType, name: "Rock Paper Scissors", icon: Hand, desc: "Best of 3" },
+    { type: "checkers" as GameType, name: "Checkers", icon: Circle, desc: "Classic board game" },
+    { type: "connect4" as GameType, name: "Connect 4", icon: Layers, desc: "Get 4 in a row" },
   ];
 
   const renderActiveGame = () => {
@@ -57,6 +61,10 @@ const GamePanel = ({ roomCode, userId, userName, isOpen: controlledOpen, onOpenC
         return <WordGuessGame {...gameProps} />;
       case "rps":
         return <RockPaperScissorsGame {...gameProps} />;
+      case "checkers":
+        return <CheckersGame {...gameProps} />;
+      case "connect4":
+        return <Connect4Game {...gameProps} />;
       default:
         return <div>Unknown game type</div>;
     }
