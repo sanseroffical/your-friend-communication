@@ -30,6 +30,7 @@ import { useReadReceipts } from "@/hooks/useReadReceipts";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { useAdminActions } from "@/hooks/useAdminActions";
+import { useChatCommands } from "@/hooks/useChatCommands";
 
 interface Message {
   id: string;
@@ -82,6 +83,7 @@ const Index = () => {
   const { isAdmin, isModerator } = useUserRole(userId);
   const { settings, subscribeToRoomTheme } = useUserSettings(userId);
   const { deleteUserMessage } = useAdminActions(isAdmin, isModerator);
+  const { processCommand } = useChatCommands(isAdmin, isModerator, roomCode || "", userId, userName);
 
   // Subscribe to room theme when in a room
   useEffect(() => {
@@ -415,6 +417,7 @@ const Index = () => {
           onOpenGames={() => setIsGamesOpen(true)}
           onOpenDMs={() => setIsDMsOpen(true)}
           onOpenSocial={() => setIsSocialOpen(true)}
+          onOpenFriends={() => setIsFriendsOpen(true)}
         />
 
         <div className="flex flex-col flex-1 min-w-0">
@@ -493,6 +496,7 @@ const Index = () => {
               replyTo={replyTo}
               onCancelReply={() => setReplyTo(null)}
               onTyping={setTyping}
+              onProcessCommand={processCommand}
             />
           </div>
         </div>

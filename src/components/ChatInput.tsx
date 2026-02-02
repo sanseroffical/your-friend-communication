@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, X, FileIcon, Reply } from "lucide-react";
+import { Send, Paperclip, X, FileIcon, Reply, Mic, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,15 +25,21 @@ interface ChatInputProps {
   replyTo?: ReplyTo | null;
   onCancelReply?: () => void;
   onTyping?: () => void;
+  onProcessCommand?: (input: string) => Promise<{ handled: boolean; message?: string }>;
 }
 
-const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatInputProps) => {
+const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping, onProcessCommand }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showMentions, setShowMentions] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { suggestions, isLoading: mentionsLoading, searchUsers, clearSuggestions, getMentionAtCursor } = useMentions();
 
@@ -105,12 +111,97 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatI
     };
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const file = new File([audioBlob], `voice-${Date.now()}.webm`, { type: 'audio/webm' });
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Upload and send
+        setIsUploading(true);
+        const uploaded = await uploadFile(file);
+        if (uploaded) {
+          onSend("🎤 Voice message", uploaded, replyTo?.id);
+          onCancelReply?.();
+        }
+        setIsUploading(false);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } catch (error) {
+      toast({
+        title: "Microphone access denied",
+        description: "Please allow microphone access to record voice messages.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+    }
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      setIsRecording(false);
+      audioChunksRef.current = [];
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!message.trim() && !attachment) || disabled || isUploading) return;
 
-    // Check for profanity
     const messageToSend = message.trim();
+
+    // Process commands first
+    if (messageToSend.startsWith('/') && onProcessCommand) {
+      const result = await onProcessCommand(messageToSend);
+      if (result.handled) {
+        if (result.message) {
+          toast({ title: "Command", description: result.message });
+        }
+        setMessage("");
+        return;
+      }
+    }
+
+    // Check for profanity
     if (messageToSend && containsProfanity(messageToSend)) {
       toast({
         title: "Message blocked",
@@ -248,32 +339,72 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping }: ChatI
           onChange={handleFileSelect}
           accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip,.mp3,.wav,.mp4,.mov,.avi,.webm"
         />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || isUploading}
-          className="shrink-0"
-        >
-          <Paperclip className="h-5 w-5" />
-        </Button>
-        <Input
-          ref={inputRef}
-          value={message}
-          onChange={handleInputChange}
-          placeholder="Type a message..."
-          className="flex-1 bg-background border-border focus-visible:ring-primary"
-          disabled={disabled || isUploading}
-        />
-        <Button
-          type="submit"
-          size="icon"
-          disabled={(!message.trim() && !attachment) || disabled || isUploading}
-          className="shrink-0"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
+        
+        {isRecording ? (
+          <>
+            <div className="flex-1 flex items-center gap-3 bg-destructive/10 rounded-lg px-4 py-2">
+              <div className="h-3 w-3 bg-destructive rounded-full animate-pulse" />
+              <span className="text-sm font-mono">{formatTime(recordingTime)}</span>
+              <span className="text-sm text-muted-foreground">Recording...</span>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={cancelRecording}
+              className="shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              onClick={stopRecording}
+              className="shrink-0 bg-destructive hover:bg-destructive/90"
+            >
+              <Square className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled || isUploading}
+              className="shrink-0"
+            >
+              <Paperclip className="h-5 w-5" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={startRecording}
+              disabled={disabled || isUploading}
+              className="shrink-0"
+            >
+              <Mic className="h-5 w-5" />
+            </Button>
+            <Input
+              ref={inputRef}
+              value={message}
+              onChange={handleInputChange}
+              placeholder="Type a message or /help for commands..."
+              className="flex-1 bg-background border-border focus-visible:ring-primary"
+              disabled={disabled || isUploading}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              disabled={(!message.trim() && !attachment) || disabled || isUploading}
+              className="shrink-0"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </>
+        )}
       </div>
     </form>
   );

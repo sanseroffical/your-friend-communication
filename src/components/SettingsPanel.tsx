@@ -66,6 +66,7 @@ const SettingsPanel = ({ userId, roomCode, isAdmin, isOpen, onOpenChange }: Sett
               handleRoomTheme={handleRoomTheme}
               roomCode={roomCode}
               userId={userId}
+              isAdmin={isAdmin}
             />
           </SheetContent>
         </Sheet>
@@ -100,6 +101,7 @@ const SettingsPanel = ({ userId, roomCode, isAdmin, isOpen, onOpenChange }: Sett
             handleRoomTheme={handleRoomTheme}
             roomCode={roomCode}
             userId={userId}
+            isAdmin={isAdmin}
           />
         </SheetContent>
       </Sheet>
@@ -120,7 +122,8 @@ const SettingsContent = ({
   handleThemeChange, 
   handleRoomTheme, 
   roomCode,
-  userId
+  userId,
+  isAdmin,
 }: {
   settings: any;
   updateSettings: (s: any) => void;
@@ -128,6 +131,7 @@ const SettingsContent = ({
   handleRoomTheme: (id: string) => void;
   roomCode?: string;
   userId: string;
+  isAdmin?: boolean;
 }) => {
   const [showProfileCustomization, setShowProfileCustomization] = useState(false);
   const [profile, setProfile] = useState<{
@@ -514,12 +518,15 @@ const SettingsContent = ({
           <div className="space-y-3 p-4 bg-muted rounded-lg">
             <div className="flex items-center justify-between">
               <Label className="text-base">Chaos Level</Label>
-              <span className="text-sm font-mono">{settings.bonzi_chaos_level}/5</span>
+              <span className="text-sm font-mono">
+                {settings.bonzi_chaos_level}/{isAdmin ? '6' : '5'}
+                {settings.bonzi_chaos_level === 6 && ' 🔥'}
+              </span>
             </div>
             <Slider
               value={[settings.bonzi_chaos_level]}
               min={1}
-              max={5}
+              max={isAdmin ? 6 : 5}
               step={1}
               onValueChange={([v]) => updateSettings({ bonzi_chaos_level: v })}
             />
@@ -529,7 +536,13 @@ const SettingsContent = ({
               {settings.bonzi_chaos_level === 3 && "Mischievous: Fake notifications"}
               {settings.bonzi_chaos_level === 4 && "Chaotic: Visual effects enabled"}
               {settings.bonzi_chaos_level === 5 && "MAXIMUM CHAOS: All effects!"}
+              {settings.bonzi_chaos_level === 6 && "🔥 ADMIN ULTRA MODE: Rainbow & spin effects!"}
             </p>
+            {isAdmin && settings.bonzi_chaos_level < 6 && (
+              <p className="text-xs text-primary">
+                🔓 Admin privilege: Level 6 unlocked!
+              </p>
+            )}
           </div>
         )}
       </div>

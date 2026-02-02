@@ -15,7 +15,7 @@ export interface GameSession {
   updated_at: string;
 }
 
-export type GameType = "tictactoe" | "trivia" | "wordguess" | "rps";
+export type GameType = "tictactoe" | "trivia" | "wordguess" | "rps" | "checkers" | "connect4";
 
 export const useGames = (roomCode: string | null, userId: string) => {
   const [activeGame, setActiveGame] = useState<GameSession | null>(null);
@@ -206,6 +206,18 @@ function getInitialGameState(gameType: GameType): Record<string, unknown> {
         choices: {},
         round: 1,
         scores: {},
+      };
+    case "checkers":
+      return {
+        board: null, // Created by component
+        turn: 'red',
+        players: {},
+      };
+    case "connect4":
+      return {
+        board: null, // Created by component
+        turn: 'red',
+        players: {},
       };
     default:
       return {};
