@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
+import GameLeaderboard from './GameLeaderboard';
+import { useGameScores } from '@/hooks/useGameScores';
 
 type Grid = number[][];
 
@@ -28,6 +30,8 @@ const Game2048 = () => {
   const [grid, setGrid] = useState<Grid>([]);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const { submitScore } = useGameScores("2048");
+  const scoreSubmittedRef = useRef(false);
 
   const initializeGrid = useCallback(() => {
     const newGrid: Grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0));
@@ -162,7 +166,16 @@ const Game2048 = () => {
     setGrid(initializeGrid());
     setScore(0);
     setGameOver(false);
+    scoreSubmittedRef.current = false;
   };
+
+  // Submit score when game ends
+  useEffect(() => {
+    if (gameOver && score > 0 && !scoreSubmittedRef.current) {
+      scoreSubmittedRef.current = true;
+      submitScore(score);
+    }
+  }, [gameOver, score, submitScore]);
 
   return (
     <Card>
@@ -209,6 +222,8 @@ const Game2048 = () => {
         <p className="text-xs text-center text-muted-foreground">
           Use arrow keys or buttons to play
         </p>
+
+        <GameLeaderboard gameType="2048" gameName="2048" />
       </CardContent>
     </Card>
   );

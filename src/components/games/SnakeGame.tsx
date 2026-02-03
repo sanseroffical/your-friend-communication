@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import GameLeaderboard from "./GameLeaderboard";
+import { useGameScores } from "@/hooks/useGameScores";
 
 const GRID_SIZE = 15;
 const CELL_SIZE = 20;
@@ -16,6 +18,8 @@ const SnakeGame = () => {
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const directionRef = useRef(direction);
+  const { submitScore } = useGameScores("snake");
+  const scoreSubmittedRef = useRef(false);
 
   const generateFood = useCallback((currentSnake: Position[]) => {
     let newFood: Position;
@@ -37,7 +41,16 @@ const SnakeGame = () => {
     setGameOver(false);
     setScore(0);
     setIsPlaying(true);
+    scoreSubmittedRef.current = false;
   };
+
+  // Submit score when game ends
+  useEffect(() => {
+    if (gameOver && score > 0 && !scoreSubmittedRef.current) {
+      scoreSubmittedRef.current = true;
+      submitScore(score);
+    }
+  }, [gameOver, score, submitScore]);
 
   const moveSnake = useCallback(() => {
     if (!isPlaying || gameOver) return;
@@ -197,6 +210,8 @@ const SnakeGame = () => {
       <p className="text-xs text-muted-foreground">
         Use arrow keys or WASD to move
       </p>
+
+      <GameLeaderboard gameType="snake" gameName="Snake" />
     </div>
   );
 };
