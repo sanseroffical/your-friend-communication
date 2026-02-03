@@ -42,6 +42,14 @@ export class WebRTCSignaling {
     this.channel
       .on('presence', { event: 'sync' }, () => {
         console.log('Presence sync');
+        // Get all existing users when syncing
+        const state = this.channel?.presenceState() || {};
+        Object.entries(state).forEach(([key, presences]) => {
+          if (key !== this.userId && presences.length > 0) {
+            const presence = presences[0] as { userName?: string };
+            this.callbacks.onUserJoined(key, presence?.userName || 'Unknown');
+          }
+        });
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
         console.log('User joined call:', key, newPresences);
