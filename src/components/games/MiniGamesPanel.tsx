@@ -23,8 +23,10 @@ const SolitaireGame = lazy(() => import("./SolitaireGame"));
 const ColorMatchGame = lazy(() => import("./ColorMatchGame"));
 const ReactionTimeGame = lazy(() => import("./ReactionTimeGame"));
 const SlidingPuzzleGame = lazy(() => import("./SlidingPuzzleGame"));
+const PacManGame = lazy(() => import("./PacManGame"));
+const CardMatchSpeedGame = lazy(() => import("./CardMatchSpeedGame"));
 
-type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing" | "simon" | "pong" | "flappy" | "brickbreaker" | "tetris" | "invaders" | "sudoku" | "wordle" | "maze" | "solitaire" | "colormatch" | "reaction" | "sliding";
+type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing" | "simon" | "pong" | "flappy" | "brickbreaker" | "tetris" | "invaders" | "sudoku" | "wordle" | "maze" | "solitaire" | "colormatch" | "reaction" | "sliding" | "pacman" | "cardspeed";
 
 const miniGames = [
   { id: "snake" as MiniGame, name: "🐍 Snake", desc: "Classic snake game" },
@@ -47,6 +49,8 @@ const miniGames = [
   { id: "colormatch" as MiniGame, name: "🎨 Color Match", desc: "Fast color matching", isNew: true },
   { id: "reaction" as MiniGame, name: "⚡ Reaction", desc: "Test your reflexes", isNew: true },
   { id: "sliding" as MiniGame, name: "🧩 Sliding Puzzle", desc: "Arrange the tiles", isNew: true },
+  { id: "pacman" as MiniGame, name: "👾 Pac-Man", desc: "Classic arcade chase", isNew: true },
+  { id: "cardspeed" as MiniGame, name: "🃏 Speed Match", desc: "Fast card matching", isNew: true },
 ];
 
 const GameLoader = () => (
@@ -80,6 +84,8 @@ const MiniGamesPanel = () => {
       colormatch: ColorMatchGame,
       reaction: ReactionTimeGame,
       sliding: SlidingPuzzleGame,
+      pacman: PacManGame,
+      cardspeed: CardMatchSpeedGame,
     }[activeGame];
 
     if (!GameComponent) return null;
