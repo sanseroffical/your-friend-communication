@@ -232,6 +232,36 @@ export type Database = {
         }
         Relationships: []
       }
+      game_scores: {
+        Row: {
+          created_at: string
+          difficulty: string | null
+          game_type: string
+          id: string
+          score: number
+          time_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: string | null
+          game_type: string
+          id?: string
+          score: number
+          time_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: string | null
+          game_type?: string
+          id?: string
+          score?: number
+          time_seconds?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       game_sessions: {
         Row: {
           created_at: string
