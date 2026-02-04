@@ -19,6 +19,8 @@ import DirectMessagesPanel from "@/components/DirectMessagesPanel";
 import SocialHub from "@/components/social/SocialHub";
 import MobileSidebarButton from "@/components/MobileSidebarButton";
 import FriendsPanel from "@/components/FriendsPanel";
+import QuestPanel from "@/components/QuestPanel";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +33,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { useAdminActions } from "@/hooks/useAdminActions";
 import { useChatCommands } from "@/hooks/useChatCommands";
+import { useQuests } from "@/hooks/useQuests";
 
 interface Message {
   id: string;
@@ -68,6 +71,7 @@ const Index = () => {
   const [isDMsOpen, setIsDMsOpen] = useState(false);
   const [isSocialOpen, setIsSocialOpen] = useState(false);
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
+  const [isQuestsOpen, setIsQuestsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading, logout } = useClipUser();
@@ -84,6 +88,7 @@ const Index = () => {
   const { settings, subscribeToRoomTheme } = useUserSettings(userId);
   const { deleteUserMessage } = useAdminActions(isAdmin, isModerator);
   const { processCommand } = useChatCommands(isAdmin, isModerator, roomCode || "", userId, userName);
+  const { updateQuestProgress } = useQuests();
 
   // Subscribe to room theme when in a room
   useEffect(() => {
@@ -305,6 +310,9 @@ const Index = () => {
       });
 
       if (error) throw error;
+      
+      // Track message sent for quests
+      updateQuestProgress('messages_sent', 1);
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
@@ -418,6 +426,7 @@ const Index = () => {
           onOpenDMs={() => setIsDMsOpen(true)}
           onOpenSocial={() => setIsSocialOpen(true)}
           onOpenFriends={() => setIsFriendsOpen(true)}
+          onOpenQuests={() => setIsQuestsOpen(true)}
         />
 
         <div className="flex flex-col flex-1 min-w-0">
@@ -582,6 +591,16 @@ const Index = () => {
           isOpen={isSocialOpen}
           onOpenChange={setIsSocialOpen}
         />
+
+        {/* Quest Panel */}
+        <Sheet open={isQuestsOpen} onOpenChange={setIsQuestsOpen}>
+          <SheetContent side="right" className="w-[400px] sm:w-[500px]">
+            <SheetHeader>
+              <SheetTitle>Quests & Levels</SheetTitle>
+            </SheetHeader>
+            <QuestPanel onClose={() => setIsQuestsOpen(false)} />
+          </SheetContent>
+        </Sheet>
 
         {/* BonziBuddy */}
         <BonziBuddy
