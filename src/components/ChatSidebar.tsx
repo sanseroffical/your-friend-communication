@@ -1,4 +1,5 @@
-import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users, UserPlus } from "lucide-react";
+import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users, UserPlus, Target, Star } from "lucide-react";
+import UserLevelDisplay from "@/components/UserLevelDisplay";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -32,6 +33,7 @@ interface ChatSidebarProps {
   onOpenDMs: () => void;
   onOpenSocial: () => void;
   onOpenFriends: () => void;
+  onOpenQuests: () => void;
 }
 
 const ChatSidebar = ({
@@ -50,6 +52,7 @@ const ChatSidebar = ({
   onOpenDMs,
   onOpenSocial,
   onOpenFriends,
+  onOpenQuests,
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -103,6 +106,13 @@ const ChatSidebar = ({
         <SidebarTrigger />
       </div>
       
+      {/* Level Display */}
+      {!collapsed && (
+        <div className="px-3 pb-2">
+          <UserLevelDisplay compact />
+        </div>
+      )}
+      
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Communication</SidebarGroupLabel>
@@ -148,6 +158,12 @@ const ChatSidebar = ({
                 <SidebarMenuButton onClick={onOpenFriends} tooltip="Friends">
                   <UserPlus className="h-4 w-4" />
                   {!collapsed && <span>Friends</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenQuests} tooltip="Quests & XP">
+                  <Target className="h-4 w-4" />
+                  {!collapsed && <span>Quests</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
