@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Target, Gift, Clock, Trophy, Star, ChevronRight, Check, Lock } from 'lucide-react';
+ import { Target, Gift, Clock, Trophy, Star, Check, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useQuests } from '@/hooks/useQuests';
+ import StreakDisplay from '@/components/StreakDisplay';
 import { cn } from '@/lib/utils';
 
 interface QuestPanelProps {
@@ -128,6 +129,11 @@ const QuestPanel = ({ onClose }: QuestPanelProps) => {
 
   return (
     <div className="p-4">
+       {/* Streak Display */}
+       <div className="mb-6">
+         <StreakDisplay />
+       </div>
+
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Target className="h-5 w-5 text-primary" />
