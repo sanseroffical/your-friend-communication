@@ -20,6 +20,7 @@ import SocialHub from "@/components/social/SocialHub";
 import MobileSidebarButton from "@/components/MobileSidebarButton";
 import FriendsPanel from "@/components/FriendsPanel";
 import QuestPanel from "@/components/QuestPanel";
+ import LeaderboardPanel from "@/components/LeaderboardPanel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,6 +73,7 @@ const Index = () => {
   const [isSocialOpen, setIsSocialOpen] = useState(false);
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
+   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading, logout } = useClipUser();
@@ -427,6 +429,7 @@ const Index = () => {
           onOpenSocial={() => setIsSocialOpen(true)}
           onOpenFriends={() => setIsFriendsOpen(true)}
           onOpenQuests={() => setIsQuestsOpen(true)}
+           onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
         />
 
         <div className="flex flex-col flex-1 min-w-0">
@@ -601,6 +604,16 @@ const Index = () => {
             <QuestPanel onClose={() => setIsQuestsOpen(false)} />
           </SheetContent>
         </Sheet>
+
+         {/* Leaderboard Panel */}
+         <Sheet open={isLeaderboardOpen} onOpenChange={setIsLeaderboardOpen}>
+           <SheetContent side="right" className="w-[400px] sm:w-[500px]">
+             <SheetHeader>
+               <SheetTitle>Top Players</SheetTitle>
+             </SheetHeader>
+             <LeaderboardPanel onClose={() => setIsLeaderboardOpen(false)} />
+           </SheetContent>
+         </Sheet>
 
         {/* BonziBuddy */}
         <BonziBuddy
