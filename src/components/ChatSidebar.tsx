@@ -1,4 +1,4 @@
-import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users, UserPlus, Target, Star } from "lucide-react";
+ import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users, UserPlus, Target, Trophy } from "lucide-react";
 import UserLevelDisplay from "@/components/UserLevelDisplay";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +34,7 @@ interface ChatSidebarProps {
   onOpenSocial: () => void;
   onOpenFriends: () => void;
   onOpenQuests: () => void;
+   onOpenLeaderboard: () => void;
 }
 
 const ChatSidebar = ({
@@ -53,6 +54,7 @@ const ChatSidebar = ({
   onOpenSocial,
   onOpenFriends,
   onOpenQuests,
+   onOpenLeaderboard,
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -166,6 +168,12 @@ const ChatSidebar = ({
                   {!collapsed && <span>Quests</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
+               <SidebarMenuItem>
+                 <SidebarMenuButton onClick={onOpenLeaderboard} tooltip="Leaderboard">
+                   <Trophy className="h-4 w-4" />
+                   {!collapsed && <span>Leaderboard</span>}
+                 </SidebarMenuButton>
+               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
