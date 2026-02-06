@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuests } from "./useQuests";
 
 export interface Reaction {
   emoji: string;
@@ -15,6 +16,8 @@ const AVAILABLE_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🎉", "�
 
 export function useMessageReactions(roomCode: string | null, userId: string) {
   const [reactions, setReactions] = useState<MessageReactions>({});
+  const { updateQuestProgress } = useQuests();
+  const questUpdateRef = useRef(updateQuestProgress);
 
   const fetchReactions = useCallback(async (messageIds: string[]) => {
     if (!messageIds.length) return;
@@ -104,13 +107,18 @@ export function useMessageReactions(roomCode: string | null, userId: string) {
         .eq("emoji", emoji);
     } else {
       // Add reaction
-      await supabase
+      const { error } = await supabase
         .from("message_reactions")
         .insert({
           message_id: messageId,
           user_id: userId,
           emoji,
         });
+      
+      // Track quest progress for reactions given
+      if (!error) {
+        questUpdateRef.current('reactions_given', 1);
+      }
     }
   }, [userId, reactions]);
 
