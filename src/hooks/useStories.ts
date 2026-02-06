@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useQuests } from './useQuests';
 
 export interface Story {
   id: string;
@@ -31,6 +32,8 @@ export const useStories = (currentUserId: string | null) => {
   const [loading, setLoading] = useState(false);
   const [viewedStories, setViewedStories] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const { updateQuestProgress } = useQuests();
+  const questUpdateRef = useRef(updateQuestProgress);
 
   const fetchStories = async () => {
     setLoading(true);
@@ -149,6 +152,9 @@ export const useStories = (currentUserId: string | null) => {
   const viewStory = async (storyId: string) => {
     if (!currentUserId) return;
 
+    // Check if already viewed to avoid duplicate quest progress
+    const alreadyViewed = viewedStories.has(storyId);
+
     try {
       await supabase
         .from('story_views')
@@ -158,6 +164,11 @@ export const useStories = (currentUserId: string | null) => {
         }, { onConflict: 'story_id,viewer_id' });
 
       setViewedStories(prev => new Set([...prev, storyId]));
+
+      // Track quest progress for stories viewed (only if not already viewed)
+      if (!alreadyViewed) {
+        questUpdateRef.current('stories_viewed', 1);
+      }
     } catch (error) {
       console.error('Error recording story view:', error);
     }

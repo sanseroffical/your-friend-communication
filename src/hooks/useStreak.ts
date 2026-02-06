@@ -1,8 +1,9 @@
- import { useState, useEffect, useCallback } from 'react';
+ import { useState, useEffect, useCallback, useRef } from 'react';
  import { supabase } from '@/integrations/supabase/client';
  import { useClipUser } from './useClipUser';
  import { useUserLevel } from './useUserLevel';
  import { useToast } from './use-toast';
+ import { useQuests } from './useQuests';
  
  export interface StreakData {
    currentStreak: number;
@@ -33,6 +34,8 @@
    const { authUser } = useClipUser();
    const { addXp } = useUserLevel();
    const { toast } = useToast();
+   const { updateQuestProgress } = useQuests();
+   const questUpdateRef = useRef(updateQuestProgress);
    const [streak, setStreak] = useState<StreakData | null>(null);
    const [loading, setLoading] = useState(true);
  
@@ -145,7 +148,12 @@
        }
  
        await fetchStreak();
- 
+
+       // Track daily login quest progress (only if it's a new day)
+       if (isNewDay) {
+         questUpdateRef.current('daily_login', 1);
+       }
+
        return { isNewDay, streak: newStreak, streakBroken, longestStreak };
      } catch (error) {
        console.error('Error updating streak:', error);
