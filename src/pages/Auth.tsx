@@ -9,13 +9,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, LogIn, UserPlus, Copy, Check } from "lucide-react";
 
 const Auth = () => {
-  const [mode, setMode] = useState<"choose" | "login" | "signup" | "welcome">("choose");
+  const [mode, setMode] = useState<"choose" | "login" | "signup" | "welcome" | "forgot">("choose");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [generatedClipId, setGeneratedClipId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -56,6 +57,40 @@ const Auth = () => {
       toast({
         title: "Error",
         description: error.message || "Failed to login",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+
+      setResetSent(true);
+      toast({
+        title: "Check your email",
+        description: "We've sent you a password reset link",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reset email",
         variant: "destructive",
       });
     } finally {
@@ -175,6 +210,63 @@ const Auth = () => {
     );
   }
 
+  if (mode === "forgot") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setMode("login"); setResetSent(false); }}
+              className="w-fit -ml-2 mb-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Login
+            </Button>
+            <CardTitle>Reset Password</CardTitle>
+            <CardDescription>
+              {resetSent 
+                ? "Check your email for a reset link"
+                : "Enter your email to receive a password reset link"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {resetSent ? (
+              <div className="text-center py-4">
+                <div className="text-4xl mb-4">📧</div>
+                <p className="text-muted-foreground">
+                  If an account exists with that email, you'll receive a reset link shortly.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleForgotPassword()}
+                  />
+                </div>
+                <Button
+                  onClick={handleForgotPassword}
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Sending..." : "Send Reset Link"}
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (mode === "choose") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -241,6 +333,19 @@ const Auth = () => {
           
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="password">Password</Label>
+              {mode === "login" && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="px-0 h-auto text-xs"
+                  onClick={() => setMode("forgot")}
+                >
+                  Forgot password?
+                </Button>
+              )}
+            </div>
             <Input
               id="password"
               type="password"
