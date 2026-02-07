@@ -82,9 +82,20 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping, onProce
   };
 
   const uploadFile = async (file: File): Promise<{ url: string; type: string; name: string } | null> => {
+    // Get current user for folder-based access control
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to upload files.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
     const fileExt = file.name.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = `${fileName}`;
+    const filePath = `${user.id}/${fileName}`; // Add user folder prefix for RLS compliance
 
     const { error } = await supabase.storage
       .from("chat-attachments")
