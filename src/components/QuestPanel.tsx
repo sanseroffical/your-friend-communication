@@ -1,12 +1,13 @@
 import { useState } from 'react';
- import { Target, Gift, Clock, Trophy, Star, Check, Lock } from 'lucide-react';
+import { Target, Gift, Clock, Trophy, Star, Check, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useQuests } from '@/hooks/useQuests';
- import StreakDisplay from '@/components/StreakDisplay';
+import StreakDisplay from '@/components/StreakDisplay';
+import Confetti from '@/components/ui/confetti';
 import { cn } from '@/lib/utils';
 
 interface QuestPanelProps {
@@ -16,10 +17,15 @@ interface QuestPanelProps {
 const QuestPanel = ({ onClose }: QuestPanelProps) => {
   const { dailyQuests, weeklyQuests, achievementQuests, claimReward, loading } = useQuests();
   const [claiming, setClaiming] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const handleClaim = async (progressId: string) => {
     setClaiming(progressId);
-    await claimReward(progressId);
+    const success = await claimReward(progressId);
+    if (success) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+    }
     setClaiming(null);
   };
 
@@ -128,7 +134,8 @@ const QuestPanel = ({ onClose }: QuestPanelProps) => {
   const totalCount = dailyQuests.length + weeklyQuests.length + achievementQuests.length;
 
   return (
-    <div className="p-4">
+    <div className="p-4 relative">
+      <Confetti active={showConfetti} particleCount={150} duration={3000} />
        {/* Streak Display */}
        <div className="mb-6">
          <StreakDisplay />
