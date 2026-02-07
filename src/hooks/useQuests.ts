@@ -125,6 +125,15 @@ export function useQuests() {
 
           if (insertError) throw insertError;
           existingProgress = newProgress;
+          
+          // Show progress notification for new quest started
+          if (incrementBy < quest.requirement_count) {
+            toast({
+              title: `📊 ${quest.title}`,
+              description: `Progress: ${incrementBy}/${quest.requirement_count}`,
+              duration: 2000,
+            });
+          }
         } else if (!existingProgress.completed_at) {
           // Update existing progress
           const newProgressValue = existingProgress.current_progress + incrementBy;
@@ -140,10 +149,17 @@ export function useQuests() {
           if (updateError) throw updateError;
 
           // Check if quest was just completed
-          if (newProgressValue >= quest.requirement_count && !existingProgress.completed_at) {
+          if (newProgressValue >= quest.requirement_count) {
             toast({
               title: '🎯 Quest Completed!',
               description: `${quest.title} - Claim your ${quest.xp_reward} XP reward!`,
+            });
+          } else {
+            // Show progress notification
+            toast({
+              title: `📊 ${quest.title}`,
+              description: `Progress: ${newProgressValue}/${quest.requirement_count}`,
+              duration: 2000,
             });
           }
         }
