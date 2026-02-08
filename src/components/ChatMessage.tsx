@@ -7,6 +7,7 @@ import MessageActions from "@/components/MessageActions";
 import ReadReceiptIndicator from "@/components/ReadReceiptIndicator";
 import UserProfileCard from "@/components/UserProfileCard";
 import TranslateButton from "@/components/TranslateButton";
+import StickerRenderer, { parseMessageWithStickers } from "@/components/chat/StickerRenderer";
 import { Reaction } from "@/hooks/useMessageReactions";
 
 interface ChatMessageProps {
@@ -244,7 +245,13 @@ const ChatMessage = ({
                   </div>
                 ) : (
                   <div>
-                    <p className="text-sm leading-relaxed">{translatedMessage || message}</p>
+                    {parseMessageWithStickers(translatedMessage || message).map((part, idx) =>
+                      part.type === 'sticker' ? (
+                        <StickerRenderer key={idx} stickerId={part.value} />
+                      ) : (
+                        <span key={idx} className="text-sm leading-relaxed">{part.value}</span>
+                      )
+                    )}
                     <TranslateButton 
                       text={message} 
                       textId={id}

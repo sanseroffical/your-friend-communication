@@ -25,8 +25,11 @@ const ReactionTimeGame = lazy(() => import("./ReactionTimeGame"));
 const SlidingPuzzleGame = lazy(() => import("./SlidingPuzzleGame"));
 const PacManGame = lazy(() => import("./PacManGame"));
 const CardMatchSpeedGame = lazy(() => import("./CardMatchSpeedGame"));
+const CrosswordGame = lazy(() => import("./CrosswordGame"));
+const MathChallengeGame = lazy(() => import("./MathChallengeGame"));
+const WhackAMoleGame = lazy(() => import("./WhackAMoleGame"));
 
-type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing" | "simon" | "pong" | "flappy" | "brickbreaker" | "tetris" | "invaders" | "sudoku" | "wordle" | "maze" | "solitaire" | "colormatch" | "reaction" | "sliding" | "pacman" | "cardspeed";
+type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing" | "simon" | "pong" | "flappy" | "brickbreaker" | "tetris" | "invaders" | "sudoku" | "wordle" | "maze" | "solitaire" | "colormatch" | "reaction" | "sliding" | "pacman" | "cardspeed" | "crossword" | "math" | "whackamole";
 
 const miniGames = [
   { id: "snake" as MiniGame, name: "🐍 Snake", desc: "Classic snake game" },
@@ -43,14 +46,17 @@ const miniGames = [
   { id: "tetris" as MiniGame, name: "🟦 Tetris", desc: "Stack the blocks" },
   { id: "invaders" as MiniGame, name: "👾 Space Invaders", desc: "Defend Earth!" },
   { id: "sudoku" as MiniGame, name: "🔢 Sudoku", desc: "Number puzzle" },
-  { id: "wordle" as MiniGame, name: "🔤 Wordle", desc: "Guess 5-letter word", isNew: true },
-  { id: "maze" as MiniGame, name: "🌀 Maze Runner", desc: "Escape the maze", isNew: true },
-  { id: "solitaire" as MiniGame, name: "🃏 Solitaire", desc: "Classic card game", isNew: true },
-  { id: "colormatch" as MiniGame, name: "🎨 Color Match", desc: "Fast color matching", isNew: true },
-  { id: "reaction" as MiniGame, name: "⚡ Reaction", desc: "Test your reflexes", isNew: true },
-  { id: "sliding" as MiniGame, name: "🧩 Sliding Puzzle", desc: "Arrange the tiles", isNew: true },
-  { id: "pacman" as MiniGame, name: "👾 Pac-Man", desc: "Classic arcade chase", isNew: true },
-  { id: "cardspeed" as MiniGame, name: "🃏 Speed Match", desc: "Fast card matching", isNew: true },
+  { id: "wordle" as MiniGame, name: "🔤 Wordle", desc: "Guess 5-letter word" },
+  { id: "maze" as MiniGame, name: "🌀 Maze Runner", desc: "Escape the maze" },
+  { id: "solitaire" as MiniGame, name: "🃏 Solitaire", desc: "Classic card game" },
+  { id: "colormatch" as MiniGame, name: "🎨 Color Match", desc: "Fast color matching" },
+  { id: "reaction" as MiniGame, name: "⚡ Reaction", desc: "Test your reflexes" },
+  { id: "sliding" as MiniGame, name: "🧩 Sliding Puzzle", desc: "Arrange the tiles" },
+  { id: "pacman" as MiniGame, name: "👾 Pac-Man", desc: "Classic arcade chase" },
+  { id: "cardspeed" as MiniGame, name: "🃏 Speed Match", desc: "Fast card matching" },
+  { id: "crossword" as MiniGame, name: "🧩 Crossword", desc: "Word puzzle", isNew: true },
+  { id: "math" as MiniGame, name: "🔢 Math Challenge", desc: "Quick arithmetic", isNew: true },
+  { id: "whackamole" as MiniGame, name: "🔨 Whack-a-Mole", desc: "Whack the moles!", isNew: true },
 ];
 
 const GameLoader = () => (
@@ -86,6 +92,9 @@ const MiniGamesPanel = () => {
       sliding: SlidingPuzzleGame,
       pacman: PacManGame,
       cardspeed: CardMatchSpeedGame,
+      crossword: CrosswordGame,
+      math: MathChallengeGame,
+      whackamole: WhackAMoleGame,
     }[activeGame];
 
     if (!GameComponent) return null;

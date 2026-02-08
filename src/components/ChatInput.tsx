@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { containsProfanity } from "@/utils/profanityFilter";
 import { useMentions } from "@/hooks/useMentions";
 import MentionSuggestions from "@/components/MentionSuggestions";
+import EmojiStickerPicker from "@/components/chat/EmojiStickerPicker";
 
 interface Attachment {
   file: File;
@@ -398,6 +399,18 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping, onProce
             >
               <Mic className="h-5 w-5" />
             </Button>
+            <EmojiStickerPicker
+              onSelect={(value, type) => {
+                if (type === 'emoji') {
+                  setMessage(m => m + value);
+                  inputRef.current?.focus();
+                } else {
+                  // Stickers are sent as messages
+                  onSend(value, undefined, replyTo?.id);
+                  onCancelReply?.();
+                }
+              }}
+            />
             <Input
               ref={inputRef}
               value={message}
