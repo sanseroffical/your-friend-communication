@@ -41,6 +41,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_suggestions: {
+        Row: {
+          acted_on: boolean | null
+          created_at: string | null
+          description: string
+          dismissed: boolean | null
+          id: string
+          priority: string | null
+          suggestion_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          acted_on?: boolean | null
+          created_at?: string | null
+          description: string
+          dismissed?: boolean | null
+          id?: string
+          priority?: string | null
+          suggestion_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          acted_on?: boolean | null
+          created_at?: string | null
+          description?: string
+          dismissed?: boolean | null
+          id?: string
+          priority?: string | null
+          suggestion_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           content: string
@@ -183,6 +219,77 @@ export type Database = {
           sender_id?: string
         }
         Relationships: []
+      }
+      feature_requests: {
+        Row: {
+          ai_analysis: string | null
+          ai_priority: string | null
+          category: string | null
+          created_at: string | null
+          description: string
+          id: string
+          status: string | null
+          title: string
+          updated_at: string | null
+          upvotes: number | null
+          user_id: string
+        }
+        Insert: {
+          ai_analysis?: string | null
+          ai_priority?: string | null
+          category?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          upvotes?: number | null
+          user_id: string
+        }
+        Update: {
+          ai_analysis?: string | null
+          ai_priority?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          upvotes?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feature_votes: {
+        Row: {
+          created_at: string | null
+          feature_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          feature_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          feature_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_votes_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "feature_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       follows: {
         Row: {
@@ -902,6 +1009,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activity: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_name: string
@@ -944,6 +1075,39 @@ export type Database = {
           blocker_id?: string
           created_at?: string
           id?: string
+        }
+        Relationships: []
+      }
+      user_feedback: {
+        Row: {
+          ai_sentiment: string | null
+          ai_summary: string | null
+          content: string
+          created_at: string | null
+          feedback_type: string | null
+          id: string
+          rating: number | null
+          user_id: string
+        }
+        Insert: {
+          ai_sentiment?: string | null
+          ai_summary?: string | null
+          content: string
+          created_at?: string | null
+          feedback_type?: string | null
+          id?: string
+          rating?: number | null
+          user_id: string
+        }
+        Update: {
+          ai_sentiment?: string | null
+          ai_summary?: string | null
+          content?: string
+          created_at?: string | null
+          feedback_type?: string | null
+          id?: string
+          rating?: number | null
+          user_id?: string
         }
         Relationships: []
       }

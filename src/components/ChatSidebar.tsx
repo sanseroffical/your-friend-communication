@@ -1,4 +1,4 @@
- import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users, UserPlus, Target, Trophy } from "lucide-react";
+ import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users, UserPlus, Target, Trophy, Lightbulb, Brain, MessageCircle, Rocket } from "lucide-react";
 import UserLevelDisplay from "@/components/UserLevelDisplay";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +35,10 @@ interface ChatSidebarProps {
   onOpenFriends: () => void;
   onOpenQuests: () => void;
    onOpenLeaderboard: () => void;
+  onOpenFeatureBoard: () => void;
+  onOpenFeedback: () => void;
+  onOpenSuggestions: () => void;
+  onOpenOnboarding: () => void;
 }
 
 const ChatSidebar = ({
@@ -55,6 +59,10 @@ const ChatSidebar = ({
   onOpenFriends,
   onOpenQuests,
    onOpenLeaderboard,
+  onOpenFeatureBoard,
+  onOpenFeedback,
+  onOpenSuggestions,
+  onOpenOnboarding,
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -173,7 +181,31 @@ const ChatSidebar = ({
                    <Trophy className="h-4 w-4" />
                    {!collapsed && <span>Leaderboard</span>}
                  </SidebarMenuButton>
-               </SidebarMenuItem>
+                </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenFeatureBoard} tooltip="Feature Requests">
+                  <Lightbulb className="h-4 w-4" />
+                  {!collapsed && <span>Feature Board</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenFeedback} tooltip="AI Feedback">
+                  <MessageCircle className="h-4 w-4" />
+                  {!collapsed && <span>Feedback</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenSuggestions} tooltip="Smart Suggestions">
+                  <Brain className="h-4 w-4" />
+                  {!collapsed && <span>For You</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenOnboarding} tooltip="Smart Onboarding">
+                  <Rocket className="h-4 w-4" />
+                  {!collapsed && <span>Guide</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

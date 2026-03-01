@@ -20,7 +20,11 @@ import SocialHub from "@/components/social/SocialHub";
 import MobileSidebarButton from "@/components/MobileSidebarButton";
 import FriendsPanel from "@/components/FriendsPanel";
 import QuestPanel from "@/components/QuestPanel";
- import LeaderboardPanel from "@/components/LeaderboardPanel";
+import LeaderboardPanel from "@/components/LeaderboardPanel";
+import FeatureRequestBoard from "@/components/FeatureRequestBoard";
+import FeedbackPanel from "@/components/FeedbackPanel";
+import SmartSuggestions from "@/components/SmartSuggestions";
+import SmartOnboarding from "@/components/SmartOnboarding";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,6 +78,10 @@ const Index = () => {
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
    const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [isFeatureBoardOpen, setIsFeatureBoardOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading, logout } = useClipUser();
@@ -430,6 +438,10 @@ const Index = () => {
           onOpenFriends={() => setIsFriendsOpen(true)}
           onOpenQuests={() => setIsQuestsOpen(true)}
            onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
+          onOpenFeatureBoard={() => setIsFeatureBoardOpen(true)}
+          onOpenFeedback={() => setIsFeedbackOpen(true)}
+          onOpenSuggestions={() => setIsSuggestionsOpen(true)}
+          onOpenOnboarding={() => setIsOnboardingOpen(true)}
         />
 
         <div className="flex flex-col flex-1 min-w-0">
@@ -614,6 +626,46 @@ const Index = () => {
              <LeaderboardPanel onClose={() => setIsLeaderboardOpen(false)} />
            </SheetContent>
          </Sheet>
+
+        {/* Feature Request Board */}
+        <Sheet open={isFeatureBoardOpen} onOpenChange={setIsFeatureBoardOpen}>
+          <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+            <SheetHeader>
+              <SheetTitle>AI Feature Board</SheetTitle>
+            </SheetHeader>
+            <FeatureRequestBoard onClose={() => setIsFeatureBoardOpen(false)} />
+          </SheetContent>
+        </Sheet>
+
+        {/* Feedback Panel */}
+        <Sheet open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
+          <SheetContent side="right" className="w-[400px] sm:w-[440px]">
+            <SheetHeader>
+              <SheetTitle>AI Feedback</SheetTitle>
+            </SheetHeader>
+            <FeedbackPanel onClose={() => setIsFeedbackOpen(false)} />
+          </SheetContent>
+        </Sheet>
+
+        {/* Smart Suggestions */}
+        <Sheet open={isSuggestionsOpen} onOpenChange={setIsSuggestionsOpen}>
+          <SheetContent side="right" className="w-[400px] sm:w-[440px]">
+            <SheetHeader>
+              <SheetTitle>For You</SheetTitle>
+            </SheetHeader>
+            <SmartSuggestions onClose={() => setIsSuggestionsOpen(false)} />
+          </SheetContent>
+        </Sheet>
+
+        {/* Smart Onboarding */}
+        <Sheet open={isOnboardingOpen} onOpenChange={setIsOnboardingOpen}>
+          <SheetContent side="right" className="w-[400px] sm:w-[440px]">
+            <SheetHeader>
+              <SheetTitle>Smart Guide</SheetTitle>
+            </SheetHeader>
+            <SmartOnboarding onClose={() => setIsOnboardingOpen(false)} />
+          </SheetContent>
+        </Sheet>
 
         {/* BonziBuddy */}
         <BonziBuddy
