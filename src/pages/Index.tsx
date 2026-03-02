@@ -25,6 +25,9 @@ import FeatureRequestBoard from "@/components/FeatureRequestBoard";
 import FeedbackPanel from "@/components/FeedbackPanel";
 import SmartSuggestions from "@/components/SmartSuggestions";
 import SmartOnboarding from "@/components/SmartOnboarding";
+import MusicPlayer from "@/components/MusicPlayer";
+import AIImageGenerator from "@/components/AIImageGenerator";
+import SmartReplies from "@/components/SmartReplies";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,6 +85,8 @@ const Index = () => {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isMusicOpen, setIsMusicOpen] = useState(false);
+  const [isImageGenOpen, setIsImageGenOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading, logout } = useClipUser();
@@ -442,6 +447,8 @@ const Index = () => {
           onOpenFeedback={() => setIsFeedbackOpen(true)}
           onOpenSuggestions={() => setIsSuggestionsOpen(true)}
           onOpenOnboarding={() => setIsOnboardingOpen(true)}
+          onOpenMusic={() => setIsMusicOpen(true)}
+          onOpenImageGen={() => setIsImageGenOpen(true)}
         />
 
         <div className="flex flex-col flex-1 min-w-0">
@@ -513,6 +520,11 @@ const Index = () => {
           </div>
 
           <div className="max-w-3xl mx-auto w-full">
+            <SmartReplies
+              lastMessages={messages.slice(-5).map(m => ({ role: m.isOwn ? "user" : "assistant", content: m.text, senderName: m.senderName }))}
+              onSelectReply={(reply) => handleSendMessage(reply)}
+              visible={messages.length > 0 && !messages[messages.length - 1]?.isOwn}
+            />
             <TypingIndicator typingUsers={typingUsers} />
             <ChatInput
               onSend={handleSendMessage}
@@ -526,7 +538,10 @@ const Index = () => {
         </div>
 
         <MobileSidebarButton />
-        <ClippyButton />
+        <ClippyButton 
+          roomCode={roomCode} 
+          roomMessages={messages.map(m => ({ senderName: m.senderName, content: m.text }))}
+        />
 
         <VideoCall
           isOpen={isCallOpen}
@@ -664,6 +679,34 @@ const Index = () => {
               <SheetTitle>Smart Guide</SheetTitle>
             </SheetHeader>
             <SmartOnboarding onClose={() => setIsOnboardingOpen(false)} />
+          </SheetContent>
+        </Sheet>
+
+        {/* Music Player */}
+        <Sheet open={isMusicOpen} onOpenChange={setIsMusicOpen}>
+          <SheetContent side="right" className="w-[400px] sm:w-[440px]">
+            <SheetHeader>
+              <SheetTitle>Music Player</SheetTitle>
+            </SheetHeader>
+            <MusicPlayer
+              isOpen={true}
+              onClose={() => setIsMusicOpen(false)}
+              profileAnthem={(user as any).profile_music_url}
+              onSetAnthem={async (url) => {
+                await supabase.from("profiles").update({ profile_music_url: url || null }).eq("id", user.id);
+                toast({ title: url ? "Anthem set! 🎵" : "Anthem removed" });
+              }}
+            />
+          </SheetContent>
+        </Sheet>
+
+        {/* AI Image Generator */}
+        <Sheet open={isImageGenOpen} onOpenChange={setIsImageGenOpen}>
+          <SheetContent side="right" className="w-[400px] sm:w-[440px]">
+            <SheetHeader>
+              <SheetTitle>AI Image Generator</SheetTitle>
+            </SheetHeader>
+            <AIImageGenerator isOpen={true} onClose={() => setIsImageGenOpen(false)} />
           </SheetContent>
         </Sheet>
 
