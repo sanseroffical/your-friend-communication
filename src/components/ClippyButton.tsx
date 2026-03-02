@@ -3,7 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import ClippyAI from "./ClippyAI";
 
-const ClippyButton = () => {
+interface ClippyButtonProps {
+  roomCode?: string | null;
+  roomMessages?: Array<{ senderName: string; content: string }>;
+}
+
+const ClippyButton = ({ roomCode, roomMessages }: ClippyButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -15,7 +20,12 @@ const ClippyButton = () => {
       >
         <Sparkles className="h-5 w-5" />
       </Button>
-      <ClippyAI isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <ClippyAI 
+        isOpen={isOpen} 
+        onClose={() => setIsOpen(false)} 
+        roomCode={roomCode}
+        roomMessages={roomMessages}
+      />
     </>
   );
 };

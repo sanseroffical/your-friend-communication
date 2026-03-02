@@ -1,4 +1,4 @@
- import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users, UserPlus, Target, Trophy, Lightbulb, Brain, MessageCircle, Rocket } from "lucide-react";
+ import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users, UserPlus, Target, Trophy, Lightbulb, Brain, MessageCircle, Rocket, Music, ImagePlus } from "lucide-react";
 import UserLevelDisplay from "@/components/UserLevelDisplay";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,8 @@ interface ChatSidebarProps {
   onOpenFeedback: () => void;
   onOpenSuggestions: () => void;
   onOpenOnboarding: () => void;
+  onOpenMusic: () => void;
+  onOpenImageGen: () => void;
 }
 
 const ChatSidebar = ({
@@ -63,6 +65,8 @@ const ChatSidebar = ({
   onOpenFeedback,
   onOpenSuggestions,
   onOpenOnboarding,
+  onOpenMusic,
+  onOpenImageGen,
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -204,6 +208,18 @@ const ChatSidebar = ({
                 <SidebarMenuButton onClick={onOpenOnboarding} tooltip="Smart Onboarding">
                   <Rocket className="h-4 w-4" />
                   {!collapsed && <span>Guide</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenMusic} tooltip="Music Player">
+                  <Music className="h-4 w-4" />
+                  {!collapsed && <span>Music</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenImageGen} tooltip="AI Image Generator">
+                  <ImagePlus className="h-4 w-4" />
+                  {!collapsed && <span>AI Images</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
