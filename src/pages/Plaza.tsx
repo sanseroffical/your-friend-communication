@@ -4,21 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Send, Users, MessageSquare } from "lucide-react";
+import { ArrowLeft, Send, Users, MessageSquare, Mic, MicOff, Palette } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClipUser } from "@/hooks/useClipUser";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useProximityVoice } from "@/hooks/useProximityVoice";
+import AvatarCustomizer, { AvatarCustomization, DEFAULT_CUSTOMIZATION } from "@/components/plaza/AvatarCustomizer";
+import type { PlazaUser } from "@/components/plaza/PlazaScene";
 
 const PlazaScene = lazy(() => import("@/components/plaza/PlazaScene"));
-
-interface PlazaUser {
-  id: string;
-  name: string;
-  avatarColor: string;
-  position: [number, number, number];
-  targetPosition: [number, number, number];
-  message?: string;
-  messageTime?: number;
-}
 
 interface ChatMsg {
   id: string;
@@ -27,26 +21,46 @@ interface ChatMsg {
   time: number;
 }
 
-const AVATAR_COLORS = [
-  "#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6",
-  "#1abc9c", "#e67e22", "#e91e63", "#00bcd4", "#8bc34a",
-];
-
 const Plaza = () => {
   const navigate = useNavigate();
   const { user, authUser, isLoading } = useClipUser();
+  const { isAdmin, isModerator } = useUserRole(authUser?.id || null);
   const [localUser, setLocalUser] = useState<PlazaUser | null>(null);
   const [remoteUsers, setRemoteUsers] = useState<PlazaUser[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatOpen, setChatOpen] = useState(true);
+  const [customizerOpen, setCustomizerOpen] = useState(false);
+  const [customization, setCustomization] = useState<AvatarCustomization>(DEFAULT_CUSTOMIZATION);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  const { isMuted, toggleMute, activeConnections } = useProximityVoice(
+    authUser?.id || null,
+    localUser?.targetPosition || null,
+    remoteUsers.map((u) => ({ id: u.id, position: u.targetPosition })),
+    channelRef.current
+  );
+
+  // Load avatar customization from profile
+  useEffect(() => {
+    if (!authUser?.id) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_customization")
+        .eq("id", authUser.id)
+        .single();
+      if (data?.avatar_customization) {
+        setCustomization(data.avatar_customization as unknown as AvatarCustomization);
+      }
+    };
+    load();
+  }, [authUser?.id]);
 
   // Initialize local user
   useEffect(() => {
     if (!authUser || !user) return;
 
-    const colorIndex = authUser.id.charCodeAt(0) % AVATAR_COLORS.length;
     const startAngle = Math.random() * Math.PI * 2;
     const startDist = 3 + Math.random() * 3;
     const startPos: [number, number, number] = [
@@ -58,13 +72,16 @@ const Plaza = () => {
     setLocalUser({
       id: authUser.id,
       name: user.display_name || user.clip_id,
-      avatarColor: AVATAR_COLORS[colorIndex],
+      avatarColor: customization.bodyColor,
       position: startPos,
       targetPosition: startPos,
+      isAdmin,
+      isModerator,
+      customization,
     });
-  }, [authUser, user]);
+  }, [authUser, user, isAdmin, isModerator, customization]);
 
-  // Set up realtime presence for the plaza
+  // Set up realtime presence
   useEffect(() => {
     if (!localUser) return;
 
@@ -83,11 +100,15 @@ const Plaza = () => {
             users.push({
               id: key,
               name: p.name || "User",
-              avatarColor: p.avatarColor || "#999",
+              avatarColor: p.customization?.bodyColor || p.avatarColor || "#999",
               position: p.position || [0, 0, 0],
               targetPosition: p.targetPosition || p.position || [0, 0, 0],
               message: p.message,
               messageTime: p.messageTime,
+              isAdmin: p.isAdmin,
+              isModerator: p.isModerator,
+              customization: p.customization,
+              isSpeaking: p.isSpeaking,
             });
           }
         });
@@ -111,6 +132,10 @@ const Plaza = () => {
             avatarColor: localUser.avatarColor,
             position: localUser.position,
             targetPosition: localUser.targetPosition,
+            isAdmin: localUser.isAdmin,
+            isModerator: localUser.isModerator,
+            customization: localUser.customization,
+            isSpeaking: !isMuted,
           });
         }
       });
@@ -122,7 +147,7 @@ const Plaza = () => {
     };
   }, [localUser?.id]);
 
-  // Update presence when position changes
+  // Update presence when position/state changes
   useEffect(() => {
     if (!localUser || !channelRef.current) return;
 
@@ -134,22 +159,19 @@ const Plaza = () => {
         targetPosition: localUser.targetPosition,
         message: localUser.message,
         messageTime: localUser.messageTime,
+        isAdmin: localUser.isAdmin,
+        isModerator: localUser.isModerator,
+        customization: localUser.customization,
+        isSpeaking: !isMuted,
       });
     }, 50);
 
     return () => clearTimeout(timeout);
-  }, [localUser?.targetPosition, localUser?.message]);
+  }, [localUser?.targetPosition, localUser?.message, isMuted]);
 
-  const handleMove = useCallback(
-    (position: [number, number, number]) => {
-      setLocalUser((prev) =>
-        prev
-          ? { ...prev, targetPosition: position }
-          : prev
-      );
-    },
-    []
-  );
+  const handleMove = useCallback((position: [number, number, number]) => {
+    setLocalUser((prev) => (prev ? { ...prev, targetPosition: position } : prev));
+  }, []);
 
   const handleSendChat = useCallback(() => {
     if (!chatInput.trim() || !localUser || !channelRef.current) return;
@@ -166,7 +188,6 @@ const Plaza = () => {
       { id: `${Date.now()}`, sender: localUser.name, text, time: Date.now() },
     ]);
 
-    // Show message bubble on avatar
     setLocalUser((prev) =>
       prev ? { ...prev, message: text, messageTime: Date.now() } : prev
     );
@@ -175,7 +196,14 @@ const Plaza = () => {
   }, [chatInput, localUser]);
 
   const handleUserClick = useCallback((userId: string) => {
-    // Could open a profile card or start DM
+    // Could open a profile card
+  }, []);
+
+  const handleCustomizationSave = useCallback((newCustom: AvatarCustomization) => {
+    setCustomization(newCustom);
+    setLocalUser((prev) =>
+      prev ? { ...prev, customization: newCustom, avatarColor: newCustom.bodyColor } : prev
+    );
   }, []);
 
   // Redirect if not logged in
@@ -195,7 +223,6 @@ const Plaza = () => {
 
   return (
     <div className="h-screen w-screen relative overflow-hidden">
-      {/* 3D Scene */}
       <Suspense
         fallback={
           <div className="h-full w-full flex items-center justify-center bg-background">
@@ -213,21 +240,38 @@ const Plaza = () => {
 
       {/* Top bar */}
       <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => navigate("/")}
-          className="shadow-lg"
-        >
+        <Button variant="secondary" size="sm" onClick={() => navigate("/")} className="shadow-lg">
           <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
         <Badge variant="secondary" className="shadow-lg">
           <Users className="h-3 w-3 mr-1" />
           {remoteUsers.length + 1} online
         </Badge>
+        {activeConnections.length > 0 && (
+          <Badge variant="default" className="shadow-lg">
+            🎤 {activeConnections.length} in voice
+          </Badge>
+        )}
       </div>
 
-      <div className="absolute top-4 right-4 z-10">
+      {/* Right controls */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setCustomizerOpen(true)}
+          className="shadow-lg"
+        >
+          <Palette className="h-4 w-4" />
+        </Button>
+        <Button
+          variant={isMuted ? "secondary" : "default"}
+          size="sm"
+          onClick={toggleMute}
+          className="shadow-lg"
+        >
+          {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+        </Button>
         <Button
           variant="secondary"
           size="sm"
@@ -241,7 +285,7 @@ const Plaza = () => {
       {/* Instructions */}
       <div className="absolute bottom-4 left-4 z-10">
         <Badge variant="secondary" className="shadow-lg text-xs">
-          Click the ground to move • Chat with nearby users
+          Click to move • Nearby users auto-connect voice • Customize your avatar
         </Badge>
       </div>
 
@@ -250,16 +294,12 @@ const Plaza = () => {
         <div className="absolute right-4 bottom-4 w-80 bg-card/90 backdrop-blur-sm border rounded-lg shadow-xl z-10 flex flex-col" style={{ maxHeight: "50vh" }}>
           <div className="p-2 border-b flex items-center justify-between">
             <span className="text-sm font-medium">Plaza Chat</span>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setChatOpen(false)}>
-              ✕
-            </Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setChatOpen(false)}>✕</Button>
           </div>
           <ScrollArea className="flex-1 p-2" style={{ maxHeight: "calc(50vh - 80px)" }}>
             <div className="space-y-1">
               {chatMessages.length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-4">
-                  No messages yet. Say hello! 👋
-                </p>
+                <p className="text-xs text-muted-foreground text-center py-4">No messages yet. Say hello! 👋</p>
               )}
               {chatMessages.map((msg) => (
                 <div key={msg.id} className="text-xs">
@@ -283,6 +323,15 @@ const Plaza = () => {
           </div>
         </div>
       )}
+
+      {/* Avatar Customizer */}
+      <AvatarCustomizer
+        isOpen={customizerOpen}
+        onClose={() => setCustomizerOpen(false)}
+        userId={authUser?.id || ""}
+        currentCustomization={customization}
+        onSave={handleCustomizationSave}
+      />
     </div>
   );
 };
