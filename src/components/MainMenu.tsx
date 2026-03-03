@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Users, History, ArrowLeft, Trash2, LogOut, Copy, Check, Globe, Heart, Sparkles } from "lucide-react";
+import { MessageSquare, Users, History, ArrowLeft, Trash2, LogOut, Copy, Check, Globe, Heart, Sparkles, Box } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -260,6 +260,10 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
             <Button onClick={() => onJoinRoom(PUBLIC_ROOM_CODE)} variant="default" className="w-full" size="lg">
               <Globe className="mr-2 h-5 w-5" />
               Join Public Chat
+            </Button>
+            <Button onClick={() => navigate("/plaza")} variant="default" className="w-full" size="lg">
+              <Box className="mr-2 h-5 w-5" />
+              Enter 3D Plaza
             </Button>
             <Button onClick={handleCreateRoom} variant="outline" className="w-full" size="lg">
               <MessageSquare className="mr-2 h-5 w-5" />
