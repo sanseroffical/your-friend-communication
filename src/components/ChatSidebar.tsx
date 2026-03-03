@@ -1,4 +1,4 @@
- import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users, UserPlus, Target, Trophy, Lightbulb, Brain, MessageCircle, Rocket, Music, ImagePlus } from "lucide-react";
+ import { Phone, Video, Search, LogOut, Settings, Bell, BellOff, BellRing, Shield, Bot, Gamepad2, MessageSquare, Users, UserPlus, Target, Trophy, Lightbulb, Brain, MessageCircle, Rocket, Music, ImagePlus, Sparkles } from "lucide-react";
 import UserLevelDisplay from "@/components/UserLevelDisplay";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,7 @@ interface ChatSidebarProps {
   onOpenOnboarding: () => void;
   onOpenMusic: () => void;
   onOpenImageGen: () => void;
+  onOpenEnvironment: () => void;
 }
 
 const ChatSidebar = ({
@@ -67,6 +68,7 @@ const ChatSidebar = ({
   onOpenOnboarding,
   onOpenMusic,
   onOpenImageGen,
+  onOpenEnvironment,
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -220,6 +222,12 @@ const ChatSidebar = ({
                 <SidebarMenuButton onClick={onOpenImageGen} tooltip="AI Image Generator">
                   <ImagePlus className="h-4 w-4" />
                   {!collapsed && <span>AI Images</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onOpenEnvironment} tooltip="Room Environments">
+                  <Sparkles className="h-4 w-4" />
+                  {!collapsed && <span>Environments</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
