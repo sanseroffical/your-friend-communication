@@ -7,9 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
   Music, Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, 
-  Shuffle, Repeat, X, Radio, ListMusic, Plus, Trash2
+  Shuffle, Repeat, X, Radio, ListMusic, Plus, Trash2, Upload
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Track {
   id: string;
@@ -31,9 +33,11 @@ interface MusicPlayerProps {
   onClose: () => void;
   profileAnthem?: string | null;
   onSetAnthem?: (url: string) => void;
+  userId?: string;
 }
 
-const MusicPlayer = ({ isOpen, onClose, profileAnthem, onSetAnthem }: MusicPlayerProps) => {
+const MusicPlayer = ({ isOpen, onClose, profileAnthem, onSetAnthem, userId }: MusicPlayerProps) => {
+  const { toast } = useToast();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [volume, setVolume] = useState(50);
@@ -298,23 +302,75 @@ const MusicPlayer = ({ isOpen, onClose, profileAnthem, onSetAnthem }: MusicPlaye
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="anthem" className="mt-2 space-y-2">
+          <TabsContent value="anthem" className="mt-2 space-y-3">
             <p className="text-xs text-muted-foreground">Set a song that plays when people visit your profile.</p>
-            <div className="flex gap-1">
-              <Input
-                placeholder="Paste audio URL for your anthem"
-                value={anthemUrl}
-                onChange={(e) => setAnthemUrl(e.target.value)}
-                className="text-xs h-8"
-              />
-              <Button size="sm" className="h-8 shrink-0" onClick={handleSetAnthem} disabled={!anthemUrl.trim()}>
-                Set Anthem
-              </Button>
+            
+            {/* Upload audio file */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium">Upload audio file</label>
+              <div className="flex gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 flex-1 text-xs"
+                  onClick={() => {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "audio/*";
+                    input.onchange = async (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      if (file.size > 10 * 1024 * 1024) {
+                        toast({ title: "File too large", description: "Max 10MB for anthems", variant: "destructive" });
+                        return;
+                      }
+                      const ext = file.name.split(".").pop();
+                      const path = `${userId || "anon"}/${Date.now()}.${ext}`;
+                      const { error: uploadError } = await supabase.storage
+                        .from("chat-attachments")
+                        .upload(path, file);
+                      if (uploadError) {
+                        toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+                        return;
+                      }
+                      const { data: urlData } = supabase.storage.from("chat-attachments").getPublicUrl(path);
+                      const url = urlData.publicUrl;
+                      setAnthemUrl(url);
+                      if (onSetAnthem) onSetAnthem(url);
+                      toast({ title: "Anthem uploaded! 🎵" });
+                    };
+                    input.click();
+                  }}
+                >
+                  <Upload className="h-3 w-3 mr-1" />
+                  Upload Audio File
+                </Button>
+              </div>
             </div>
+
+            {/* Or paste URL */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium">Or paste a URL</label>
+              <div className="flex gap-1">
+                <Input
+                  placeholder="Paste audio URL for your anthem"
+                  value={anthemUrl}
+                  onChange={(e) => setAnthemUrl(e.target.value)}
+                  className="text-xs h-8"
+                />
+                <Button size="sm" className="h-8 shrink-0" onClick={handleSetAnthem} disabled={!anthemUrl.trim()}>
+                  Set
+                </Button>
+              </div>
+            </div>
+
             {profileAnthem && (
               <div className="flex items-center gap-2 p-2 bg-muted/50 rounded">
                 <Music className="h-3 w-3 text-primary" />
                 <span className="text-xs truncate flex-1">Current anthem set</span>
+                <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => playTrack({ id: "anthem", title: "My Anthem", artist: "Me", url: profileAnthem })}>
+                  <Play className="h-3 w-3 mr-1" /> Preview
+                </Button>
                 <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { 
                   if (onSetAnthem) onSetAnthem(""); 
                   setAnthemUrl(""); 

@@ -28,6 +28,7 @@ import SmartOnboarding from "@/components/SmartOnboarding";
 import MusicPlayer from "@/components/MusicPlayer";
 import AIImageGenerator from "@/components/AIImageGenerator";
 import SmartReplies from "@/components/SmartReplies";
+import RoomEnvironment, { RoomOverlay } from "@/components/RoomEnvironment";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,6 +88,8 @@ const Index = () => {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isMusicOpen, setIsMusicOpen] = useState(false);
   const [isImageGenOpen, setIsImageGenOpen] = useState(false);
+  const [isEnvironmentOpen, setIsEnvironmentOpen] = useState(false);
+  const [activeEnvironment, setActiveEnvironment] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, authUser, isLoading: userLoading, logout } = useClipUser();
@@ -449,6 +452,7 @@ const Index = () => {
           onOpenOnboarding={() => setIsOnboardingOpen(true)}
           onOpenMusic={() => setIsMusicOpen(true)}
           onOpenImageGen={() => setIsImageGenOpen(true)}
+          onOpenEnvironment={() => setIsEnvironmentOpen(true)}
         />
 
         <div className="flex flex-col flex-1 min-w-0">
@@ -462,6 +466,7 @@ const Index = () => {
           />
 
           <div className="flex-1 overflow-y-auto px-4 py-6 relative">
+            <RoomOverlay environment={activeEnvironment} />
             {isSearchOpen && (
               <MessageSearch
                 roomCode={roomCode}
@@ -692,6 +697,7 @@ const Index = () => {
               isOpen={true}
               onClose={() => setIsMusicOpen(false)}
               profileAnthem={(user as any).profile_music_url}
+              userId={authUser?.id}
               onSetAnthem={async (url) => {
                 await supabase.from("profiles").update({ profile_music_url: url || null }).eq("id", user.id);
                 toast({ title: url ? "Anthem set! 🎵" : "Anthem removed" });
@@ -709,6 +715,14 @@ const Index = () => {
             <AIImageGenerator isOpen={true} onClose={() => setIsImageGenOpen(false)} />
           </SheetContent>
         </Sheet>
+
+        {/* Room Environment */}
+        <RoomEnvironment
+          isOpen={isEnvironmentOpen}
+          onOpenChange={setIsEnvironmentOpen}
+          activeEnvironment={activeEnvironment}
+          onSetEnvironment={setActiveEnvironment}
+        />
 
         {/* BonziBuddy */}
         <BonziBuddy
