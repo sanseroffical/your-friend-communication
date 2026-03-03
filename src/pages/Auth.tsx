@@ -21,13 +21,21 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Check if already logged in
+  // Check if already logged in & listen for auth changes (e.g. OAuth redirect)
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        navigate("/");
+      }
+    });
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/");
       }
     });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleLogin = async () => {
