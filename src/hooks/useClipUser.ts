@@ -57,8 +57,33 @@ export const useClipUser = () => {
         .eq("id", userId)
         .single();
 
-      if (error) throw error;
-      setProfile(data);
+      if (error && error.code === "PGRST116") {
+        // Profile doesn't exist (e.g. OAuth user) — create one
+        const { data: authData } = await supabase.auth.getUser();
+        const meta = authData?.user?.user_metadata;
+        const displayName = meta?.display_name || meta?.full_name || meta?.name || "User";
+        
+        // Generate a clip_id
+        const { data: clipId } = await supabase.rpc("generate_clip_id");
+        
+        const { data: newProfile, error: insertError } = await supabase
+          .from("profiles")
+          .insert({
+            id: userId,
+            display_name: displayName,
+            clip_id: clipId || `user_${userId.slice(0, 6)}`,
+            avatar_url: meta?.avatar_url || null,
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        setProfile(newProfile);
+      } else if (error) {
+        throw error;
+      } else {
+        setProfile(data);
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
     } finally {
