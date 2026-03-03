@@ -643,6 +643,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_customization: Json | null
           avatar_url: string | null
           banner_url: string | null
           bio: string | null
@@ -657,6 +658,7 @@ export type Database = {
           visitor_count: number | null
         }
         Insert: {
+          avatar_customization?: Json | null
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
@@ -671,6 +673,7 @@ export type Database = {
           visitor_count?: number | null
         }
         Update: {
+          avatar_customization?: Json | null
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
