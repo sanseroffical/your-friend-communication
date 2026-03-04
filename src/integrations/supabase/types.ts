@@ -547,6 +547,45 @@ export type Database = {
           },
         ]
       }
+      plaza_houses: {
+        Row: {
+          created_at: string
+          house_color: string
+          house_name: string
+          house_style: string
+          id: string
+          placed_objects: Json | null
+          position_x: number
+          position_z: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          house_color?: string
+          house_name?: string
+          house_style?: string
+          id?: string
+          placed_objects?: Json | null
+          position_x?: number
+          position_z?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          house_color?: string
+          house_name?: string
+          house_style?: string
+          id?: string
+          placed_objects?: Json | null
+          position_x?: number
+          position_z?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           content: string
