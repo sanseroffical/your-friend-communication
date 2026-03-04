@@ -31,6 +31,8 @@ interface HouseInteriorProps {
   placingMode: { type: string; color: string } | null;
   userName: string;
   customization?: AvatarCustomization;
+  avatarPosition?: [number, number, number];
+  onAvatarMove?: (pos: [number, number, number]) => void;
 }
 
 // ============ PLACEABLE OBJECT DEFINITIONS ============
@@ -427,8 +429,93 @@ const PlacementPlane = ({ active, onPlace }: { active: boolean; onPlace: (pos: [
   );
 };
 
+// ============ MOVEMENT PLANE (click to move avatar) ============
+const MovementPlane = ({ active, onMove }: { active: boolean; onMove: (pos: [number, number, number]) => void }) => {
+  if (!active) return null;
+
+  return (
+    <mesh
+      rotation={[-Math.PI / 2, 0, 0]}
+      position={[0, 0.005, 0]}
+      visible={false}
+      onClick={(e) => {
+        e.stopPropagation();
+        const p = e.point;
+        if (Math.abs(p.x) < 2.8 && Math.abs(p.z) < 2.8) {
+          onMove([p.x, 0, p.z]);
+        }
+      }}
+    >
+      <planeGeometry args={[6, 6]} />
+      <meshBasicMaterial />
+    </mesh>
+  );
+};
+
+// ============ INTERIOR AVATAR ============
+const InteriorAvatar = ({ position, targetPosition, customization, name }: {
+  position: [number, number, number];
+  targetPosition: [number, number, number];
+  customization: AvatarCustomization;
+  name: string;
+}) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const bodyColor = useMemo(() => new THREE.Color(customization.bodyColor), [customization.bodyColor]);
+  const shirtColor = useMemo(() => new THREE.Color(customization.shirtColor), [customization.shirtColor]);
+
+  useFrame(() => {
+    if (!groupRef.current) return;
+    const pos = groupRef.current.position;
+    pos.x += (targetPosition[0] - pos.x) * 0.08;
+    pos.z += (targetPosition[2] - pos.z) * 0.08;
+    pos.y = 0.35;
+
+    const dx = targetPosition[0] - pos.x;
+    const dz = targetPosition[2] - pos.z;
+    if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
+      const angle = Math.atan2(dx, dz);
+      groupRef.current.rotation.y += (angle - groupRef.current.rotation.y) * 0.1;
+    }
+  });
+
+  const headScale: [number, number, number] = customization.headShape === "oval" ? [1, 1.2, 1] : customization.headShape === "square" ? [1.1, 1, 1.1] : [1, 1, 1];
+
+  return (
+    <group ref={groupRef} position={[position[0], 0.35, position[2]]}>
+      {/* Body */}
+      <mesh castShadow>
+        <capsuleGeometry args={[0.15, 0.3, 8, 16]} />
+        <meshStandardMaterial color={shirtColor} emissive={shirtColor} emissiveIntensity={0.15} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0, 0.35, 0]} castShadow scale={headScale}>
+        <sphereGeometry args={[0.14, 16, 16]} />
+        <meshStandardMaterial color={bodyColor} />
+      </mesh>
+      {/* Eyes */}
+      <mesh position={[-0.05, 0.38, 0.12]}><sphereGeometry args={[0.025, 8, 8]} /><meshStandardMaterial color="white" /></mesh>
+      <mesh position={[0.05, 0.38, 0.12]}><sphereGeometry args={[0.025, 8, 8]} /><meshStandardMaterial color="white" /></mesh>
+      <mesh position={[-0.05, 0.38, 0.13]}><sphereGeometry args={[0.012, 8, 8]} /><meshStandardMaterial color="#333" /></mesh>
+      <mesh position={[0.05, 0.38, 0.13]}><sphereGeometry args={[0.012, 8, 8]} /><meshStandardMaterial color="#333" /></mesh>
+      {/* Name */}
+      <Text position={[0, 0.7, 0]} fontSize={0.08} color="white" anchorX="center" anchorY="middle" outlineWidth={0.01} outlineColor="#000000">
+        {name}
+      </Text>
+      {/* Ground ring */}
+      <mesh position={[0, -0.3, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.18, 0.24, 32]} />
+        <meshBasicMaterial color={bodyColor} transparent opacity={0.5} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+};
+
 // ============ MAIN INTERIOR SCENE ============
-const HouseInterior = ({ houseName, houseColor, messages, placedObjects, onPlaceObject, onExit, placingMode, userName, customization }: HouseInteriorProps) => {
+const HouseInterior = ({ houseName, houseColor, messages, placedObjects, onPlaceObject, onExit, placingMode, userName, customization, avatarPosition, onAvatarMove }: HouseInteriorProps) => {
+  const custom = customization || DEFAULT_CUSTOMIZATION;
+  const [localAvatarPos, setLocalAvatarPos] = useState<[number, number, number]>(avatarPosition || [0, 0, 2]);
+  const [targetPos, setTargetPos] = useState<[number, number, number]>(avatarPosition || [0, 0, 2]);
+
   const handlePlace = useCallback((pos: [number, number, number]) => {
     if (!placingMode) return;
     onPlaceObject({
@@ -439,6 +526,11 @@ const HouseInterior = ({ houseName, houseColor, messages, placedObjects, onPlace
     });
   }, [placingMode, onPlaceObject, userName]);
 
+  const handleAvatarMove = useCallback((pos: [number, number, number]) => {
+    setTargetPos(pos);
+    onAvatarMove?.(pos);
+  }, [onAvatarMove]);
+
   return (
     <Canvas shadows camera={{ position: [0, 4, 6], fov: 55 }} style={{ background: "#1a1a2e" }}>
       <ambientLight intensity={0.3} />
@@ -447,6 +539,14 @@ const HouseInterior = ({ houseName, houseColor, messages, placedObjects, onPlace
       <RoomShell houseColor={houseColor} />
       <DefaultFurniture houseColor={houseColor} />
       <ExitDoor onExit={onExit} />
+
+      {/* Interior Avatar */}
+      <InteriorAvatar
+        position={localAvatarPos}
+        targetPosition={targetPos}
+        customization={custom}
+        name={userName}
+      />
 
       {/* User-placed objects */}
       {placedObjects.map((obj) => (
@@ -458,15 +558,19 @@ const HouseInterior = ({ houseName, houseColor, messages, placedObjects, onPlace
         <MessageBubble key={msg.id} msg={msg} />
       ))}
 
-      {/* Placement mode */}
-      <PlacementPlane active={!!placingMode} onPlace={handlePlace} />
+      {/* Placement mode OR movement mode */}
+      {placingMode ? (
+        <PlacementPlane active={true} onPlace={handlePlace} />
+      ) : (
+        <MovementPlane active={true} onMove={handleAvatarMove} />
+      )}
 
       {/* House name */}
       <Text position={[0, 2.8, -2.95]} fontSize={0.18} color="#333" anchorX="center">
         🏠 {houseName}
       </Text>
 
-      <OrbitControls target={[0, 1.2, 0]} maxPolarAngle={Math.PI / 2} minDistance={2} maxDistance={8} enablePan={true} panSpeed={0.5} />
+      <OrbitControls target={[targetPos[0], 1.2, targetPos[2]]} maxPolarAngle={Math.PI / 2} minDistance={2} maxDistance={8} enablePan={true} panSpeed={0.5} />
     </Canvas>
   );
 };
