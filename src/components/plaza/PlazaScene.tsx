@@ -1,7 +1,94 @@
 import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Text, Sky } from "@react-three/drei";
+import { OrbitControls, Text, Sky, Stars } from "@react-three/drei";
 import * as THREE from "three";
+
+// ============ TIME OF DAY HELPER ============
+const getTimeOfDay = () => {
+  const now = new Date();
+  const hours = now.getHours() + now.getMinutes() / 60;
+  return hours;
+};
+
+const getTimeColors = (hours: number) => {
+  // 0-5: night, 5-7: dawn, 7-17: day, 17-19: dusk, 19-24: night
+  if (hours < 5 || hours >= 21) {
+    // Night
+    return {
+      skyColor: "#0a0a2e",
+      ambientIntensity: 0.08,
+      ambientColor: "#2233aa",
+      dirIntensity: 0.05,
+      dirColor: "#4466aa",
+      sunPosition: [0, -50, 100] as [number, number, number],
+      fogColor: "#0a0a2e",
+      lampIntensity: 0.8,
+      showStars: true,
+      sunsetFactor: 0,
+    };
+  }
+  if (hours < 7) {
+    // Dawn
+    const t = (hours - 5) / 2;
+    return {
+      skyColor: `#${Math.round(0x0a + t * (0x87 - 0x0a)).toString(16).padStart(2, '0')}${Math.round(0x0a + t * (0xCE - 0x0a)).toString(16).padStart(2, '0')}${Math.round(0x2e + t * (0xEB - 0x2e)).toString(16).padStart(2, '0')}`,
+      ambientIntensity: 0.08 + t * 0.42,
+      ambientColor: "#ffccaa",
+      dirIntensity: 0.05 + t * 0.95,
+      dirColor: "#ffaa77",
+      sunPosition: [100 * t, 10 + t * 40, 100] as [number, number, number],
+      fogColor: "#ffddbb",
+      lampIntensity: 0.8 - t * 0.7,
+      showStars: t < 0.3,
+      sunsetFactor: 1 - t,
+    };
+  }
+  if (hours < 17) {
+    // Day
+    return {
+      skyColor: "#87CEEB",
+      ambientIntensity: 0.5,
+      ambientColor: "#ffffff",
+      dirIntensity: 1,
+      dirColor: "#ffffff",
+      sunPosition: [100, 50 + Math.sin((hours - 7) / 10 * Math.PI) * 50, 100] as [number, number, number],
+      fogColor: "#87CEEB",
+      lampIntensity: 0,
+      showStars: false,
+      sunsetFactor: 0,
+    };
+  }
+  if (hours < 19) {
+    // Dusk
+    const t = (hours - 17) / 2;
+    return {
+      skyColor: `#${Math.round(0x87 - t * (0x87 - 0x1a)).toString(16).padStart(2, '0')}${Math.round(0xCE - t * (0xCE - 0x0a)).toString(16).padStart(2, '0')}${Math.round(0xEB - t * (0xEB - 0x3e)).toString(16).padStart(2, '0')}`,
+      ambientIntensity: 0.5 - t * 0.35,
+      ambientColor: "#ffaa66",
+      dirIntensity: 1 - t * 0.8,
+      dirColor: "#ff7744",
+      sunPosition: [100 * (1 - t), 50 - t * 60, 100] as [number, number, number],
+      fogColor: "#ff8844",
+      lampIntensity: t * 0.8,
+      showStars: t > 0.7,
+      sunsetFactor: t,
+    };
+  }
+  // Evening 19-21
+  const t = (hours - 19) / 2;
+  return {
+    skyColor: `#${Math.round(0x1a - t * (0x1a - 0x0a)).toString(16).padStart(2, '0')}${Math.round(0x0a).toString(16).padStart(2, '0')}${Math.round(0x3e - t * (0x3e - 0x2e)).toString(16).padStart(2, '0')}`,
+    ambientIntensity: 0.15 - t * 0.07,
+    ambientColor: "#3344aa",
+    dirIntensity: 0.2 - t * 0.15,
+    dirColor: "#4466aa",
+    sunPosition: [0, -10 - t * 40, 100] as [number, number, number],
+    fogColor: "#0a0a2e",
+    lampIntensity: 0.8,
+    showStars: true,
+    sunsetFactor: 0,
+  };
+};
 import { AvatarCustomization, DEFAULT_CUSTOMIZATION } from "./AvatarCustomizer";
 
 export interface PlazaUser {
@@ -566,14 +653,13 @@ const Ground = () => {
         );
       })}
 
-      {/* Lampposts */}
+      {/* Lampposts - intensity controlled by time of day */}
       {[0, 1, 2, 3].map((i) => {
         const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
         return (
           <group key={`lamp-${i}`} position={[Math.cos(angle) * 14, 0, Math.sin(angle) * 14]}>
             <mesh position={[0, 2, 0]}><cylinderGeometry args={[0.05, 0.08, 4, 8]} /><meshStandardMaterial color="#444" metalness={0.5} /></mesh>
             <mesh position={[0, 4.2, 0]}><sphereGeometry args={[0.2, 8, 8]} /><meshStandardMaterial color="#ffeaa7" emissive="#ffeaa7" emissiveIntensity={0.3} /></mesh>
-            <pointLight position={[Math.cos(angle) * 14, 4.5, Math.sin(angle) * 14]} intensity={0.3} distance={8} color="#ffeaa7" />
           </group>
         );
       })}
@@ -625,11 +711,22 @@ const PlazaScene = ({ localUser, remoteUsers, onMove, onUserClick, onInteract }:
     onInteract?.(id);
   }, [onInteract]);
 
+  const [timeColors, setTimeColors] = useState(() => getTimeColors(getTimeOfDay()));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeColors(getTimeColors(getTimeOfDay()));
+    }, 30000); // update every 30s
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <Canvas shadows camera={{ position: [0, 15, 15], fov: 50 }} style={{ background: "#87CEEB" }}>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 20, 5]} intensity={1} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} shadow-camera-far={80} shadow-camera-left={-40} shadow-camera-right={40} shadow-camera-top={40} shadow-camera-bottom={-40} />
-      <Sky sunPosition={[100, 50, 100]} />
+    <Canvas shadows camera={{ position: [0, 15, 15], fov: 50 }} style={{ background: timeColors.skyColor }}>
+      <ambientLight intensity={timeColors.ambientIntensity} color={timeColors.ambientColor} />
+      <directionalLight position={timeColors.sunPosition} intensity={timeColors.dirIntensity} color={timeColors.dirColor} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} shadow-camera-far={80} shadow-camera-left={-40} shadow-camera-right={40} shadow-camera-top={40} shadow-camera-bottom={-40} />
+      <Sky sunPosition={timeColors.sunPosition} />
+      {timeColors.showStars && <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={1} />}
+      <fog attach="fog" args={[timeColors.skyColor, 40, 80]} />
 
       <Ground />
       <ClickPlane onMove={handleMove} />
@@ -645,6 +742,14 @@ const PlazaScene = ({ localUser, remoteUsers, onMove, onUserClick, onInteract }:
       <House position={[-22, 0, -8]} color="#e8d5b7" label="Cozy Cabin" onClick={() => handleInteract("house-1")} />
       <House position={[-22, 0, -16]} color="#b0c4de" label="Blue House" onClick={() => handleInteract("house-2")} />
       <House position={[28, 0, -10]} color="#deb887" label="Treehouse" onClick={() => handleInteract("house-3")} />
+
+      {/* Dynamic lamppost lights based on time */}
+      {timeColors.lampIntensity > 0 && [0, 1, 2, 3].map((i) => {
+        const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
+        return (
+          <pointLight key={`lamplight-${i}`} position={[Math.cos(angle) * 14, 4.5, Math.sin(angle) * 14]} intensity={timeColors.lampIntensity} distance={12} color="#ffeaa7" />
+        );
+      })}
 
       <Avatar user={localUser} isLocal={true} />
       {remoteUsers.map((user) => (
