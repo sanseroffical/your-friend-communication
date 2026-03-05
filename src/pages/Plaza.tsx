@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Send, Users, MessageSquare, Mic, MicOff, Palette, Smile, Hammer, X, Reply, Edit2, Trash2, Pin, Search, CloudRain, CloudSnow, Cloud, Sun, Zap, AtSign, Lock } from "lucide-react";
+import { ArrowLeft, Send, Users, MessageSquare, Mic, MicOff, Palette, Smile, Hammer, X, Reply, Edit2, Trash2, Pin, Search, CloudRain, CloudSnow, Cloud, Sun, Zap, AtSign, Lock, Volume2, VolumeX, Play, Pause, SkipForward, SkipBack } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useClipUser } from "@/hooks/useClipUser";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -60,6 +61,107 @@ const generateHousePosition = (index: number): { x: number; z: number } => {
   const col = index % cols;
   const row = Math.floor(index / cols);
   return { x: startX + col * spacing, z: startZ - row * spacing };
+};
+
+// ============ PLAZA MUSIC SYSTEM ============
+interface PlazaTrack {
+  id: string;
+  title: string;
+  emoji: string;
+  url: string;
+}
+
+const PLAZA_TRACKS: PlazaTrack[] = [
+  { id: "mii-theme", title: "Plaza Theme (Mii Channel)", emoji: "🎵", url: "/audio/plaza-theme.wav" },
+  { id: "chill", title: "Chill Vibes", emoji: "🎵", url: "" },
+  { id: "rock", title: "Rock Anthem", emoji: "🎸", url: "" },
+  { id: "jazz", title: "Jazz Lounge", emoji: "🎹", url: "" },
+  { id: "lofi", title: "Lo-fi Beats", emoji: "🎶", url: "" },
+  { id: "classical", title: "Classical", emoji: "🎻", url: "" },
+];
+
+const usePlazaMusic = () => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTrack, setCurrentTrack] = useState<PlazaTrack>(PLAZA_TRACKS[0]);
+  const [volume, setVolume] = useState(0.3);
+  const [isMusicMuted, setIsMusicMuted] = useState(false);
+
+  useEffect(() => {
+    const audio = new Audio();
+    audio.loop = true;
+    audio.volume = volume;
+    audioRef.current = audio;
+
+    audio.addEventListener("play", () => setIsPlaying(true));
+    audio.addEventListener("pause", () => setIsPlaying(false));
+
+    // Autoplay the plaza theme on first user interaction
+    const startMusic = () => {
+      if (audioRef.current && currentTrack.url) {
+        audioRef.current.src = currentTrack.url;
+        audioRef.current.play().catch(() => {});
+      }
+      document.removeEventListener("click", startMusic);
+      document.removeEventListener("keydown", startMusic);
+    };
+    document.addEventListener("click", startMusic);
+    document.addEventListener("keydown", startMusic);
+
+    return () => {
+      audio.pause();
+      audio.src = "";
+      document.removeEventListener("click", startMusic);
+      document.removeEventListener("keydown", startMusic);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMusicMuted ? 0 : volume;
+    }
+  }, [volume, isMusicMuted]);
+
+  const playTrack = useCallback((track: PlazaTrack) => {
+    if (!track.url) {
+      toast.info(`"${track.title}" — coming soon!`);
+      return;
+    }
+    setCurrentTrack(track);
+    if (audioRef.current) {
+      audioRef.current.src = track.url;
+      audioRef.current.play().catch(() => {});
+    }
+  }, []);
+
+  const togglePlay = useCallback(() => {
+    if (!audioRef.current) return;
+    if (!currentTrack.url) { toast.info("No playable track selected"); return; }
+    if (audioRef.current.paused) {
+      if (!audioRef.current.src || audioRef.current.src === window.location.href) {
+        audioRef.current.src = currentTrack.url;
+      }
+      audioRef.current.play().catch(() => {});
+    } else {
+      audioRef.current.pause();
+    }
+  }, [currentTrack]);
+
+  const nextTrack = useCallback(() => {
+    const playable = PLAZA_TRACKS.filter(t => t.url);
+    if (playable.length === 0) return;
+    const idx = playable.findIndex(t => t.id === currentTrack.id);
+    playTrack(playable[(idx + 1) % playable.length]);
+  }, [currentTrack, playTrack]);
+
+  const prevTrack = useCallback(() => {
+    const playable = PLAZA_TRACKS.filter(t => t.url);
+    if (playable.length === 0) return;
+    const idx = playable.findIndex(t => t.id === currentTrack.id);
+    playTrack(playable[(idx - 1 + playable.length) % playable.length]);
+  }, [currentTrack, playTrack]);
+
+  return { isPlaying, currentTrack, volume, setVolume, isMusicMuted, setIsMusicMuted, playTrack, togglePlay, nextTrack, prevTrack };
 };
 
 const Plaza = () => {
@@ -119,6 +221,8 @@ const Plaza = () => {
     remoteUsers.map((u) => ({ id: u.id, position: u.targetPosition })),
     channelRef.current
   );
+
+  const plazaMusic = usePlazaMusic();
 
   // Auto-scroll chat
   useEffect(() => {
@@ -636,6 +740,9 @@ const Plaza = () => {
         <Button variant="secondary" size="sm" onClick={() => setEmotePickerOpen(!emotePickerOpen)} className="shadow-lg"><Smile className="h-4 w-4" /></Button>
         <Button variant="secondary" size="sm" onClick={() => setCustomizerOpen(true)} className="shadow-lg"><Palette className="h-4 w-4" /></Button>
         <Button variant={isMuted ? "secondary" : "default"} size="sm" onClick={toggleMute} className="shadow-lg">{isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</Button>
+        <Button variant={plazaMusic.isPlaying ? "default" : "secondary"} size="sm" onClick={plazaMusic.togglePlay} className="shadow-lg">
+          {plazaMusic.isPlaying ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+        </Button>
         <Button variant="secondary" size="sm" onClick={() => setChatOpen(!chatOpen)} className="shadow-lg"><MessageSquare className="h-4 w-4" /></Button>
       </div>
 
@@ -789,12 +896,40 @@ const Plaza = () => {
 
       {/* Jukebox Dialog */}
       <Dialog open={jukeboxOpen} onOpenChange={setJukeboxOpen}>
-        <DialogContent className="max-w-sm"><DialogHeader><DialogTitle>🎵 Jukebox</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Choose a tune to play!</p>
-            {["🎵 Chill Vibes", "🎸 Rock Anthem", "🎹 Jazz Lounge", "🎶 Lo-fi Beats", "🎻 Classical"].map(track => (
-              <Button key={track} variant="outline" className="w-full justify-start" onClick={() => setJukeboxOpen(false)}>{track}</Button>
-            ))}
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>🎵 Jukebox</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            {/* Now Playing */}
+            <div className="p-3 rounded-lg bg-muted/50 text-center space-y-2">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Now Playing</p>
+              <p className="text-sm font-medium">{plazaMusic.currentTrack.emoji} {plazaMusic.currentTrack.title}</p>
+              <div className="flex items-center justify-center gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={plazaMusic.prevTrack}><SkipBack className="h-4 w-4" /></Button>
+                <Button variant="secondary" size="icon" className="h-10 w-10" onClick={plazaMusic.togglePlay}>
+                  {plazaMusic.isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={plazaMusic.nextTrack}><SkipForward className="h-4 w-4" /></Button>
+              </div>
+              <div className="flex items-center gap-2 px-2">
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => plazaMusic.setIsMusicMuted(!plazaMusic.isMusicMuted)}>
+                  {plazaMusic.isMusicMuted ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                </Button>
+                <Slider value={[plazaMusic.isMusicMuted ? 0 : plazaMusic.volume * 100]} max={100} step={1} onValueChange={(v) => { plazaMusic.setVolume(v[0] / 100); plazaMusic.setIsMusicMuted(false); }} className="flex-1" />
+              </div>
+            </div>
+            {/* Track List */}
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Tracks</p>
+              {PLAZA_TRACKS.map(track => (
+                <Button key={track.id} variant={plazaMusic.currentTrack.id === track.id ? "default" : "outline"} className="w-full justify-start gap-2" size="sm"
+                  onClick={() => plazaMusic.playTrack(track)}>
+                  <span>{track.emoji}</span>
+                  <span className="flex-1 text-left">{track.title}</span>
+                  {!track.url && <Badge variant="outline" className="text-[10px] py-0">Soon</Badge>}
+                  {plazaMusic.currentTrack.id === track.id && plazaMusic.isPlaying && <span className="text-xs animate-pulse">♪</span>}
+                </Button>
+              ))}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
