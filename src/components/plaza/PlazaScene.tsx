@@ -432,22 +432,84 @@ interface AvatarProps { user: PlazaUser; isLocal: boolean; onClick?: () => void;
 
 const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
   const groupRef = useRef<THREE.Group>(null);
+  const bodyRef = useRef<THREE.Mesh>(null);
+  const headRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const bobOffset = useRef(Math.random() * Math.PI * 2);
   const custom = user.customization || DEFAULT_CUSTOMIZATION;
 
+  const isDancing = user.emote === "dance" && user.emoteTime && Date.now() - user.emoteTime < 5000;
+  const isWaving = user.emote === "wave" && user.emoteTime && Date.now() - user.emoteTime < 3000;
+  const isClapping = user.emote === "clap" && user.emoteTime && Date.now() - user.emoteTime < 3000;
+  const isLaughing = user.emote === "laugh" && user.emoteTime && Date.now() - user.emoteTime < 3000;
+  const isParty = user.emote === "party" && user.emoteTime && Date.now() - user.emoteTime < 4000;
+
   useFrame((state) => {
     if (!groupRef.current) return;
+    const t = state.clock.elapsedTime;
     const pos = groupRef.current.position;
     const [tx, , tz] = user.targetPosition;
     pos.x += (tx - pos.x) * 0.05;
     pos.z += (tz - pos.z) * 0.05;
-    pos.y = 0.5 + Math.sin(state.clock.elapsedTime * 2 + bobOffset.current) * 0.05;
-    const dx = tx - pos.x;
-    const dz = tz - pos.z;
-    if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
-      const angle = Math.atan2(dx, dz);
-      groupRef.current.rotation.y += (angle - groupRef.current.rotation.y) * 0.1;
+
+    if (isDancing || isParty) {
+      // Dance: aggressive bobbing + spinning
+      const danceSpeed = isParty ? 6 : 4;
+      pos.y = 0.5 + Math.abs(Math.sin(t * danceSpeed)) * 0.35;
+      groupRef.current.rotation.y += (isParty ? 0.08 : 0.05);
+      // Body tilt side-to-side
+      if (bodyRef.current) {
+        bodyRef.current.rotation.z = Math.sin(t * danceSpeed * 1.5) * 0.25;
+        bodyRef.current.rotation.x = Math.cos(t * danceSpeed) * 0.1;
+      }
+      // Head bop
+      if (headRef.current) {
+        headRef.current.rotation.z = Math.sin(t * danceSpeed * 2) * 0.15;
+        headRef.current.position.y = 0.55 + Math.sin(t * danceSpeed * 2) * 0.03;
+      }
+    } else if (isWaving) {
+      pos.y = 0.5 + Math.sin(t * 2 + bobOffset.current) * 0.05;
+      // Gentle side lean
+      if (bodyRef.current) {
+        bodyRef.current.rotation.z = Math.sin(t * 5) * 0.12;
+        bodyRef.current.rotation.x = 0;
+      }
+      if (headRef.current) {
+        headRef.current.rotation.z = Math.sin(t * 5) * 0.08;
+        headRef.current.position.y = 0.55;
+      }
+    } else if (isClapping) {
+      pos.y = 0.5 + Math.abs(Math.sin(t * 8)) * 0.05;
+      if (bodyRef.current) {
+        bodyRef.current.rotation.z = 0;
+        bodyRef.current.rotation.x = Math.sin(t * 8) * 0.06;
+      }
+      if (headRef.current) {
+        headRef.current.position.y = 0.55 + Math.abs(Math.sin(t * 8)) * 0.02;
+        headRef.current.rotation.z = 0;
+      }
+    } else if (isLaughing) {
+      pos.y = 0.5 + Math.random() * 0.03;
+      if (bodyRef.current) {
+        bodyRef.current.rotation.x = Math.sin(t * 10) * 0.08;
+        bodyRef.current.rotation.z = 0;
+      }
+      if (headRef.current) {
+        headRef.current.rotation.x = -0.15 + Math.sin(t * 10) * 0.1;
+        headRef.current.rotation.z = 0;
+        headRef.current.position.y = 0.55;
+      }
+    } else {
+      // Normal idle
+      pos.y = 0.5 + Math.sin(t * 2 + bobOffset.current) * 0.05;
+      if (bodyRef.current) { bodyRef.current.rotation.z = 0; bodyRef.current.rotation.x = 0; }
+      if (headRef.current) { headRef.current.rotation.z = 0; headRef.current.rotation.x = 0; headRef.current.position.y = 0.55; }
+      const dx = tx - pos.x;
+      const dz = tz - pos.z;
+      if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
+        const angle = Math.atan2(dx, dz);
+        groupRef.current.rotation.y += (angle - groupRef.current.rotation.y) * 0.1;
+      }
     }
   });
 
@@ -459,8 +521,15 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
   return (
     <group ref={groupRef} position={[user.position[0], 0.5, user.position[2]]} onClick={onClick}
       onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
-      <mesh castShadow><capsuleGeometry args={[0.25, 0.5, 8, 16]} /><meshStandardMaterial color={shirtColor} emissive={hovered || isLocal ? shirtColor : new THREE.Color(0, 0, 0)} emissiveIntensity={hovered ? 0.3 : isLocal ? 0.15 : 0} /></mesh>
-      <mesh position={[0, 0.55, 0]} castShadow scale={headScale}><sphereGeometry args={[0.22, 16, 16]} /><meshStandardMaterial color={bodyColor} /></mesh>
+      <mesh ref={bodyRef} castShadow><capsuleGeometry args={[0.25, 0.5, 8, 16]} /><meshStandardMaterial color={shirtColor} emissive={hovered || isLocal ? shirtColor : new THREE.Color(0, 0, 0)} emissiveIntensity={hovered ? 0.3 : isLocal ? 0.15 : 0} /></mesh>
+      <mesh ref={headRef} position={[0, 0.55, 0]} castShadow scale={headScale}><sphereGeometry args={[0.22, 16, 16]} /><meshStandardMaterial color={bodyColor} /></mesh>
+      {/* Disco floor effect when dancing */}
+      {isDancing && (
+        <mesh position={[0, -0.49, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0, 0.6, 32]} />
+          <meshBasicMaterial color="#ff00ff" transparent opacity={0.3 + Math.sin(Date.now() * 0.01) * 0.2} side={THREE.DoubleSide} />
+        </mesh>
+      )}
       <mesh position={[-0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="white" /></mesh>
       <mesh position={[0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="white" /></mesh>
       <mesh position={[-0.08, 0.6, 0.2]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#333" /></mesh>
