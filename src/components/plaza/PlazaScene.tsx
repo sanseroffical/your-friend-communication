@@ -685,7 +685,7 @@ const UserHouse3D = ({ house, onClick }: { house: UserHouse; onClick: () => void
 // ============ BIOME COMPONENTS ============
 
 // Desert Biome — sand, cacti, pyramids, oasis, ruins
-const DesertBiome = () => (
+const DesertBiome = ({ lampIntensity }: { lampIntensity: number }) => (
   <group>
     {/* Sand ground */}
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[80, -0.005, 25]} receiveShadow>
@@ -725,11 +725,19 @@ const DesertBiome = () => (
       <Text position={[0, 3, 0]} fontSize={0.2} color="#c9a84c" anchorX="center" outlineWidth={0.01} outlineColor="#000">🏛️ Ancient Ruins</Text>
     </group>
     <Text position={[80, 5, 25]} fontSize={0.35} color="#c9a84c" anchorX="center" outlineWidth={0.02} outlineColor="#000">🏜️ Desert Biome</Text>
+    {/* Desert lanterns - torch style */}
+    {[{ x: 72, z: 15 }, { x: 88, z: 35 }, { x: 78, z: 42 }, { x: 92, z: 12 }].map((l, i) => (
+      <group key={`desert-lantern-${i}`} position={[l.x, 0, l.z]}>
+        <mesh position={[0, 1.2, 0]}><cylinderGeometry args={[0.06, 0.08, 2.4, 8]} /><meshStandardMaterial color="#5c3a1e" /></mesh>
+        <mesh position={[0, 2.6, 0]}><sphereGeometry args={[0.15, 8, 8]} /><meshStandardMaterial color="#ff8c00" emissive="#ff6600" emissiveIntensity={lampIntensity > 0 ? 0.5 + lampIntensity : 0.1} /></mesh>
+        {lampIntensity > 0 && <pointLight position={[0, 2.8, 0]} color="#ff8c00" intensity={lampIntensity * 0.6} distance={8} />}
+      </group>
+    ))}
   </group>
 );
 
 // Snow Biome — ice, igloos, frozen lake, ice castle, snowman
-const SnowBiome = () => {
+const SnowBiome = ({ lampIntensity }: { lampIntensity: number }) => {
   const iceRef = useRef<THREE.Mesh>(null);
   useFrame((state) => {
     if (iceRef.current) {
@@ -797,12 +805,20 @@ const SnowBiome = () => {
         );
       })}
       <Text position={[-80, 7, 25]} fontSize={0.35} color="#a0bcee" anchorX="center" outlineWidth={0.02} outlineColor="#000">❄️ Snow Biome</Text>
+      {/* Snow lanterns - ice crystal style */}
+      {[{ x: -68, z: 20 }, { x: -90, z: 30 }, { x: -75, z: 42 }, { x: -85, z: 12 }].map((l, i) => (
+        <group key={`snow-lantern-${i}`} position={[l.x, 0, l.z]}>
+          <mesh position={[0, 1.2, 0]}><cylinderGeometry args={[0.05, 0.07, 2.4, 8]} /><meshStandardMaterial color="#b0ccee" metalness={0.4} /></mesh>
+          <mesh position={[0, 2.6, 0]}><dodecahedronGeometry args={[0.18, 0]} /><meshStandardMaterial color="#aaddff" emissive="#88ccff" emissiveIntensity={lampIntensity > 0 ? 0.6 + lampIntensity : 0.1} transparent opacity={0.85} /></mesh>
+          {lampIntensity > 0 && <pointLight position={[0, 2.8, 0]} color="#88ccff" intensity={lampIntensity * 0.5} distance={8} />}
+        </group>
+      ))}
     </group>
   );
 };
 
 // Beach Biome — sand, ocean, palms, shack, surfboards
-const BeachBiome = () => {
+const BeachBiome = ({ lampIntensity }: { lampIntensity: number }) => {
   const waterRef = useRef<THREE.Mesh>(null);
   useFrame((state) => {
     if (waterRef.current) {
@@ -859,12 +875,20 @@ const BeachBiome = () => {
         <mesh position={[0, 3, 0]}><coneGeometry args={[1.5, 0.5, 8]} /><meshStandardMaterial color="#e74c3c" /></mesh>
       </group>
       <Text position={[78, 5, -60]} fontSize={0.35} color="#1a6eb0" anchorX="center" outlineWidth={0.02} outlineColor="#000">🏖️ Beach Biome</Text>
+      {/* Beach tiki torches */}
+      {[{ x: 75, z: -52 }, { x: 85, z: -48 }, { x: 68, z: -62 }, { x: 92, z: -58 }].map((l, i) => (
+        <group key={`beach-lantern-${i}`} position={[l.x, 0, l.z]}>
+          <mesh position={[0, 1.5, 0]}><cylinderGeometry args={[0.05, 0.08, 3, 8]} /><meshStandardMaterial color="#8B6914" /></mesh>
+          <mesh position={[0, 3.2, 0]}><coneGeometry args={[0.12, 0.25, 8]} /><meshStandardMaterial color="#ff6600" emissive="#ff4400" emissiveIntensity={lampIntensity > 0 ? 0.8 + lampIntensity : 0.15} /></mesh>
+          {lampIntensity > 0 && <pointLight position={[0, 3.4, 0]} color="#ff8844" intensity={lampIntensity * 0.5} distance={7} />}
+        </group>
+      ))}
     </group>
   );
 };
 
 // Volcanic Biome — dark rock, lava pools, volcano, obsidian, geysers
-const VolcanicBiome = () => {
+const VolcanicBiome = ({ lampIntensity }: { lampIntensity: number }) => {
   const lavaRef1 = useRef<THREE.Mesh>(null);
   const lavaRef2 = useRef<THREE.Mesh>(null);
   const geyserRef = useRef<THREE.Group>(null);
@@ -941,12 +965,20 @@ const VolcanicBiome = () => {
         );
       })}
       <Text position={[-78, 12, -70]} fontSize={0.35} color="#ff6600" anchorX="center" outlineWidth={0.02} outlineColor="#000">🌋 Volcanic Biome</Text>
+      {/* Volcanic ember lanterns */}
+      {[{ x: -72, z: -58 }, { x: -88, z: -65 }, { x: -68, z: -80 }, { x: -82, z: -88 }].map((l, i) => (
+        <group key={`volc-lantern-${i}`} position={[l.x, 0, l.z]}>
+          <mesh position={[0, 1, 0]}><cylinderGeometry args={[0.08, 0.1, 2, 8]} /><meshStandardMaterial color="#333" metalness={0.6} /></mesh>
+          <mesh position={[0, 2.2, 0]}><sphereGeometry args={[0.2, 8, 8]} /><meshStandardMaterial color="#ff4400" emissive="#ff3300" emissiveIntensity={lampIntensity > 0 ? 0.7 + lampIntensity : 0.3} /></mesh>
+          {lampIntensity > 0 && <pointLight position={[0, 2.4, 0]} color="#ff4400" intensity={lampIntensity * 0.7} distance={9} />}
+        </group>
+      ))}
     </group>
   );
 };
 
 // Forest Biome — dense trees, mushrooms, fairy pond, treehouse, log cabin
-const ForestBiome = () => (
+const ForestBiome = ({ lampIntensity }: { lampIntensity: number }) => (
   <group>
     {/* Forest floor */}
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.005, 80]} receiveShadow>
@@ -1010,11 +1042,19 @@ const ForestBiome = () => (
       <Text position={[0, 4, 0]} fontSize={0.15} color="#fff" anchorX="center" outlineWidth={0.01} outlineColor="#000">🏕️ Log Cabin</Text>
     </group>
     <Text position={[0, 10, 75]} fontSize={0.35} color="#2d6a2d" anchorX="center" outlineWidth={0.02} outlineColor="#000">🌲 Forest Biome</Text>
+    {/* Forest fairy lanterns - hanging from branches */}
+    {[{ x: -8, z: 65 }, { x: 12, z: 72 }, { x: -20, z: 78 }, { x: 5, z: 88 }, { x: 20, z: 82 }].map((l, i) => (
+      <group key={`forest-lantern-${i}`} position={[l.x, 0, l.z]}>
+        <mesh position={[0, 2.5, 0]}><cylinderGeometry args={[0.03, 0.03, 0.4, 8]} /><meshStandardMaterial color="#5c3a1e" /></mesh>
+        <mesh position={[0, 2.2, 0]}><sphereGeometry args={[0.12, 8, 8]} /><meshStandardMaterial color="#66ff88" emissive="#44ff66" emissiveIntensity={lampIntensity > 0 ? 0.6 + lampIntensity * 0.8 : 0.15} transparent opacity={0.8} /></mesh>
+        {lampIntensity > 0 && <pointLight position={[0, 2.3, 0]} color="#66ffaa" intensity={lampIntensity * 0.4} distance={6} />}
+      </group>
+    ))}
   </group>
 );
 
 // ============ EXPANDED GROUND ============
-const Ground = () => (
+const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
   <group>
     {/* Main town ground (center) */}
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow><planeGeometry args={[220, 220]} /><meshStandardMaterial color="#4a7c59" roughness={0.9} /></mesh>
@@ -1152,7 +1192,7 @@ const Ground = () => (
       return (
         <group key={`lamp-${i}`} position={[Math.cos(angle) * dist, 0, Math.sin(angle) * dist]}>
           <mesh position={[0, 2, 0]}><cylinderGeometry args={[0.05, 0.08, 4, 8]} /><meshStandardMaterial color="#444" metalness={0.5} /></mesh>
-          <mesh position={[0, 4.2, 0]}><sphereGeometry args={[0.2, 8, 8]} /><meshStandardMaterial color="#ffeaa7" emissive="#ffeaa7" emissiveIntensity={0.3} /></mesh>
+          <mesh position={[0, 4.2, 0]}><sphereGeometry args={[0.2, 8, 8]} /><meshStandardMaterial color="#ffeaa7" emissive="#ffeaa7" emissiveIntensity={lampIntensity > 0 ? 0.3 + lampIntensity * 0.7 : 0.1} /></mesh>
         </group>
       );
     })}
@@ -1238,12 +1278,12 @@ const PlazaScene = ({ localUser, remoteUsers, onMove, onUserClick, onInteract, u
       <WeatherDisplay weather={currentWeather} />
       {(currentWeather.type === "cloudy" || currentWeather.type === "rain" || currentWeather.type === "storm") && <CloudLayer intensity={currentWeather.intensity} />}
 
-      <Ground />
-      <DesertBiome />
-      <SnowBiome />
-      <BeachBiome />
-      <VolcanicBiome />
-      <ForestBiome />
+      <Ground lampIntensity={timeColors.lampIntensity} />
+      <DesertBiome lampIntensity={timeColors.lampIntensity} />
+      <SnowBiome lampIntensity={timeColors.lampIntensity} />
+      <BeachBiome lampIntensity={timeColors.lampIntensity} />
+      <VolcanicBiome lampIntensity={timeColors.lampIntensity} />
+      <ForestBiome lampIntensity={timeColors.lampIntensity} />
       <ClickPlane onMove={handleMove} />
 
       {/* Static interactive objects */}
