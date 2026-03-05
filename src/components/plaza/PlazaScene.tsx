@@ -470,6 +470,8 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
   const groupRef = useRef<THREE.Group>(null);
   const bodyRef = useRef<THREE.Mesh>(null);
   const headRef = useRef<THREE.Mesh>(null);
+  const leftArmRef = useRef<THREE.Group>(null);
+  const rightArmRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const bobOffset = useRef(Math.random() * Math.PI * 2);
   const custom = user.customization || DEFAULT_CUSTOMIZATION;
@@ -493,7 +495,6 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
       const danceSpeed = isParty ? 6 : 4;
       pos.y = 0.5 + Math.abs(Math.sin(t * danceSpeed)) * 0.35;
       groupRef.current.rotation.y += (isParty ? 0.08 : 0.05);
-      // Body tilt side-to-side
       if (bodyRef.current) {
         bodyRef.current.rotation.z = Math.sin(t * danceSpeed * 1.5) * 0.25;
         bodyRef.current.rotation.x = Math.cos(t * danceSpeed) * 0.1;
@@ -503,9 +504,11 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
         headRef.current.rotation.z = Math.sin(t * danceSpeed * 2) * 0.15;
         headRef.current.position.y = 0.55 + Math.sin(t * danceSpeed * 2) * 0.03;
       }
+      // Arms pump up and down
+      if (leftArmRef.current) leftArmRef.current.rotation.x = Math.sin(t * danceSpeed) * 1.2 - 0.3;
+      if (rightArmRef.current) rightArmRef.current.rotation.x = Math.sin(t * danceSpeed + Math.PI) * 1.2 - 0.3;
     } else if (isWaving) {
       pos.y = 0.5 + Math.sin(t * 2 + bobOffset.current) * 0.05;
-      // Gentle side lean
       if (bodyRef.current) {
         bodyRef.current.rotation.z = Math.sin(t * 5) * 0.12;
         bodyRef.current.rotation.x = 0;
@@ -514,6 +517,9 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
         headRef.current.rotation.z = Math.sin(t * 5) * 0.08;
         headRef.current.position.y = 0.55;
       }
+      // Right arm waves, left stays down
+      if (rightArmRef.current) rightArmRef.current.rotation.x = -2.5 + Math.sin(t * 6) * 0.4;
+      if (leftArmRef.current) leftArmRef.current.rotation.x = 0;
     } else if (isClapping) {
       pos.y = 0.5 + Math.abs(Math.sin(t * 8)) * 0.05;
       if (bodyRef.current) {
@@ -524,6 +530,10 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
         headRef.current.position.y = 0.55 + Math.abs(Math.sin(t * 8)) * 0.02;
         headRef.current.rotation.z = 0;
       }
+      // Arms clap together in front
+      const clapAngle = -1.5 + Math.abs(Math.sin(t * 8)) * 0.6;
+      if (leftArmRef.current) { leftArmRef.current.rotation.x = clapAngle; leftArmRef.current.rotation.z = 0.4 - Math.abs(Math.sin(t * 8)) * 0.4; }
+      if (rightArmRef.current) { rightArmRef.current.rotation.x = clapAngle; rightArmRef.current.rotation.z = -0.4 + Math.abs(Math.sin(t * 8)) * 0.4; }
     } else if (isLaughing) {
       pos.y = 0.5 + Math.random() * 0.03;
       if (bodyRef.current) {
@@ -535,11 +545,16 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
         headRef.current.rotation.z = 0;
         headRef.current.position.y = 0.55;
       }
+      // Arms shake with laughter
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.5 + Math.sin(t * 12) * 0.2;
+      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.5 + Math.sin(t * 12 + 1) * 0.2;
     } else {
-      // Normal idle
+      // Normal idle — arms hang down
       pos.y = 0.5 + Math.sin(t * 2 + bobOffset.current) * 0.05;
       if (bodyRef.current) { bodyRef.current.rotation.z = 0; bodyRef.current.rotation.x = 0; }
       if (headRef.current) { headRef.current.rotation.z = 0; headRef.current.rotation.x = 0; headRef.current.position.y = 0.55; }
+      if (leftArmRef.current) { leftArmRef.current.rotation.x = Math.sin(t * 2 + bobOffset.current) * 0.05; leftArmRef.current.rotation.z = 0; }
+      if (rightArmRef.current) { rightArmRef.current.rotation.x = Math.sin(t * 2 + bobOffset.current + Math.PI) * 0.05; rightArmRef.current.rotation.z = 0; }
       const dx = tx - pos.x;
       const dz = tz - pos.z;
       if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
@@ -558,6 +573,16 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
     <group ref={groupRef} position={[user.position[0], 0.5, user.position[2]]} onClick={onClick}
       onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
       <mesh ref={bodyRef} castShadow><capsuleGeometry args={[0.25, 0.5, 8, 16]} /><meshStandardMaterial color={shirtColor} emissive={hovered || isLocal ? shirtColor : new THREE.Color(0, 0, 0)} emissiveIntensity={hovered ? 0.3 : isLocal ? 0.15 : 0} /></mesh>
+      {/* Left arm */}
+      <group ref={leftArmRef} position={[-0.32, 0.15, 0]}>
+        <mesh position={[0, -0.2, 0]} castShadow><capsuleGeometry args={[0.06, 0.25, 6, 12]} /><meshStandardMaterial color={shirtColor} /></mesh>
+        <mesh position={[0, -0.45, 0]} castShadow><sphereGeometry args={[0.07, 8, 8]} /><meshStandardMaterial color={bodyColor} /></mesh>
+      </group>
+      {/* Right arm */}
+      <group ref={rightArmRef} position={[0.32, 0.15, 0]}>
+        <mesh position={[0, -0.2, 0]} castShadow><capsuleGeometry args={[0.06, 0.25, 6, 12]} /><meshStandardMaterial color={shirtColor} /></mesh>
+        <mesh position={[0, -0.45, 0]} castShadow><sphereGeometry args={[0.07, 8, 8]} /><meshStandardMaterial color={bodyColor} /></mesh>
+      </group>
       <mesh ref={headRef} position={[0, 0.55, 0]} castShadow scale={headScale}><sphereGeometry args={[0.22, 16, 16]} /><meshStandardMaterial color={bodyColor} /></mesh>
       {/* Disco floor effect when dancing */}
       {isDancing && (
