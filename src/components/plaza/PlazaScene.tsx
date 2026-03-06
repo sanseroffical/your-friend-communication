@@ -463,6 +463,9 @@ const Glasses = ({ style, color }: { style: string; color: string }) => {
   );
 };
 
+// ============ SMOOTH LERP HELPER ============
+const lerpAngle = (current: number, target: number, factor: number) => current + (target - current) * factor;
+
 // ============ AVATAR ============
 interface AvatarProps { user: PlazaUser; isLocal: boolean; onClick?: () => void; }
 
@@ -470,11 +473,24 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
   const groupRef = useRef<THREE.Group>(null);
   const bodyRef = useRef<THREE.Mesh>(null);
   const headRef = useRef<THREE.Mesh>(null);
-  const leftArmRef = useRef<THREE.Group>(null);
-  const rightArmRef = useRef<THREE.Group>(null);
+  const leftUpperArmRef = useRef<THREE.Group>(null);
+  const leftForearmRef = useRef<THREE.Group>(null);
+  const rightUpperArmRef = useRef<THREE.Group>(null);
+  const rightForearmRef = useRef<THREE.Group>(null);
+  const leftLegRef = useRef<THREE.Group>(null);
+  const leftShinRef = useRef<THREE.Group>(null);
+  const rightLegRef = useRef<THREE.Group>(null);
+  const rightShinRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const bobOffset = useRef(Math.random() * Math.PI * 2);
   const custom = user.customization || DEFAULT_CUSTOMIZATION;
+
+  const animState = useRef({
+    luaX: 0, luaZ: 0, lfaX: 0,
+    ruaX: 0, ruaZ: 0, rfaX: 0,
+    llX: 0, lsX: 0, rlX: 0, rsX: 0,
+    headX: 0, headZ: 0, bodyX: 0, bodyZ: 0,
+  });
 
   const isDancing = user.emote === "dance" && user.emoteTime && Date.now() - user.emoteTime < 5000;
   const isWaving = user.emote === "wave" && user.emoteTime && Date.now() - user.emoteTime < 3000;
@@ -487,114 +503,157 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
     const t = state.clock.elapsedTime;
     const pos = groupRef.current.position;
     const [tx, , tz] = user.targetPosition;
+    const s = animState.current;
+    const smooth = 0.12;
     pos.x += (tx - pos.x) * 0.05;
     pos.z += (tz - pos.z) * 0.05;
-
+    const dx = tx - pos.x;
+    const dz = tz - pos.z;
+    const isMoving = Math.abs(dx) > 0.05 || Math.abs(dz) > 0.05;
+    const walkSpeed = 5;
+    let tLuaX = 0, tLuaZ = 0, tLfaX = 0;
+    let tRuaX = 0, tRuaZ = 0, tRfaX = 0;
+    let tLlX = 0, tLsX = 0, tRlX = 0, tRsX = 0;
+    let tHeadX = 0, tHeadZ = 0, tBodyX = 0, tBodyZ = 0;
+    let targetY = 0.5;
     if (isDancing || isParty) {
-      // Dance: aggressive bobbing + spinning
-      const danceSpeed = isParty ? 6 : 4;
-      pos.y = 0.5 + Math.abs(Math.sin(t * danceSpeed)) * 0.35;
-      groupRef.current.rotation.y += (isParty ? 0.08 : 0.05);
-      if (bodyRef.current) {
-        bodyRef.current.rotation.z = Math.sin(t * danceSpeed * 1.5) * 0.25;
-        bodyRef.current.rotation.x = Math.cos(t * danceSpeed) * 0.1;
-      }
-      // Head bop
-      if (headRef.current) {
-        headRef.current.rotation.z = Math.sin(t * danceSpeed * 2) * 0.15;
-        headRef.current.position.y = 0.55 + Math.sin(t * danceSpeed * 2) * 0.03;
-      }
-      // Arms pump up and down
-      if (leftArmRef.current) leftArmRef.current.rotation.x = Math.sin(t * danceSpeed) * 1.2 - 0.3;
-      if (rightArmRef.current) rightArmRef.current.rotation.x = Math.sin(t * danceSpeed + Math.PI) * 1.2 - 0.3;
+      const sp = isParty ? 6 : 4;
+      targetY = 0.5 + Math.abs(Math.sin(t * sp)) * 0.3;
+      groupRef.current.rotation.y += (isParty ? 0.07 : 0.04);
+      tBodyZ = Math.sin(t * sp * 1.5) * 0.2;
+      tBodyX = Math.cos(t * sp) * 0.08;
+      tHeadZ = Math.sin(t * sp * 2) * 0.12;
+      tLuaX = Math.sin(t * sp) * 1.0 - 0.3;
+      tLfaX = Math.max(0, -Math.sin(t * sp) * 0.8 - 0.3);
+      tRuaX = Math.sin(t * sp + Math.PI) * 1.0 - 0.3;
+      tRfaX = Math.max(0, -Math.sin(t * sp + Math.PI) * 0.8 - 0.3);
+      tLlX = Math.sin(t * sp) * 0.3;
+      tLsX = Math.max(0, -Math.sin(t * sp) * 0.4);
+      tRlX = Math.sin(t * sp + Math.PI) * 0.3;
+      tRsX = Math.max(0, -Math.sin(t * sp + Math.PI) * 0.4);
     } else if (isWaving) {
-      pos.y = 0.5 + Math.sin(t * 2 + bobOffset.current) * 0.05;
-      if (bodyRef.current) {
-        bodyRef.current.rotation.z = Math.sin(t * 5) * 0.12;
-        bodyRef.current.rotation.x = 0;
-      }
-      if (headRef.current) {
-        headRef.current.rotation.z = Math.sin(t * 5) * 0.08;
-        headRef.current.position.y = 0.55;
-      }
-      // Right arm waves, left stays down
-      if (rightArmRef.current) rightArmRef.current.rotation.x = -2.5 + Math.sin(t * 6) * 0.4;
-      if (leftArmRef.current) leftArmRef.current.rotation.x = 0;
+      targetY = 0.5 + Math.sin(t * 2 + bobOffset.current) * 0.03;
+      tBodyZ = Math.sin(t * 3) * 0.05;
+      tHeadZ = Math.sin(t * 3) * 0.06;
+      tRuaX = -2.8; tRuaZ = -0.2;
+      tRfaX = -0.5 + Math.sin(t * 7) * 0.5;
+      tLuaX = 0.1; tLfaX = -0.15;
     } else if (isClapping) {
-      pos.y = 0.5 + Math.abs(Math.sin(t * 8)) * 0.05;
-      if (bodyRef.current) {
-        bodyRef.current.rotation.z = 0;
-        bodyRef.current.rotation.x = Math.sin(t * 8) * 0.06;
-      }
-      if (headRef.current) {
-        headRef.current.position.y = 0.55 + Math.abs(Math.sin(t * 8)) * 0.02;
-        headRef.current.rotation.z = 0;
-      }
-      // Arms clap together in front
-      const clapAngle = -1.5 + Math.abs(Math.sin(t * 8)) * 0.6;
-      if (leftArmRef.current) { leftArmRef.current.rotation.x = clapAngle; leftArmRef.current.rotation.z = 0.4 - Math.abs(Math.sin(t * 8)) * 0.4; }
-      if (rightArmRef.current) { rightArmRef.current.rotation.x = clapAngle; rightArmRef.current.rotation.z = -0.4 + Math.abs(Math.sin(t * 8)) * 0.4; }
+      targetY = 0.5 + Math.abs(Math.sin(t * 7)) * 0.04;
+      tBodyX = Math.sin(t * 7) * 0.04;
+      tHeadX = Math.sin(t * 7) * 0.03;
+      const clapPhase = Math.abs(Math.sin(t * 7));
+      tLuaX = -1.3; tLuaZ = 0.5 - clapPhase * 0.5;
+      tLfaX = -0.6 + clapPhase * 0.2;
+      tRuaX = -1.3; tRuaZ = -0.5 + clapPhase * 0.5;
+      tRfaX = -0.6 + clapPhase * 0.2;
     } else if (isLaughing) {
-      pos.y = 0.5 + Math.random() * 0.03;
-      if (bodyRef.current) {
-        bodyRef.current.rotation.x = Math.sin(t * 10) * 0.08;
-        bodyRef.current.rotation.z = 0;
-      }
-      if (headRef.current) {
-        headRef.current.rotation.x = -0.15 + Math.sin(t * 10) * 0.1;
-        headRef.current.rotation.z = 0;
-        headRef.current.position.y = 0.55;
-      }
-      // Arms shake with laughter
-      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.5 + Math.sin(t * 12) * 0.2;
-      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.5 + Math.sin(t * 12 + 1) * 0.2;
+      targetY = 0.5 + Math.random() * 0.02;
+      tBodyX = Math.sin(t * 9) * 0.07;
+      tHeadX = -0.15 + Math.sin(t * 9) * 0.1;
+      tLuaX = -0.6; tLuaZ = 0.2;
+      tLfaX = -0.8 + Math.sin(t * 11) * 0.15;
+      tRuaX = -0.6; tRuaZ = -0.2;
+      tRfaX = -0.8 + Math.sin(t * 11 + 0.5) * 0.15;
+    } else if (isMoving) {
+      targetY = 0.5 + Math.abs(Math.sin(t * walkSpeed)) * 0.04;
+      tLuaX = Math.sin(t * walkSpeed) * 0.4;
+      tLfaX = Math.min(0, Math.sin(t * walkSpeed) * -0.3);
+      tRuaX = Math.sin(t * walkSpeed + Math.PI) * 0.4;
+      tRfaX = Math.min(0, Math.sin(t * walkSpeed + Math.PI) * -0.3);
+      tLlX = Math.sin(t * walkSpeed) * 0.35;
+      tLsX = Math.max(0, -Math.sin(t * walkSpeed) * 0.3);
+      tRlX = Math.sin(t * walkSpeed + Math.PI) * 0.35;
+      tRsX = Math.max(0, -Math.sin(t * walkSpeed + Math.PI) * 0.3);
+      tBodyZ = Math.sin(t * walkSpeed) * 0.03;
+      const angle = Math.atan2(dx, dz);
+      groupRef.current.rotation.y += (angle - groupRef.current.rotation.y) * 0.1;
     } else {
-      // Normal idle — arms hang down
-      pos.y = 0.5 + Math.sin(t * 2 + bobOffset.current) * 0.05;
-      if (bodyRef.current) { bodyRef.current.rotation.z = 0; bodyRef.current.rotation.x = 0; }
-      if (headRef.current) { headRef.current.rotation.z = 0; headRef.current.rotation.x = 0; headRef.current.position.y = 0.55; }
-      if (leftArmRef.current) { leftArmRef.current.rotation.x = Math.sin(t * 2 + bobOffset.current) * 0.05; leftArmRef.current.rotation.z = 0; }
-      if (rightArmRef.current) { rightArmRef.current.rotation.x = Math.sin(t * 2 + bobOffset.current + Math.PI) * 0.05; rightArmRef.current.rotation.z = 0; }
-      const dx = tx - pos.x;
-      const dz = tz - pos.z;
-      if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
-        const angle = Math.atan2(dx, dz);
-        groupRef.current.rotation.y += (angle - groupRef.current.rotation.y) * 0.1;
-      }
+      targetY = 0.5 + Math.sin(t * 1.5 + bobOffset.current) * 0.02;
+      tLuaX = 0.08 + Math.sin(t * 1.5 + bobOffset.current) * 0.03;
+      tLfaX = -0.1;
+      tRuaX = 0.08 + Math.sin(t * 1.5 + bobOffset.current + 0.5) * 0.03;
+      tRfaX = -0.1;
+      tBodyX = Math.sin(t * 1.5 + bobOffset.current) * 0.01;
     }
+    pos.y += (targetY - pos.y) * 0.15;
+    s.luaX = lerpAngle(s.luaX, tLuaX, smooth); s.luaZ = lerpAngle(s.luaZ, tLuaZ, smooth);
+    s.lfaX = lerpAngle(s.lfaX, tLfaX, smooth);
+    s.ruaX = lerpAngle(s.ruaX, tRuaX, smooth); s.ruaZ = lerpAngle(s.ruaZ, tRuaZ, smooth);
+    s.rfaX = lerpAngle(s.rfaX, tRfaX, smooth);
+    s.llX = lerpAngle(s.llX, tLlX, smooth); s.lsX = lerpAngle(s.lsX, tLsX, smooth);
+    s.rlX = lerpAngle(s.rlX, tRlX, smooth); s.rsX = lerpAngle(s.rsX, tRsX, smooth);
+    s.headX = lerpAngle(s.headX, tHeadX, smooth); s.headZ = lerpAngle(s.headZ, tHeadZ, smooth);
+    s.bodyX = lerpAngle(s.bodyX, tBodyX, smooth); s.bodyZ = lerpAngle(s.bodyZ, tBodyZ, smooth);
+    if (bodyRef.current) { bodyRef.current.rotation.x = s.bodyX; bodyRef.current.rotation.z = s.bodyZ; }
+    if (headRef.current) { headRef.current.rotation.x = s.headX; headRef.current.rotation.z = s.headZ; }
+    if (leftUpperArmRef.current) { leftUpperArmRef.current.rotation.x = s.luaX; leftUpperArmRef.current.rotation.z = s.luaZ; }
+    if (leftForearmRef.current) { leftForearmRef.current.rotation.x = s.lfaX; }
+    if (rightUpperArmRef.current) { rightUpperArmRef.current.rotation.x = s.ruaX; rightUpperArmRef.current.rotation.z = s.ruaZ; }
+    if (rightForearmRef.current) { rightForearmRef.current.rotation.x = s.rfaX; }
+    if (leftLegRef.current) { leftLegRef.current.rotation.x = s.llX; }
+    if (leftShinRef.current) { leftShinRef.current.rotation.x = s.lsX; }
+    if (rightLegRef.current) { rightLegRef.current.rotation.x = s.rlX; }
+    if (rightShinRef.current) { rightShinRef.current.rotation.x = s.rsX; }
   });
 
   const bodyColor = useMemo(() => new THREE.Color(custom.bodyColor), [custom.bodyColor]);
   const shirtColor = useMemo(() => new THREE.Color(custom.shirtColor), [custom.shirtColor]);
+  const pantsColor = useMemo(() => { const c = new THREE.Color(custom.shirtColor); c.offsetHSL(0, -0.1, -0.15); return c; }, [custom.shirtColor]);
   const showMessage = user.message && user.messageTime && Date.now() - user.messageTime < 5000;
   const headScale: [number, number, number] = custom.headShape === "oval" ? [1, 1.2, 1] : custom.headShape === "square" ? [1.1, 1, 1.1] : [1, 1, 1];
 
   return (
     <group ref={groupRef} position={[user.position[0], 0.5, user.position[2]]} onClick={onClick}
       onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
-      <mesh ref={bodyRef} castShadow><capsuleGeometry args={[0.25, 0.5, 8, 16]} /><meshStandardMaterial color={shirtColor} emissive={hovered || isLocal ? shirtColor : new THREE.Color(0, 0, 0)} emissiveIntensity={hovered ? 0.3 : isLocal ? 0.15 : 0} /></mesh>
-      {/* Left arm */}
-      <group ref={leftArmRef} position={[-0.32, 0.15, 0]}>
-        <mesh position={[0, -0.2, 0]} castShadow><capsuleGeometry args={[0.06, 0.25, 6, 12]} /><meshStandardMaterial color={shirtColor} /></mesh>
-        <mesh position={[0, -0.45, 0]} castShadow><sphereGeometry args={[0.07, 8, 8]} /><meshStandardMaterial color={bodyColor} /></mesh>
+      <mesh ref={bodyRef} castShadow><capsuleGeometry args={[0.22, 0.45, 8, 16]} /><meshStandardMaterial color={shirtColor} roughness={0.7} emissive={hovered || isLocal ? shirtColor : new THREE.Color(0, 0, 0)} emissiveIntensity={hovered ? 0.25 : isLocal ? 0.1 : 0} /></mesh>
+      <mesh position={[-0.28, 0.2, 0]} castShadow><sphereGeometry args={[0.08, 10, 10]} /><meshStandardMaterial color={shirtColor} roughness={0.7} /></mesh>
+      <mesh position={[0.28, 0.2, 0]} castShadow><sphereGeometry args={[0.08, 10, 10]} /><meshStandardMaterial color={shirtColor} roughness={0.7} /></mesh>
+      <group ref={leftUpperArmRef} position={[-0.32, 0.18, 0]}>
+        <mesh position={[0, -0.14, 0]} castShadow><capsuleGeometry args={[0.055, 0.18, 6, 12]} /><meshStandardMaterial color={shirtColor} roughness={0.7} /></mesh>
+        <mesh position={[0, -0.27, 0]}><sphereGeometry args={[0.055, 8, 8]} /><meshStandardMaterial color={bodyColor} roughness={0.6} /></mesh>
+        <group ref={leftForearmRef} position={[0, -0.27, 0]}>
+          <mesh position={[0, -0.13, 0]} castShadow><capsuleGeometry args={[0.045, 0.16, 6, 12]} /><meshStandardMaterial color={bodyColor} roughness={0.6} /></mesh>
+          <mesh position={[0, -0.28, 0]} castShadow><sphereGeometry args={[0.055, 8, 8]} /><meshStandardMaterial color={bodyColor} roughness={0.5} /></mesh>
+        </group>
       </group>
-      {/* Right arm */}
-      <group ref={rightArmRef} position={[0.32, 0.15, 0]}>
-        <mesh position={[0, -0.2, 0]} castShadow><capsuleGeometry args={[0.06, 0.25, 6, 12]} /><meshStandardMaterial color={shirtColor} /></mesh>
-        <mesh position={[0, -0.45, 0]} castShadow><sphereGeometry args={[0.07, 8, 8]} /><meshStandardMaterial color={bodyColor} /></mesh>
+      <group ref={rightUpperArmRef} position={[0.32, 0.18, 0]}>
+        <mesh position={[0, -0.14, 0]} castShadow><capsuleGeometry args={[0.055, 0.18, 6, 12]} /><meshStandardMaterial color={shirtColor} roughness={0.7} /></mesh>
+        <mesh position={[0, -0.27, 0]}><sphereGeometry args={[0.055, 8, 8]} /><meshStandardMaterial color={bodyColor} roughness={0.6} /></mesh>
+        <group ref={rightForearmRef} position={[0, -0.27, 0]}>
+          <mesh position={[0, -0.13, 0]} castShadow><capsuleGeometry args={[0.045, 0.16, 6, 12]} /><meshStandardMaterial color={bodyColor} roughness={0.6} /></mesh>
+          <mesh position={[0, -0.28, 0]} castShadow><sphereGeometry args={[0.055, 8, 8]} /><meshStandardMaterial color={bodyColor} roughness={0.5} /></mesh>
+        </group>
       </group>
-      <mesh ref={headRef} position={[0, 0.55, 0]} castShadow scale={headScale}><sphereGeometry args={[0.22, 16, 16]} /><meshStandardMaterial color={bodyColor} /></mesh>
-      {/* Disco floor effect when dancing */}
+      <group ref={leftLegRef} position={[-0.1, -0.35, 0]}>
+        <mesh position={[0, -0.14, 0]} castShadow><capsuleGeometry args={[0.065, 0.18, 6, 12]} /><meshStandardMaterial color={pantsColor} roughness={0.8} /></mesh>
+        <mesh position={[0, -0.27, 0]}><sphereGeometry args={[0.06, 8, 8]} /><meshStandardMaterial color={pantsColor} roughness={0.7} /></mesh>
+        <group ref={leftShinRef} position={[0, -0.27, 0]}>
+          <mesh position={[0, -0.13, 0]} castShadow><capsuleGeometry args={[0.055, 0.16, 6, 12]} /><meshStandardMaterial color={pantsColor} roughness={0.8} /></mesh>
+          <mesh position={[0, -0.26, 0.04]} castShadow><boxGeometry args={[0.1, 0.05, 0.15]} /><meshStandardMaterial color="#333" roughness={0.9} /></mesh>
+        </group>
+      </group>
+      <group ref={rightLegRef} position={[0.1, -0.35, 0]}>
+        <mesh position={[0, -0.14, 0]} castShadow><capsuleGeometry args={[0.065, 0.18, 6, 12]} /><meshStandardMaterial color={pantsColor} roughness={0.8} /></mesh>
+        <mesh position={[0, -0.27, 0]}><sphereGeometry args={[0.06, 8, 8]} /><meshStandardMaterial color={pantsColor} roughness={0.7} /></mesh>
+        <group ref={rightShinRef} position={[0, -0.27, 0]}>
+          <mesh position={[0, -0.13, 0]} castShadow><capsuleGeometry args={[0.055, 0.16, 6, 12]} /><meshStandardMaterial color={pantsColor} roughness={0.8} /></mesh>
+          <mesh position={[0, -0.26, 0.04]} castShadow><boxGeometry args={[0.1, 0.05, 0.15]} /><meshStandardMaterial color="#333" roughness={0.9} /></mesh>
+        </group>
+      </group>
+      <mesh position={[0, 0.33, 0]} castShadow><cylinderGeometry args={[0.06, 0.08, 0.12, 10]} /><meshStandardMaterial color={bodyColor} roughness={0.6} /></mesh>
+      <mesh ref={headRef} position={[0, 0.55, 0]} castShadow scale={headScale}><sphereGeometry args={[0.22, 16, 16]} /><meshStandardMaterial color={bodyColor} roughness={0.5} /></mesh>
       {isDancing && (
-        <mesh position={[0, -0.49, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh position={[0, -0.9, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0, 0.6, 32]} />
           <meshBasicMaterial color="#ff00ff" transparent opacity={0.3 + Math.sin(Date.now() * 0.01) * 0.2} side={THREE.DoubleSide} />
         </mesh>
       )}
-      <mesh position={[-0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="white" /></mesh>
-      <mesh position={[0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="white" /></mesh>
-      <mesh position={[-0.08, 0.6, 0.2]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#333" /></mesh>
-      <mesh position={[0.08, 0.6, 0.2]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#333" /></mesh>
+      <mesh position={[-0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#f0f0f0" roughness={0.2} /></mesh>
+      <mesh position={[0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#f0f0f0" roughness={0.2} /></mesh>
+      <mesh position={[-0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh position={[0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh position={[0, 0.5, 0.2]}><boxGeometry args={[0.08, 0.015, 0.01]} /><meshStandardMaterial color="#cc6666" /></mesh>
       <Hat style={custom.hatStyle} color={custom.hatColor} />
       <Glasses style={custom.glassesStyle} color={custom.glassesColor} />
       <EmoteDisplay emote={user.emote} emoteTime={user.emoteTime} />
@@ -621,7 +680,7 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
         </group>
       )}
       {isLocal && (
-        <mesh position={[0, -0.45, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh position={[0, -0.9, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.3, 0.38, 32]} /><meshBasicMaterial color={bodyColor} transparent opacity={0.6} side={THREE.DoubleSide} />
         </mesh>
       )}
