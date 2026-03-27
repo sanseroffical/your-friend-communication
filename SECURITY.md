@@ -12,7 +12,7 @@ This document outlines the security policies for the Your Friend Communication p
 
 ## Vulnerability Disclosure Policy
 If you believe you have identified a security vulnerability in this project, please report it to us using the following process:
-1. **Email us at:** security@yourfriendcommunication.com
+1. **Email us at:** xander.owen24@gmail.com
 2. **Include relevant details**: Please provide as much information as possible about the issue. This should include steps to reproduce the vulnerability, your testing environment, and any relevant logs.
 3. **Do not disclose the vulnerability publicly** until it has been addressed by our teams.
 
