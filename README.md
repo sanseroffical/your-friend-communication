@@ -113,7 +113,7 @@ npm run dev
 ```
 
 The application will be available at `http://localhost:5173`
-
+if on ipad/iphone, open the attached link and click add to home screen.
 ## 📦 Available Scripts
 
 ### Development
