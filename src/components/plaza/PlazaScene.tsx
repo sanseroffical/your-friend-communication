@@ -1450,6 +1450,203 @@ const WeatherDisplay = ({ weather }: { weather: WeatherState }) => {
   return null;
 };
 
+// ============ BIOME AMBIENT AUDIO ============
+interface BiomeZone {
+  id: string;
+  centerX: number;
+  centerZ: number;
+  radius: number;
+  audioType: "waves" | "wind" | "lava" | "birds" | "desert";
+}
+
+const BIOME_ZONES: BiomeZone[] = [
+  { id: "beach", centerX: 78, centerZ: -65, radius: 35, audioType: "waves" },
+  { id: "snow", centerX: -78, centerZ: 25, radius: 35, audioType: "wind" },
+  { id: "volcanic", centerX: -78, centerZ: -72, radius: 35, audioType: "lava" },
+  { id: "forest", centerX: 0, centerZ: 78, radius: 35, audioType: "birds" },
+  { id: "desert", centerX: 80, centerZ: 25, radius: 35, audioType: "desert" },
+];
+
+const createNoiseBuffer = (ctx: AudioContext, seconds: number): AudioBuffer => {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  return buf;
+};
+
+class BiomeAudioEngine {
+  private ctx: AudioContext | null = null;
+  private sources: Map<string, { gain: GainNode; nodes: AudioNode[]; started: boolean }> = new Map();
+  private masterGain: GainNode | null = null;
+
+  init() {
+    if (this.ctx) return;
+    this.ctx = new AudioContext();
+    this.masterGain = this.ctx.createGain();
+    this.masterGain.gain.value = 0.5;
+    this.masterGain.connect(this.ctx.destination);
+    this.setupBiomes();
+  }
+
+  private setupBiomes() {
+    if (!this.ctx || !this.masterGain) return;
+
+    for (const zone of BIOME_ZONES) {
+      const gain = this.ctx.createGain();
+      gain.gain.value = 0;
+      gain.connect(this.masterGain);
+      const nodes: AudioNode[] = [];
+
+      if (zone.audioType === "waves") {
+        // Low rumbling noise filtered to sound like ocean waves
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = createNoiseBuffer(this.ctx, 4);
+        noise.loop = true;
+        const lp = this.ctx.createBiquadFilter();
+        lp.type = "lowpass"; lp.frequency.value = 400;
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.15;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 200;
+        lfo.connect(lfoGain);
+        lfoGain.connect(lp.frequency);
+        lfo.start();
+        noise.connect(lp);
+        lp.connect(gain);
+        noise.start();
+        nodes.push(noise, lfo);
+      } else if (zone.audioType === "wind") {
+        // Filtered noise with slow modulation
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = createNoiseBuffer(this.ctx, 4);
+        noise.loop = true;
+        const bp = this.ctx.createBiquadFilter();
+        bp.type = "bandpass"; bp.frequency.value = 600; bp.Q.value = 0.5;
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.08;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 300;
+        lfo.connect(lfoGain);
+        lfoGain.connect(bp.frequency);
+        lfo.start();
+        noise.connect(bp);
+        bp.connect(gain);
+        noise.start();
+        nodes.push(noise, lfo);
+      } else if (zone.audioType === "lava") {
+        // Deep rumble with occasional pops
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = createNoiseBuffer(this.ctx, 4);
+        noise.loop = true;
+        const lp = this.ctx.createBiquadFilter();
+        lp.type = "lowpass"; lp.frequency.value = 150;
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.3;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 80;
+        lfo.connect(lfoGain);
+        lfoGain.connect(lp.frequency);
+        lfo.start();
+        noise.connect(lp);
+        lp.connect(gain);
+        noise.start();
+        // Add a low oscillator for rumble
+        const osc = this.ctx.createOscillator();
+        osc.type = "sine"; osc.frequency.value = 40;
+        const oscGain = this.ctx.createGain();
+        oscGain.gain.value = 0.15;
+        osc.connect(oscGain);
+        oscGain.connect(gain);
+        osc.start();
+        nodes.push(noise, lfo, osc);
+      } else if (zone.audioType === "birds") {
+        // High chirpy oscillators with random modulation
+        for (let b = 0; b < 3; b++) {
+          const osc = this.ctx.createOscillator();
+          osc.type = "sine";
+          osc.frequency.value = 1800 + b * 400;
+          const modOsc = this.ctx.createOscillator();
+          modOsc.frequency.value = 3 + b * 2;
+          const modGain = this.ctx.createGain();
+          modGain.gain.value = 500 + b * 200;
+          modOsc.connect(modGain);
+          modGain.connect(osc.frequency);
+          const birdGain = this.ctx.createGain();
+          birdGain.gain.value = 0.04;
+          // Tremolo for intermittent chirps
+          const tremolo = this.ctx.createOscillator();
+          tremolo.frequency.value = 0.5 + b * 0.3;
+          const tremoloGain = this.ctx.createGain();
+          tremoloGain.gain.value = 0.04;
+          tremolo.connect(tremoloGain);
+          tremoloGain.connect(birdGain.gain);
+          osc.connect(birdGain);
+          birdGain.connect(gain);
+          osc.start(); modOsc.start(); tremolo.start();
+          nodes.push(osc, modOsc, tremolo);
+        }
+      } else if (zone.audioType === "desert") {
+        // Gentle wind with very sparse high-frequency whistles
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = createNoiseBuffer(this.ctx, 4);
+        noise.loop = true;
+        const bp = this.ctx.createBiquadFilter();
+        bp.type = "bandpass"; bp.frequency.value = 1200; bp.Q.value = 2;
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.05;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 600;
+        lfo.connect(lfoGain);
+        lfoGain.connect(bp.frequency);
+        lfo.start();
+        const envGain = this.ctx.createGain();
+        envGain.gain.value = 0.3;
+        noise.connect(bp);
+        bp.connect(envGain);
+        envGain.connect(gain);
+        noise.start();
+        nodes.push(noise, lfo);
+      }
+
+      this.sources.set(zone.id, { gain, nodes, started: true });
+    }
+  }
+
+  updateVolumes(playerX: number, playerZ: number) {
+    if (!this.ctx) return;
+    if (this.ctx.state === "suspended") this.ctx.resume();
+
+    for (const zone of BIOME_ZONES) {
+      const src = this.sources.get(zone.id);
+      if (!src) continue;
+      const dx = playerX - zone.centerX;
+      const dz = playerZ - zone.centerZ;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      const maxDist = zone.radius + 15;
+      const vol = dist < zone.radius ? 1 : dist < maxDist ? 1 - (dist - zone.radius) / 15 : 0;
+      src.gain.gain.linearRampToValueAtTime(Math.max(0, vol * 0.6), this.ctx.currentTime + 0.1);
+    }
+  }
+
+  setMasterVolume(v: number) {
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.linearRampToValueAtTime(v, this.ctx.currentTime + 0.05);
+    }
+  }
+
+  dispose() {
+    this.sources.forEach(src => {
+      src.nodes.forEach(n => { try { (n as any).stop?.(); (n as any).disconnect?.(); } catch {} });
+      src.gain.disconnect();
+    });
+    this.sources.clear();
+    this.ctx?.close();
+    this.ctx = null;
+  }
+}
+
+const biomeAudioEngine = new BiomeAudioEngine();
+
 // ============ MAIN SCENE ============
 interface PlazaSceneProps {
   localUser: PlazaUser;
