@@ -1023,8 +1023,7 @@ const SnowBiome = ({ lampIntensity }: { lampIntensity: number }) => {
       {[{ x: -68, z: 20 }, { x: -90, z: 30 }, { x: -75, z: 42 }, { x: -85, z: 12 }].map((l, i) => (
         <group key={`snow-lantern-${i}`} position={[l.x, 0, l.z]}>
           <mesh position={[0, 1.2, 0]}><cylinderGeometry args={[0.05, 0.07, 2.4, 8]} /><meshStandardMaterial color="#b0ccee" metalness={0.4} /></mesh>
-          <mesh position={[0, 2.6, 0]}><dodecahedronGeometry args={[0.18, 0]} /><meshStandardMaterial color="#aaddff" emissive="#88ccff" emissiveIntensity={lampIntensity > 0 ? 0.6 + lampIntensity : 0.1} transparent opacity={0.85} /></mesh>
-          {lampIntensity > 0 && <pointLight position={[0, 2.8, 0]} color="#88ccff" intensity={lampIntensity * 0.5} distance={8} />}
+          <FlickeringFlame position={[0, 2.6, 0]} color="#aaddff" emissiveColor="#88ccff" baseLampIntensity={lampIntensity} lightColor="#88ccff" lightDistance={8} lightIntensity={lampIntensity * 0.5} geometry="dodecahedron" size={0.18} transparent opacity={0.85} seed={i + 10} />
         </group>
       ))}
     </group>
