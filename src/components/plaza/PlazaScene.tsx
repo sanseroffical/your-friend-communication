@@ -403,6 +403,76 @@ const EmoteDisplay = ({ emote, emoteTime }: { emote?: string; emoteTime?: number
 
 export { EMOTE_MAP };
 
+// ============ EMOTE PARTICLES (sparkles / confetti) ============
+const PARTICLE_COUNT = 40;
+
+const EmoteParticles = ({ emote, emoteTime }: { emote?: string; emoteTime?: number }) => {
+  const ref = useRef<THREE.Points>(null);
+  const isActive = (emote === "dance" || emote === "party") && emoteTime && Date.now() - emoteTime < 5000;
+
+  const { positions, velocities, colors, lifetimes } = useMemo(() => {
+    const pos = new Float32Array(PARTICLE_COUNT * 3);
+    const vel = new Float32Array(PARTICLE_COUNT * 3);
+    const col = new Float32Array(PARTICLE_COUNT * 3);
+    const life = new Float32Array(PARTICLE_COUNT);
+    const sparkleColors = [
+      [1, 0.85, 0.2], [1, 0.4, 0.7], [0.3, 0.9, 1], [0.5, 1, 0.5], [1, 0.5, 0.2], [0.7, 0.4, 1],
+    ];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 0.6;
+      pos[i * 3 + 1] = Math.random() * 0.5;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 0.6;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.02 + Math.random() * 0.03;
+      vel[i * 3] = Math.cos(angle) * speed;
+      vel[i * 3 + 1] = 0.03 + Math.random() * 0.04;
+      vel[i * 3 + 2] = Math.sin(angle) * speed;
+      const c = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+      col[i * 3] = c[0]; col[i * 3 + 1] = c[1]; col[i * 3 + 2] = c[2];
+      life[i] = Math.random();
+    }
+    return { positions: pos, velocities: vel, colors: col, lifetimes: life };
+  }, []);
+
+  useFrame(() => {
+    if (!ref.current || !isActive) return;
+    const posAttr = ref.current.geometry.attributes.position as THREE.BufferAttribute;
+    const arr = posAttr.array as Float32Array;
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      lifetimes[i] -= 0.015;
+      if (lifetimes[i] <= 0) {
+        arr[i * 3] = (Math.random() - 0.5) * 0.6;
+        arr[i * 3 + 1] = Math.random() * 0.3;
+        arr[i * 3 + 2] = (Math.random() - 0.5) * 0.6;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 0.02 + Math.random() * 0.03;
+        velocities[i * 3] = Math.cos(angle) * speed;
+        velocities[i * 3 + 1] = 0.03 + Math.random() * 0.04;
+        velocities[i * 3 + 2] = Math.sin(angle) * speed;
+        lifetimes[i] = 0.7 + Math.random() * 0.3;
+      } else {
+        arr[i * 3] += velocities[i * 3];
+        arr[i * 3 + 1] += velocities[i * 3 + 1];
+        arr[i * 3 + 2] += velocities[i * 3 + 2];
+        velocities[i * 3 + 1] -= 0.001; // gravity
+      }
+    }
+    posAttr.needsUpdate = true;
+  });
+
+  if (!isActive) return null;
+
+  return (
+    <points ref={ref} position={[0, 0.5, 0]}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" count={PARTICLE_COUNT} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-color" count={PARTICLE_COUNT} array={colors} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial size={0.08} vertexColors transparent opacity={0.9} sizeAttenuation depthWrite={false} />
+    </points>
+  );
+};
+
 // ============ HAT ============
 const Hat = ({ style, color }: { style: string; color: string }) => {
   const col = useMemo(() => new THREE.Color(color), [color]);
