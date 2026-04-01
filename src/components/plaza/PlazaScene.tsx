@@ -1257,8 +1257,7 @@ const ForestBiome = ({ lampIntensity }: { lampIntensity: number }) => (
     {[{ x: -8, z: 65 }, { x: 12, z: 72 }, { x: -20, z: 78 }, { x: 5, z: 88 }, { x: 20, z: 82 }].map((l, i) => (
       <group key={`forest-lantern-${i}`} position={[l.x, 0, l.z]}>
         <mesh position={[0, 2.5, 0]}><cylinderGeometry args={[0.03, 0.03, 0.4, 8]} /><meshStandardMaterial color="#5c3a1e" /></mesh>
-        <mesh position={[0, 2.2, 0]}><sphereGeometry args={[0.12, 8, 8]} /><meshStandardMaterial color="#66ff88" emissive="#44ff66" emissiveIntensity={lampIntensity > 0 ? 0.6 + lampIntensity * 0.8 : 0.15} transparent opacity={0.8} /></mesh>
-        {lampIntensity > 0 && <pointLight position={[0, 2.3, 0]} color="#66ffaa" intensity={lampIntensity * 0.4} distance={6} />}
+        <FlickeringFlame position={[0, 2.2, 0]} color="#66ff88" emissiveColor="#44ff66" baseLampIntensity={lampIntensity} lightColor="#66ffaa" lightDistance={6} lightIntensity={lampIntensity * 0.4} size={0.12} transparent opacity={0.8} seed={i + 40} />
       </group>
     ))}
   </group>
