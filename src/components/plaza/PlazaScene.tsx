@@ -1092,8 +1092,7 @@ const BeachBiome = ({ lampIntensity }: { lampIntensity: number }) => {
       {[{ x: 75, z: -52 }, { x: 85, z: -48 }, { x: 68, z: -62 }, { x: 92, z: -58 }].map((l, i) => (
         <group key={`beach-lantern-${i}`} position={[l.x, 0, l.z]}>
           <mesh position={[0, 1.5, 0]}><cylinderGeometry args={[0.05, 0.08, 3, 8]} /><meshStandardMaterial color="#8B6914" /></mesh>
-          <mesh position={[0, 3.2, 0]}><coneGeometry args={[0.12, 0.25, 8]} /><meshStandardMaterial color="#ff6600" emissive="#ff4400" emissiveIntensity={lampIntensity > 0 ? 0.8 + lampIntensity : 0.15} /></mesh>
-          {lampIntensity > 0 && <pointLight position={[0, 3.4, 0]} color="#ff8844" intensity={lampIntensity * 0.5} distance={7} />}
+          <FlickeringFlame position={[0, 3.2, 0]} color="#ff6600" emissiveColor="#ff4400" baseLampIntensity={lampIntensity} lightColor="#ff8844" lightDistance={7} lightIntensity={lampIntensity * 0.5} geometry="cone" size={0.12} seed={i + 20} />
         </group>
       ))}
     </group>
