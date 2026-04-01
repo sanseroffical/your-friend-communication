@@ -944,8 +944,7 @@ const DesertBiome = ({ lampIntensity }: { lampIntensity: number }) => (
     {[{ x: 72, z: 15 }, { x: 88, z: 35 }, { x: 78, z: 42 }, { x: 92, z: 12 }].map((l, i) => (
       <group key={`desert-lantern-${i}`} position={[l.x, 0, l.z]}>
         <mesh position={[0, 1.2, 0]}><cylinderGeometry args={[0.06, 0.08, 2.4, 8]} /><meshStandardMaterial color="#5c3a1e" /></mesh>
-        <mesh position={[0, 2.6, 0]}><sphereGeometry args={[0.15, 8, 8]} /><meshStandardMaterial color="#ff8c00" emissive="#ff6600" emissiveIntensity={lampIntensity > 0 ? 0.5 + lampIntensity : 0.1} /></mesh>
-        {lampIntensity > 0 && <pointLight position={[0, 2.8, 0]} color="#ff8c00" intensity={lampIntensity * 0.6} distance={8} />}
+        <FlickeringFlame position={[0, 2.6, 0]} color="#ff8c00" emissiveColor="#ff6600" baseLampIntensity={lampIntensity} lightColor="#ff8c00" lightDistance={8} lightIntensity={lampIntensity * 0.6} seed={i} />
       </group>
     ))}
   </group>
