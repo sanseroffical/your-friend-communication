@@ -1181,8 +1181,7 @@ const VolcanicBiome = ({ lampIntensity }: { lampIntensity: number }) => {
       {[{ x: -72, z: -58 }, { x: -88, z: -65 }, { x: -68, z: -80 }, { x: -82, z: -88 }].map((l, i) => (
         <group key={`volc-lantern-${i}`} position={[l.x, 0, l.z]}>
           <mesh position={[0, 1, 0]}><cylinderGeometry args={[0.08, 0.1, 2, 8]} /><meshStandardMaterial color="#333" metalness={0.6} /></mesh>
-          <mesh position={[0, 2.2, 0]}><sphereGeometry args={[0.2, 8, 8]} /><meshStandardMaterial color="#ff4400" emissive="#ff3300" emissiveIntensity={lampIntensity > 0 ? 0.7 + lampIntensity : 0.3} /></mesh>
-          {lampIntensity > 0 && <pointLight position={[0, 2.4, 0]} color="#ff4400" intensity={lampIntensity * 0.7} distance={9} />}
+          <FlickeringFlame position={[0, 2.2, 0]} color="#ff4400" emissiveColor="#ff3300" baseLampIntensity={lampIntensity} lightColor="#ff4400" lightDistance={9} lightIntensity={lampIntensity * 0.7} size={0.2} seed={i + 30} />
         </group>
       ))}
     </group>
