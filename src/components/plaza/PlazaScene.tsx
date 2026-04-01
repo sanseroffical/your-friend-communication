@@ -1671,6 +1671,31 @@ const PlazaScene = ({ localUser, remoteUsers, onMove, onUserClick, onInteract, u
   // Update dynamic collision for user houses
   useEffect(() => { setDynamicHouses(userHouses); }, [userHouses]);
 
+  // Biome ambient audio — init on first user interaction, update volumes based on player position
+  const audioInitRef = useRef(false);
+  useEffect(() => {
+    const initAudio = () => {
+      if (!audioInitRef.current) {
+        biomeAudioEngine.init();
+        audioInitRef.current = true;
+      }
+    };
+    window.addEventListener("click", initAudio, { once: true });
+    window.addEventListener("keydown", initAudio, { once: true });
+    return () => {
+      window.removeEventListener("click", initAudio);
+      window.removeEventListener("keydown", initAudio);
+      biomeAudioEngine.dispose();
+      audioInitRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (audioInitRef.current) {
+      biomeAudioEngine.updateVolumes(localUser.targetPosition[0], localUser.targetPosition[2]);
+    }
+  }, [localUser.targetPosition]);
+
   const currentWeather = weather || { type: "clear" as WeatherType, intensity: 0, temperature: 20, windSpeed: 0 };
 
   return (
