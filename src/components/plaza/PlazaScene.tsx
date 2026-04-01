@@ -533,6 +533,66 @@ const Glasses = ({ style, color }: { style: string; color: string }) => {
   );
 };
 
+// ============ FLICKERING FLAME ============
+interface FlickeringFlameProps {
+  position: [number, number, number];
+  color: string;
+  emissiveColor: string;
+  baseLampIntensity: number;
+  lightColor: string;
+  lightDistance: number;
+  lightIntensity: number;
+  geometry?: "sphere" | "cone" | "dodecahedron";
+  size?: number;
+  transparent?: boolean;
+  opacity?: number;
+  seed?: number;
+}
+
+const FlickeringFlame = ({ position, color, emissiveColor, baseLampIntensity, lightColor, lightDistance, lightIntensity, geometry = "sphere", size = 0.15, transparent, opacity, seed = 0 }: FlickeringFlameProps) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const lightRef = useRef<THREE.PointLight>(null);
+  const phase = useRef(seed * 100);
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime + phase.current;
+    // Multi-frequency flicker for realism
+    const flicker = 0.7
+      + Math.sin(t * 5.3) * 0.12
+      + Math.sin(t * 11.7) * 0.08
+      + Math.sin(t * 23.1) * 0.05
+      + Math.sin(t * 3.1 + seed * 2) * 0.1;
+    const scaleFlicker = 0.85 + Math.sin(t * 7.2) * 0.1 + Math.sin(t * 13.5) * 0.05;
+    const sway = Math.sin(t * 2.7 + seed) * 0.02;
+
+    if (meshRef.current) {
+      const mat = meshRef.current.material as THREE.MeshStandardMaterial;
+      mat.emissiveIntensity = baseLampIntensity > 0 ? flicker * (0.5 + baseLampIntensity) : 0.1;
+      meshRef.current.scale.setScalar(scaleFlicker);
+      meshRef.current.position.x = position[0] + sway;
+      meshRef.current.position.y = position[1] + Math.sin(t * 6.3) * 0.01;
+    }
+    if (lightRef.current && baseLampIntensity > 0) {
+      lightRef.current.intensity = lightIntensity * flicker;
+      lightRef.current.position.x = sway;
+    }
+  });
+
+  return (
+    <group>
+      <mesh ref={meshRef} position={position}>
+        {geometry === "sphere" && <sphereGeometry args={[size, 8, 8]} />}
+        {geometry === "cone" && <coneGeometry args={[size * 0.8, size * 1.7, 8]} />}
+        {geometry === "dodecahedron" && <dodecahedronGeometry args={[size, 0]} />}
+        <meshStandardMaterial color={color} emissive={emissiveColor} emissiveIntensity={0.1} transparent={transparent} opacity={opacity} />
+      </mesh>
+      {baseLampIntensity > 0 && (
+        <pointLight ref={lightRef} position={[0, position[1] + 0.2, 0]} color={lightColor} intensity={lightIntensity} distance={lightDistance} />
+      )}
+    </group>
+  );
+};
+
 // ============ SMOOTH LERP HELPER ============
 const lerpAngle = (current: number, target: number, factor: number) => current + (target - current) * factor;
 
