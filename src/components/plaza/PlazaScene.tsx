@@ -727,6 +727,7 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
       <Hat style={custom.hatStyle} color={custom.hatColor} />
       <Glasses style={custom.glassesStyle} color={custom.glassesColor} />
       <EmoteDisplay emote={user.emote} emoteTime={user.emoteTime} />
+      <EmoteParticles emote={user.emote} emoteTime={user.emoteTime} />
       {user.isAdmin && (
         <group position={[0, 1.25, 0]}>
           <mesh><planeGeometry args={[0.55, 0.18]} /><meshBasicMaterial color="#ffd700" transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>
