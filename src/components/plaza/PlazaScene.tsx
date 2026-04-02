@@ -596,6 +596,95 @@ const FlickeringFlame = ({ position, color, emissiveColor, baseLampIntensity, li
 // ============ SMOOTH LERP HELPER ============
 const lerpAngle = (current: number, target: number, factor: number) => current + (target - current) * factor;
 
+// ============ AVATAR FACE EXPRESSIONS ============
+const AvatarFace = ({ emote, emoteTime }: { emote?: string; emoteTime?: number }) => {
+  const leftEyeRef = useRef<THREE.Mesh>(null);
+  const rightEyeRef = useRef<THREE.Mesh>(null);
+  const leftPupilRef = useRef<THREE.Mesh>(null);
+  const rightPupilRef = useRef<THREE.Mesh>(null);
+  const mouthRef = useRef<THREE.Mesh>(null);
+  const leftBrowRef = useRef<THREE.Mesh>(null);
+  const rightBrowRef = useRef<THREE.Mesh>(null);
+
+  const isActive = (e: string) => emote === e && emoteTime && Date.now() - emoteTime < 5000;
+  const isDancing = isActive("dance") || isActive("party");
+  const isWaving = isActive("wave");
+  const isLaughing = isActive("laugh");
+  const isClapping = isActive("clap");
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+
+    // --- Eye scale (closed = squished Y) ---
+    const eyeScaleY = isDancing ? 0.15 + Math.abs(Math.sin(t * 4)) * 0.15 // mostly closed, flutter
+      : isLaughing ? 0.6 + Math.sin(t * 8) * 0.15 // squinted
+      : 1;
+    if (leftEyeRef.current) leftEyeRef.current.scale.y = eyeScaleY;
+    if (rightEyeRef.current) rightEyeRef.current.scale.y = eyeScaleY;
+
+    // --- Pupil offset (idle look-around, disabled during emotes) ---
+    let pupilX = 0, pupilY = 0;
+    if (!isDancing && !isWaving && !isLaughing && !isClapping) {
+      // gentle idle look-around using slow sine waves
+      pupilX = Math.sin(t * 0.7) * 0.008;
+      pupilY = Math.sin(t * 0.5 + 1.3) * 0.005;
+    }
+    if (isLaughing) { pupilY = -0.005; } // look down slightly
+    if (isWaving) { pupilX = 0.006; pupilY = 0.003; } // look toward waving hand
+
+    if (leftPupilRef.current) { leftPupilRef.current.position.x = -0.08 + pupilX; leftPupilRef.current.position.y = 0.6 + pupilY; }
+    if (rightPupilRef.current) { rightPupilRef.current.position.x = 0.08 + pupilX; rightPupilRef.current.position.y = 0.6 + pupilY; }
+
+    // --- Mouth shape ---
+    if (mouthRef.current) {
+      if (isLaughing) {
+        // wide open smile
+        mouthRef.current.scale.set(1.8, 2.5 + Math.sin(t * 9) * 0.8, 1);
+        mouthRef.current.position.y = 0.48;
+      } else if (isWaving) {
+        // open mouth "O"
+        mouthRef.current.scale.set(1.2, 2.0 + Math.sin(t * 5) * 0.5, 1);
+        mouthRef.current.position.y = 0.49;
+      } else if (isDancing) {
+        // grinning
+        mouthRef.current.scale.set(1.6, 0.8, 1);
+        mouthRef.current.position.y = 0.5;
+      } else if (isClapping) {
+        // small smile
+        mouthRef.current.scale.set(1.3, 1.0, 1);
+        mouthRef.current.position.y = 0.5;
+      } else {
+        // neutral with subtle idle movement
+        mouthRef.current.scale.set(1 + Math.sin(t * 0.8) * 0.05, 1, 1);
+        mouthRef.current.position.y = 0.5;
+      }
+    }
+
+    // --- Eyebrows ---
+    const browY = isLaughing ? 0.67 : isWaving ? 0.66 : isDancing ? 0.64 : 0.65 + Math.sin(t * 0.6) * 0.003;
+    const browRotL = isLaughing ? 0.15 : isWaving ? 0.12 : 0;
+    const browRotR = isLaughing ? -0.15 : isWaving ? -0.12 : 0;
+    if (leftBrowRef.current) { leftBrowRef.current.position.y = browY; leftBrowRef.current.rotation.z = browRotL; }
+    if (rightBrowRef.current) { rightBrowRef.current.position.y = browY; rightBrowRef.current.rotation.z = browRotR; }
+  });
+
+  return (
+    <group>
+      {/* Eye whites */}
+      <mesh ref={leftEyeRef} position={[-0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#f0f0f0" roughness={0.2} /></mesh>
+      <mesh ref={rightEyeRef} position={[0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#f0f0f0" roughness={0.2} /></mesh>
+      {/* Pupils */}
+      <mesh ref={leftPupilRef} position={[-0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh ref={rightPupilRef} position={[0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      {/* Mouth */}
+      <mesh ref={mouthRef} position={[0, 0.5, 0.2]}><boxGeometry args={[0.08, 0.015, 0.01]} /><meshStandardMaterial color="#cc6666" /></mesh>
+      {/* Eyebrows */}
+      <mesh ref={leftBrowRef} position={[-0.08, 0.65, 0.2]}><boxGeometry args={[0.06, 0.012, 0.008]} /><meshStandardMaterial color="#555" /></mesh>
+      <mesh ref={rightBrowRef} position={[0.08, 0.65, 0.2]}><boxGeometry args={[0.06, 0.012, 0.008]} /><meshStandardMaterial color="#555" /></mesh>
+    </group>
+  );
+};
+
 // ============ AVATAR ============
 interface AvatarProps { user: PlazaUser; isLocal: boolean; onClick?: () => void; }
 
