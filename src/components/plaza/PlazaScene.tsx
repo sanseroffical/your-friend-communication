@@ -1810,6 +1810,7 @@ const PlazaScene = ({ localUser, remoteUsers, onMove, onUserClick, onInteract, u
       <GameStation position={[15, 0, 22]} gameLabel="Snake" color="#e74c3c" onClick={() => handleInteract("game-station-1")} />
       <GameStation position={[20, 0, 22]} gameLabel="Tetris" color="#3498db" onClick={() => handleInteract("game-station-2")} />
       <GameStation position={[25, 0, 22]} gameLabel="Memory" color="#2ecc71" onClick={() => handleInteract("game-station-3")} />
+      <PvPArena3D onClick={() => handleInteract("pvp-arena")} />
 
       {/* User houses */}
       {userHouses.map((house) => (
