@@ -355,6 +355,7 @@ const STATIC_INTERACT_ZONES: Array<{ id: InteractableId; x: number; z: number; r
   { id: "game-station-1", x: 15, z: 22, radius: 3 },
   { id: "game-station-2", x: 20, z: 22, radius: 3 },
   { id: "game-station-3", x: 25, z: 22, radius: 3 },
+  { id: "pvp-arena", x: -20, z: -20, radius: 5 },
 ];
 
 export const getNearbyInteractable = (x: number, z: number): InteractableId | null => {
