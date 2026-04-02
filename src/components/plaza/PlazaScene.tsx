@@ -779,11 +779,7 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
           <meshBasicMaterial color="#ff00ff" transparent opacity={0.3 + Math.sin(Date.now() * 0.01) * 0.2} side={THREE.DoubleSide} />
         </mesh>
       )}
-      <mesh position={[-0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#f0f0f0" roughness={0.2} /></mesh>
-      <mesh position={[0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#f0f0f0" roughness={0.2} /></mesh>
-      <mesh position={[-0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#222" /></mesh>
-      <mesh position={[0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#222" /></mesh>
-      <mesh position={[0, 0.5, 0.2]}><boxGeometry args={[0.08, 0.015, 0.01]} /><meshStandardMaterial color="#cc6666" /></mesh>
+      <AvatarFace emote={user.emote} emoteTime={user.emoteTime} />
       <Hat style={custom.hatStyle} color={custom.hatColor} />
       <Glasses style={custom.glassesStyle} color={custom.glassesColor} />
       <EmoteDisplay emote={user.emote} emoteTime={user.emoteTime} />
