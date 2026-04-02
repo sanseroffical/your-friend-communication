@@ -1061,6 +1061,31 @@ const Plaza = () => {
       </Dialog>
 
       <AvatarCustomizer isOpen={customizerOpen} onClose={() => setCustomizerOpen(false)} userId={authUser?.id || ""} currentCustomization={customization} onSave={handleCustomizationSave} />
+
+      {/* PvP Dialogs */}
+      <PvPArenaDialog
+        open={pvpArenaOpen}
+        onClose={() => setPvpArenaOpen(false)}
+        nearbyPlayers={remoteUsers.map(u => ({ id: u.id, name: u.name }))}
+        onChallenge={handlePvPChallenge}
+      />
+      <PvPChallengeDialog
+        open={!!pvpChallengeFrom}
+        challenger={pvpChallengeFrom?.name || ""}
+        onAccept={handlePvPAccept}
+        onDecline={handlePvPDecline}
+      />
+      <PvPWaitingDialog
+        open={!!pvpWaitingFor}
+        targetName={pvpWaitingFor || ""}
+        onCancel={() => setPvpWaitingFor(null)}
+      />
+      <PvPCombatDialog
+        open={pvpCombatOpen}
+        match={pvpMatch}
+        onMove={handlePvPMove}
+        onClose={handlePvPClose}
+      />
     </div>
   );
 };
