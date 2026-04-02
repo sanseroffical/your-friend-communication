@@ -171,6 +171,7 @@ const Plaza = () => {
   const navigate = useNavigate();
   const { user, authUser, isLoading } = useClipUser();
   const { isAdmin, isModerator } = useUserRole(authUser?.id || null);
+  const { userLevel, addXp } = useUserLevel();
   const { friends } = useFriendships(authUser?.id || null);
   const [localUser, setLocalUser] = useState<PlazaUser | null>(null);
   const [remoteUsers, setRemoteUsers] = useState<PlazaUser[]>([]);
