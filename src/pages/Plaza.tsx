@@ -632,8 +632,68 @@ const Plaza = () => {
     if (id === "game-station-1") { setGameDialogOpen("snake"); return; }
     if (id === "game-station-2") { setGameDialogOpen("tetris"); return; }
     if (id === "game-station-3") { setGameDialogOpen("memory"); return; }
+    if (id === "pvp-arena") { setPvpArenaOpen(true); return; }
     if (id.startsWith("user-house-")) { handleEnterHouse(id); return; }
   }, [handleEnterHouse]);
+
+  // PvP handlers
+  const handlePvPChallenge = useCallback((targetId: string) => {
+    if (!localUser || !channelRef.current) return;
+    const myLevel = userLevel?.level || 1;
+    channelRef.current.send({
+      type: "broadcast", event: "pvp-challenge",
+      payload: { challengerId: localUser.id, challengerName: localUser.name, targetId, level: myLevel, color: localUser.avatarColor },
+    });
+    const target = remoteUsers.find(u => u.id === targetId);
+    setPvpWaitingFor(target?.name || "Player");
+    setPvpArenaOpen(false);
+    toast.info(`Challenge sent to ${target?.name || "player"}!`);
+  }, [localUser, remoteUsers, userLevel]);
+
+  const handlePvPAccept = useCallback(() => {
+    if (!localUser || !channelRef.current || !pvpChallengeFrom) return;
+    const myLevel = userLevel?.level || 1;
+    channelRef.current.send({
+      type: "broadcast", event: "pvp-accept",
+      payload: { challengerId: pvpChallengeFrom.id, accepterId: localUser.id, accepterName: localUser.name, level: myLevel, color: localUser.avatarColor },
+    });
+    // Start match — we are the accepter (opponent)
+    const myStats = statsFromLevel(myLevel);
+    const oppStats = statsFromLevel(pvpChallengeFrom.level);
+    const match: PvPMatch = {
+      id: `${Date.now()}`,
+      player: { id: localUser.id, name: localUser.name, level: myLevel, ...myStats, hp: myStats.maxHp, avatarColor: localUser.avatarColor },
+      opponent: { id: pvpChallengeFrom.id, name: pvpChallengeFrom.name, level: pvpChallengeFrom.level, ...oppStats, hp: oppStats.maxHp, avatarColor: pvpChallengeFrom.color },
+      turn: "player", log: ["⚔️ Battle begins!"], status: "active", round: 1,
+    };
+    setPvpMatch(match);
+    setPvpCombatOpen(true);
+    setPvpChallengeFrom(null);
+  }, [localUser, pvpChallengeFrom, userLevel]);
+
+  const handlePvPDecline = useCallback(() => {
+    if (!channelRef.current || !pvpChallengeFrom || !localUser) return;
+    channelRef.current.send({
+      type: "broadcast", event: "pvp-decline",
+      payload: { challengerId: pvpChallengeFrom.id, name: localUser.name },
+    });
+    setPvpChallengeFrom(null);
+  }, [pvpChallengeFrom, localUser]);
+
+  const handlePvPMove = useCallback((move: "attack" | "heavy" | "defend" | "special") => {
+    if (!pvpMatch) return;
+    const updated = processTurn(pvpMatch, move);
+    setPvpMatch(updated);
+    if (updated.status === "won" && addXp) {
+      addXp(25);
+      toast.success("Victory! +25 XP earned!");
+    }
+  }, [pvpMatch, addXp]);
+
+  const handlePvPClose = useCallback(() => {
+    setPvpCombatOpen(false);
+    setPvpMatch(null);
+  }, []);
 
   const handleUserClick = useCallback((userId: string) => {
     setWhisperTarget(userId);
