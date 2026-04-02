@@ -219,6 +219,13 @@ const Plaza = () => {
   const [showMentions, setShowMentions] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // PvP state
+  const [pvpArenaOpen, setPvpArenaOpen] = useState(false);
+  const [pvpChallengeFrom, setPvpChallengeFrom] = useState<{ id: string; name: string; level: number; color: string } | null>(null);
+  const [pvpWaitingFor, setPvpWaitingFor] = useState<string | null>(null);
+  const [pvpMatch, setPvpMatch] = useState<PvPMatch | null>(null);
+  const [pvpCombatOpen, setPvpCombatOpen] = useState(false);
+
   const { isMuted, toggleMute, activeConnections } = useProximityVoice(
     authUser?.id || null,
     localUser?.targetPosition || null,
