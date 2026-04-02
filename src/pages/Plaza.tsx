@@ -872,6 +872,7 @@ const Plaza = () => {
         if (nearby === "jukebox") label = "🎵 Jukebox";
         else if (nearby === "bulletin") label = "📋 Bulletin Board";
         else if (nearby.startsWith("game-station")) label = "🎮 Game Station";
+        else if (nearby === "pvp-arena") label = "⚔️ PvP Arena";
         else if (nearby.startsWith("user-house-")) {
           const h = userHouses.find(h => `user-house-${h.user_id}` === nearby);
           label = h ? `🏠 ${h.owner_name}'s House` : "🏠 House";
