@@ -390,6 +390,34 @@ const Plaza = () => {
       .on("broadcast", { event: "plaza-edit" }, ({ payload }) => {
         setChatMessages(prev => prev.map(m => m.id === payload.messageId ? { ...m, text: payload.text, edited: true } : m));
       })
+      .on("broadcast", { event: "pvp-challenge" }, ({ payload }) => {
+        if (payload.targetId === localUser.id) {
+          setPvpChallengeFrom({ id: payload.challengerId, name: payload.challengerName, level: payload.level, color: payload.color });
+        }
+      })
+      .on("broadcast", { event: "pvp-accept" }, ({ payload }) => {
+        if (payload.challengerId === localUser.id) {
+          setPvpWaitingFor(null);
+          // Start match — we are the challenger
+          const myLevel = userLevel?.level || 1;
+          const myStats = statsFromLevel(myLevel);
+          const oppStats = statsFromLevel(payload.level);
+          const match: PvPMatch = {
+            id: `${Date.now()}`,
+            player: { id: localUser.id, name: localUser.name, level: myLevel, ...myStats, hp: myStats.maxHp, avatarColor: localUser.avatarColor },
+            opponent: { id: payload.accepterId, name: payload.accepterName, level: payload.level, ...oppStats, hp: oppStats.maxHp, avatarColor: payload.color },
+            turn: "player", log: ["⚔️ Battle begins!"], status: "active", round: 1,
+          };
+          setPvpMatch(match);
+          setPvpCombatOpen(true);
+        }
+      })
+      .on("broadcast", { event: "pvp-decline" }, ({ payload }) => {
+        if (payload.challengerId === localUser.id) {
+          setPvpWaitingFor(null);
+          toast.info(`${payload.name} declined your challenge.`);
+        }
+      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({
