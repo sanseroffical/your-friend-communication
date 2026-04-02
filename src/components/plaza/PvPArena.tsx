@@ -324,12 +324,8 @@ export const processTurn = (
     let actualDmg = oppResult.damage;
     if (playerIsDefending) {
       actualDmg = Math.max(1, Math.floor(actualDmg * 0.35));
-      newLog.push(`${oppResult.label} — ${opponent.name} deals ${actualDmg} damage (blocked!)`);
-    } else {
       player.hp -= actualDmg;
-      newLog.push(`${oppResult.label} — ${opponent.name} deals ${actualDmg} damage!`);
-    }
-    if (playerIsDefending) {
+      newLog.push(`${oppResult.label} — ${opponent.name} deals ${actualDmg} damage (blocked!)`);
       // Reflect some damage
       const reflect = Math.floor(actualDmg * 0.3);
       if (reflect > 0) {
@@ -337,10 +333,9 @@ export const processTurn = (
         newLog.push(`🪞 You reflect ${reflect} damage!`);
       }
     } else {
-      player.hp -= 0; // already deducted above
+      player.hp -= actualDmg;
+      newLog.push(`${oppResult.label} — ${opponent.name} deals ${actualDmg} damage!`);
     }
-    // Recalculate since we may have subtracted wrong above
-    // Fix: The damage deduction for non-defending case already happened above
   }
 
   // Check if player fainted
