@@ -957,6 +957,60 @@ const GameStation = ({ position, gameLabel, color, onClick }: { position: [numbe
   );
 };
 
+// ============ PVP ARENA 3D OBJECT ============
+const PvPArena3D = ({ onClick }: { onClick: () => void }) => {
+  const ref = useRef<THREE.Group>(null);
+  const [hovered, setHovered] = useState(false);
+
+  useFrame((state) => {
+    if (!ref.current) return;
+    // Slowly rotate the swords icon
+    const swordMesh = ref.current.children[ref.current.children.length - 2];
+    if (swordMesh) swordMesh.rotation.y = state.clock.elapsedTime * 0.5;
+  });
+
+  return (
+    <group ref={ref} position={[-20, 0, -20]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
+      {/* Arena platform - octagonal stone floor */}
+      <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <cylinderGeometry args={[5, 5.5, 0.3, 8]} />
+        <meshStandardMaterial color="#555" roughness={0.9} />
+      </mesh>
+      {/* Inner ring */}
+      <mesh position={[0, 0.15, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[3.5, 0.1, 8, 8]} />
+        <meshStandardMaterial color="#cc3333" emissive="#cc3333" emissiveIntensity={hovered ? 0.6 : 0.2} />
+      </mesh>
+      {/* Pillars */}
+      {Array.from({ length: 4 }).map((_, i) => {
+        const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
+        const px = Math.cos(angle) * 4.5;
+        const pz = Math.sin(angle) * 4.5;
+        return (
+          <group key={i} position={[px, 0, pz]}>
+            <mesh position={[0, 1.5, 0]} castShadow>
+              <cylinderGeometry args={[0.25, 0.3, 3, 8]} />
+              <meshStandardMaterial color="#666" roughness={0.7} />
+            </mesh>
+            {/* Fire bowl on top */}
+            <mesh position={[0, 3.1, 0]}>
+              <sphereGeometry args={[0.2, 8, 8]} />
+              <meshStandardMaterial color="#ff4400" emissive="#ff6600" emissiveIntensity={0.5 + Math.sin(Date.now() * 0.005 + i) * 0.3} />
+            </mesh>
+          </group>
+        );
+      })}
+      {/* Central swords emblem */}
+      <group position={[0, 3.5, 0]}>
+        <Text fontSize={0.6} anchorX="center" anchorY="middle">⚔️</Text>
+      </group>
+      {/* Label */}
+      <Text position={[0, 4.2, 0]} fontSize={0.22} color="#ff4444" anchorX="center" outlineWidth={0.02} outlineColor="#000" font="">PVP ARENA</Text>
+      {hovered && <Text position={[0, 4.6, 0]} fontSize={0.13} color="#fff" anchorX="center" outlineWidth={0.01} outlineColor="#000">Click to challenge players!</Text>}
+    </group>
+  );
+};
+
 // User-owned house
 const UserHouse3D = ({ house, onClick }: { house: UserHouse; onClick: () => void }) => {
   const [hovered, setHovered] = useState(false);
