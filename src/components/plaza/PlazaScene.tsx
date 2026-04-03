@@ -1774,6 +1774,85 @@ class BiomeAudioEngine {
     }
   }
 
+  // --- Footstep system ---
+  private lastFootstepTime = 0;
+  private footstepInterval = 0.35; // seconds between steps
+
+  private getSurfaceType(x: number, z: number): "grass" | "sand" | "snow" | "rock" | "stone" {
+    for (const zone of BIOME_ZONES) {
+      const dx = x - zone.centerX;
+      const dz = z - zone.centerZ;
+      if (Math.sqrt(dx * dx + dz * dz) < zone.radius) {
+        if (zone.audioType === "waves" || zone.audioType === "desert") return "sand";
+        if (zone.audioType === "wind") return "snow";
+        if (zone.audioType === "lava") return "rock";
+        if (zone.audioType === "birds") return "grass";
+      }
+    }
+    return "stone"; // town center
+  }
+
+  playFootstep(x: number, z: number) {
+    if (!this.ctx || !this.masterGain) return;
+    const now = this.ctx.currentTime;
+    if (now - this.lastFootstepTime < this.footstepInterval) return;
+    this.lastFootstepTime = now;
+
+    const surface = this.getSurfaceType(x, z);
+    const buf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * 0.08), this.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+
+    // Shape noise differently per surface
+    const pitchVariation = 0.9 + Math.random() * 0.2;
+    for (let i = 0; i < data.length; i++) {
+      const t = i / data.length;
+      const envelope = Math.exp(-t * 20); // sharp decay
+      let sample = (Math.random() * 2 - 1) * envelope;
+
+      if (surface === "sand") {
+        // Soft, muffled — heavy low-pass feel
+        sample *= 0.5 * pitchVariation;
+        if (i > 0) sample = data[i - 1] * 0.7 + sample * 0.3; // simple LP
+      } else if (surface === "snow") {
+        // Very soft crunch
+        sample *= 0.4 * pitchVariation;
+        if (i > 0) sample = data[i - 1] * 0.6 + sample * 0.4;
+      } else if (surface === "rock") {
+        // Hard, clicky
+        sample *= 0.8 * pitchVariation;
+      } else if (surface === "grass") {
+        // Medium soft rustle
+        sample *= 0.5 * pitchVariation;
+        if (i > 0) sample = data[i - 1] * 0.4 + sample * 0.6;
+      } else {
+        // Stone — hard tap
+        sample *= 0.6 * pitchVariation;
+      }
+      data[i] = sample;
+    }
+
+    const source = this.ctx.createBufferSource();
+    source.buffer = buf;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    // Adjust filter per surface
+    if (surface === "sand") { filter.frequency.value = 800; }
+    else if (surface === "snow") { filter.frequency.value = 600; }
+    else if (surface === "grass") { filter.frequency.value = 2000; }
+    else if (surface === "rock") { filter.frequency.value = 5000; }
+    else { filter.frequency.value = 3000; }
+
+    const gain = this.ctx.createGain();
+    gain.gain.value = surface === "snow" ? 0.15 : surface === "sand" ? 0.2 : 0.3;
+
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+    source.start();
+    source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
+  }
+
   dispose() {
     this.sources.forEach(src => {
       src.nodes.forEach(n => { try { (n as any).stop?.(); (n as any).disconnect?.(); } catch {} });
