@@ -98,6 +98,7 @@ export function useUserSettings(userId: string | null) {
           bonzi_enabled: data.bonzi_enabled || false,
           bonzi_chaos_level: data.bonzi_chaos_level || 1,
           command_prompt_mode: data.command_prompt_mode || false,
+          ambient_volume: (data as any).ambient_volume ?? 0.5,
         });
       }
       setIsLoading(false);
