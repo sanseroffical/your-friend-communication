@@ -1911,18 +1911,41 @@ const PlazaScene = ({ localUser, remoteUsers, onMove, onUserClick, onInteract, u
   }, []);
 
   const lastPosRef = useRef<[number, number, number]>(localUser.targetPosition);
+  const footstepIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     if (audioInitRef.current) {
       biomeAudioEngine.updateVolumes(localUser.targetPosition[0], localUser.targetPosition[2]);
-      // Play footstep if player actually moved
-      const [lx,, lz] = lastPosRef.current;
-      const [nx,, nz] = localUser.targetPosition;
-      const dist = Math.sqrt((nx - lx) ** 2 + (nz - lz) ** 2);
-      if (dist > 0.3) {
-        biomeAudioEngine.playFootstep(nx, nz);
-        lastPosRef.current = localUser.targetPosition;
-      }
     }
+  }, [localUser.targetPosition]);
+
+  // Start footstep loop when target changes (player clicked to move)
+  useEffect(() => {
+    if (!audioInitRef.current) return;
+    if (footstepIntervalRef.current) clearInterval(footstepIntervalRef.current);
+
+    const [ox,, oz] = lastPosRef.current;
+    const [tx,, tz] = localUser.targetPosition;
+    const totalDist = Math.sqrt((tx - ox) ** 2 + (tz - oz) ** 2);
+    if (totalDist < 0.5) return; // too short, skip
+
+    lastPosRef.current = localUser.targetPosition;
+    let step = 0;
+    const maxSteps = Math.ceil(totalDist / 1.5); // roughly one step per 1.5 units
+
+    footstepIntervalRef.current = setInterval(() => {
+      step++;
+      if (step > maxSteps) {
+        if (footstepIntervalRef.current) clearInterval(footstepIntervalRef.current);
+        return;
+      }
+      const frac = step / maxSteps;
+      const cx = ox + (tx - ox) * frac;
+      const cz = oz + (tz - oz) * frac;
+      biomeAudioEngine.playFootstep(cx, cz);
+    }, 350);
+
+    return () => { if (footstepIntervalRef.current) clearInterval(footstepIntervalRef.current); };
   }, [localUser.targetPosition]);
 
   const currentWeather = weather || { type: "clear" as WeatherType, intensity: 0, temperature: 20, windSpeed: 0 };
