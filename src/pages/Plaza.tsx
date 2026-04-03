@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Send, Users, MessageSquare, Mic, MicOff, Palette, Smile, Hammer, X, Reply, Edit2, Trash2, Pin, Search, CloudRain, CloudSnow, Cloud, Sun, Zap, AtSign, Lock, Volume2, VolumeX, Play, Pause, SkipForward, SkipBack, Swords } from "lucide-react";
+import { ArrowLeft, Send, Users, MessageSquare, Mic, MicOff, Palette, Smile, Hammer, X, Reply, Edit2, Trash2, Pin, Search, CloudRain, CloudSnow, Cloud, Sun, Zap, AtSign, Lock, Volume2, VolumeX, Play, Pause, SkipForward, SkipBack, Swords, TreePine } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useClipUser } from "@/hooks/useClipUser";
