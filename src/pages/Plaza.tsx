@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Send, Users, MessageSquare, Mic, MicOff, Palette, Smile, Hammer, X, Reply, Edit2, Trash2, Pin, Search, CloudRain, CloudSnow, Cloud, Sun, Zap, AtSign, Lock, Volume2, VolumeX, Play, Pause, SkipForward, SkipBack, Swords } from "lucide-react";
+import { ArrowLeft, Send, Users, MessageSquare, Mic, MicOff, Palette, Smile, Hammer, X, Reply, Edit2, Trash2, Pin, Search, CloudRain, CloudSnow, Cloud, Sun, Zap, AtSign, Lock, Volume2, VolumeX, Play, Pause, SkipForward, SkipBack, Swords, TreePine } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useClipUser } from "@/hooks/useClipUser";
@@ -15,7 +15,7 @@ import { useProximityVoice } from "@/hooks/useProximityVoice";
 import { useFriendships } from "@/hooks/useFriendships";
 import { useUserLevel } from "@/hooks/useUserLevel";
 import AvatarCustomizer, { AvatarCustomization, DEFAULT_CUSTOMIZATION } from "@/components/plaza/AvatarCustomizer";
-import { checkCollision, getNearbyInteractable, EMOTE_MAP, fetchWeather } from "@/components/plaza/PlazaScene";
+import { checkCollision, getNearbyInteractable, EMOTE_MAP, fetchWeather, biomeAudioEngine } from "@/components/plaza/PlazaScene";
 import type { PlazaUser, InteractableId, UserHouse, WeatherType } from "@/components/plaza/PlazaScene";
 import { PLACEABLE_OBJECTS, OBJECT_COLORS } from "@/components/plaza/HouseInterior";
 import type { PlacedObject, InteriorMessage } from "@/components/plaza/HouseInterior";
@@ -191,6 +191,7 @@ const Plaza = () => {
 
   // Weather
   const [weather, setWeather] = useState<WeatherState>({ type: "clear", intensity: 0, temperature: 20, windSpeed: 0 });
+  const [ambientVolume, setAmbientVolume] = useState(0.5);
 
   // User houses
   const [userHouses, setUserHouses] = useState<UserHouse[]>([]);
@@ -842,6 +843,22 @@ const Plaza = () => {
         <Button variant={plazaMusic.isPlaying ? "default" : "secondary"} size="sm" onClick={plazaMusic.togglePlay} className="shadow-lg">
           {plazaMusic.isPlaying ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
         </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="secondary" size="sm" className="shadow-lg"><TreePine className="h-4 w-4" /></Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-3" side="bottom" align="end">
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ambient Volume</p>
+              <div className="flex items-center gap-2">
+                <VolumeX className="h-3 w-3 text-muted-foreground shrink-0" />
+                <Slider value={[ambientVolume * 100]} max={100} step={1} onValueChange={(v) => { const vol = v[0] / 100; setAmbientVolume(vol); biomeAudioEngine.setMasterVolume(vol); }} className="flex-1" />
+                <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" />
+              </div>
+              <p className="text-xs text-muted-foreground text-center">{Math.round(ambientVolume * 100)}%</p>
+            </div>
+          </PopoverContent>
+        </Popover>
         <Button variant="secondary" size="sm" onClick={() => setChatOpen(!chatOpen)} className="shadow-lg"><MessageSquare className="h-4 w-4" /></Button>
       </div>
 

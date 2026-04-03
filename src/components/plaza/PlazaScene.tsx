@@ -1786,6 +1786,7 @@ class BiomeAudioEngine {
 }
 
 const biomeAudioEngine = new BiomeAudioEngine();
+export { biomeAudioEngine };
 
 // ============ MAIN SCENE ============
 interface PlazaSceneProps {
