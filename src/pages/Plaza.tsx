@@ -15,7 +15,7 @@ import { useProximityVoice } from "@/hooks/useProximityVoice";
 import { useFriendships } from "@/hooks/useFriendships";
 import { useUserLevel } from "@/hooks/useUserLevel";
 import AvatarCustomizer, { AvatarCustomization, DEFAULT_CUSTOMIZATION } from "@/components/plaza/AvatarCustomizer";
-import { checkCollision, getNearbyInteractable, EMOTE_MAP, fetchWeather } from "@/components/plaza/PlazaScene";
+import { checkCollision, getNearbyInteractable, EMOTE_MAP, fetchWeather, biomeAudioEngine } from "@/components/plaza/PlazaScene";
 import type { PlazaUser, InteractableId, UserHouse, WeatherType } from "@/components/plaza/PlazaScene";
 import { PLACEABLE_OBJECTS, OBJECT_COLORS } from "@/components/plaza/HouseInterior";
 import type { PlacedObject, InteriorMessage } from "@/components/plaza/HouseInterior";
