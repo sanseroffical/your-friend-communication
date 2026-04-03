@@ -1910,9 +1910,18 @@ const PlazaScene = ({ localUser, remoteUsers, onMove, onUserClick, onInteract, u
     };
   }, []);
 
+  const lastPosRef = useRef<[number, number, number]>(localUser.targetPosition);
   useEffect(() => {
     if (audioInitRef.current) {
       biomeAudioEngine.updateVolumes(localUser.targetPosition[0], localUser.targetPosition[2]);
+      // Play footstep if player actually moved
+      const [lx,, lz] = lastPosRef.current;
+      const [nx,, nz] = localUser.targetPosition;
+      const dist = Math.sqrt((nx - lx) ** 2 + (nz - lz) ** 2);
+      if (dist > 0.3) {
+        biomeAudioEngine.playFootstep(nx, nz);
+        lastPosRef.current = localUser.targetPosition;
+      }
     }
   }, [localUser.targetPosition]);
 
