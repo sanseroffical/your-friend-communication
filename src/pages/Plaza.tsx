@@ -860,7 +860,7 @@ const Plaza = () => {
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ambient Volume</p>
               <div className="flex items-center gap-2">
                 <VolumeX className="h-3 w-3 text-muted-foreground shrink-0" />
-                <Slider value={[ambientVolume * 100]} max={100} step={1} onValueChange={(v) => { const vol = v[0] / 100; setAmbientVolume(vol); biomeAudioEngine.setMasterVolume(vol); }} className="flex-1" />
+                <Slider value={[ambientVolume * 100]} max={100} step={1} onValueChange={(v) => { const vol = v[0] / 100; setAmbientVolume(vol); biomeAudioEngine.setMasterVolume(vol); updateSettings({ ambient_volume: vol }); }} className="flex-1" />
                 <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" />
               </div>
               <p className="text-xs text-muted-foreground text-center">{Math.round(ambientVolume * 100)}%</p>
