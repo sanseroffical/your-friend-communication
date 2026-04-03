@@ -13,6 +13,7 @@ import { useClipUser } from "@/hooks/useClipUser";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useProximityVoice } from "@/hooks/useProximityVoice";
 import { useFriendships } from "@/hooks/useFriendships";
+import { useUserSettings } from "@/hooks/useUserSettings";
 import { useUserLevel } from "@/hooks/useUserLevel";
 import AvatarCustomizer, { AvatarCustomization, DEFAULT_CUSTOMIZATION } from "@/components/plaza/AvatarCustomizer";
 import { checkCollision, getNearbyInteractable, EMOTE_MAP, fetchWeather, biomeAudioEngine } from "@/components/plaza/PlazaScene";
@@ -173,6 +174,7 @@ const Plaza = () => {
   const { isAdmin, isModerator } = useUserRole(authUser?.id || null);
   const { userLevel, addXp } = useUserLevel();
   const { friends } = useFriendships(authUser?.id || null);
+  const { settings: userSettings, updateSettings } = useUserSettings(authUser?.id || null);
   const [localUser, setLocalUser] = useState<PlazaUser | null>(null);
   const [remoteUsers, setRemoteUsers] = useState<PlazaUser[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
@@ -191,7 +193,13 @@ const Plaza = () => {
 
   // Weather
   const [weather, setWeather] = useState<WeatherState>({ type: "clear", intensity: 0, temperature: 20, windSpeed: 0 });
-  const [ambientVolume, setAmbientVolume] = useState(0.5);
+  const [ambientVolume, setAmbientVolume] = useState(userSettings.ambient_volume);
+
+  // Sync ambient volume from persisted settings once loaded
+  useEffect(() => {
+    setAmbientVolume(userSettings.ambient_volume);
+    biomeAudioEngine.setMasterVolume(userSettings.ambient_volume);
+  }, [userSettings.ambient_volume]);
 
   // User houses
   const [userHouses, setUserHouses] = useState<UserHouse[]>([]);
@@ -852,7 +860,7 @@ const Plaza = () => {
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ambient Volume</p>
               <div className="flex items-center gap-2">
                 <VolumeX className="h-3 w-3 text-muted-foreground shrink-0" />
-                <Slider value={[ambientVolume * 100]} max={100} step={1} onValueChange={(v) => { const vol = v[0] / 100; setAmbientVolume(vol); biomeAudioEngine.setMasterVolume(vol); }} className="flex-1" />
+                <Slider value={[ambientVolume * 100]} max={100} step={1} onValueChange={(v) => { const vol = v[0] / 100; setAmbientVolume(vol); biomeAudioEngine.setMasterVolume(vol); updateSettings({ ambient_volume: vol }); }} className="flex-1" />
                 <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" />
               </div>
               <p className="text-xs text-muted-foreground text-center">{Math.round(ambientVolume * 100)}%</p>
