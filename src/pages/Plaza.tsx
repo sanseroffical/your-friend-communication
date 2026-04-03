@@ -174,6 +174,7 @@ const Plaza = () => {
   const { isAdmin, isModerator } = useUserRole(authUser?.id || null);
   const { userLevel, addXp } = useUserLevel();
   const { friends } = useFriendships(authUser?.id || null);
+  const { settings: userSettings, updateSettings } = useUserSettings(authUser?.id || null);
   const [localUser, setLocalUser] = useState<PlazaUser | null>(null);
   const [remoteUsers, setRemoteUsers] = useState<PlazaUser[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
