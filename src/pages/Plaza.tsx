@@ -13,6 +13,7 @@ import { useClipUser } from "@/hooks/useClipUser";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useProximityVoice } from "@/hooks/useProximityVoice";
 import { useFriendships } from "@/hooks/useFriendships";
+import { useUserSettings } from "@/hooks/useUserSettings";
 import { useUserLevel } from "@/hooks/useUserLevel";
 import AvatarCustomizer, { AvatarCustomization, DEFAULT_CUSTOMIZATION } from "@/components/plaza/AvatarCustomizer";
 import { checkCollision, getNearbyInteractable, EMOTE_MAP, fetchWeather, biomeAudioEngine } from "@/components/plaza/PlazaScene";
