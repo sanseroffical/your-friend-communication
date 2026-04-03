@@ -191,6 +191,7 @@ const Plaza = () => {
 
   // Weather
   const [weather, setWeather] = useState<WeatherState>({ type: "clear", intensity: 0, temperature: 20, windSpeed: 0 });
+  const [ambientVolume, setAmbientVolume] = useState(0.5);
 
   // User houses
   const [userHouses, setUserHouses] = useState<UserHouse[]>([]);
