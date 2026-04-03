@@ -11,6 +11,7 @@ export interface UserSettings {
   bonzi_enabled: boolean;
   bonzi_chaos_level: number;
   command_prompt_mode: boolean;
+  ambient_volume: number;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -23,6 +24,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   bonzi_enabled: false,
   bonzi_chaos_level: 1,
   command_prompt_mode: false,
+  ambient_volume: 0.5,
 };
 
 export const THEMES = [
