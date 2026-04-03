@@ -195,6 +195,12 @@ const Plaza = () => {
   const [weather, setWeather] = useState<WeatherState>({ type: "clear", intensity: 0, temperature: 20, windSpeed: 0 });
   const [ambientVolume, setAmbientVolume] = useState(userSettings.ambient_volume);
 
+  // Sync ambient volume from persisted settings once loaded
+  useEffect(() => {
+    setAmbientVolume(userSettings.ambient_volume);
+    biomeAudioEngine.setMasterVolume(userSettings.ambient_volume);
+  }, [userSettings.ambient_volume]);
+
   // User houses
   const [userHouses, setUserHouses] = useState<UserHouse[]>([]);
   const [myHouse, setMyHouse] = useState<UserHouse | null>(null);
