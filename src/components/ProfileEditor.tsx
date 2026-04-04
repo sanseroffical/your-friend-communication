@@ -29,6 +29,7 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
   const [displayName, setDisplayName] = useState(profile.display_name || '');
   const [bio, setBio] = useState(profile.bio || '');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '');
+  const [twitchUsername, setTwitchUsername] = useState((profile as any).twitch_username || '');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isCustomizationOpen, setIsCustomizationOpen] = useState(false);
