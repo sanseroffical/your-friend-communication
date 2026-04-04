@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, UserPlus, UserMinus, Send, ImageIcon } from 'lucide-react';
+import { ArrowLeft, UserPlus, UserMinus, Send, ImageIcon, Tv } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
