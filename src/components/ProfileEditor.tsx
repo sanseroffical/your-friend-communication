@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Upload, Palette } from 'lucide-react';
+import { Loader2, Upload, Palette, Tv } from 'lucide-react';
 import ProfileCustomization from './ProfileCustomization';
 
 interface ProfileEditorProps {
