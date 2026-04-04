@@ -38,6 +38,13 @@ interface Profile {
   profile_theme: string | null;
   card_style: string | null;
   banner_url: string | null;
+  twitch_username: string | null;
+}
+
+interface TwitchLiveInfo {
+  game_name: string;
+  title: string;
+  viewer_count: number;
 }
 
 const PROFILE_THEMES: Record<string, string> = {
