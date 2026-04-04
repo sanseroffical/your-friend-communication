@@ -124,6 +124,30 @@ const UserProfile = ({
     loadProfile();
   }, [userId]);
 
+  // Check Twitch live status
+  useEffect(() => {
+    if (!profile?.twitch_username) {
+      setTwitchLive(null);
+      return;
+    }
+    const checkLive = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('twitch-status', {
+          body: { usernames: [profile.twitch_username] },
+        });
+        if (!error && data?.live) {
+          const key = profile.twitch_username!.toLowerCase();
+          setTwitchLive(data.live[key] || null);
+        }
+      } catch {
+        // silently fail
+      }
+    };
+    checkLive();
+    const interval = setInterval(checkLive, 60000);
+    return () => clearInterval(interval);
+  }, [profile?.twitch_username]);
+
   const handleFollowToggle = async () => {
     if (followStats.is_following) {
       await unfollowUser(userId);
