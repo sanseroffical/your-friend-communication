@@ -694,6 +694,7 @@ export type Database = {
           id: string
           profile_music_url: string | null
           profile_theme: string | null
+          twitch_username: string | null
           visitor_count: number | null
         }
         Insert: {
@@ -709,6 +710,7 @@ export type Database = {
           id: string
           profile_music_url?: string | null
           profile_theme?: string | null
+          twitch_username?: string | null
           visitor_count?: number | null
         }
         Update: {
@@ -724,6 +726,7 @@ export type Database = {
           id?: string
           profile_music_url?: string | null
           profile_theme?: string | null
+          twitch_username?: string | null
           visitor_count?: number | null
         }
         Relationships: []

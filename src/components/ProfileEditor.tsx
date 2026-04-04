@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Upload, Palette } from 'lucide-react';
+import { Loader2, Upload, Palette, Tv } from 'lucide-react';
 import ProfileCustomization from './ProfileCustomization';
 
 interface ProfileEditorProps {
@@ -29,6 +29,7 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
   const [displayName, setDisplayName] = useState(profile.display_name || '');
   const [bio, setBio] = useState(profile.bio || '');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '');
+  const [twitchUsername, setTwitchUsername] = useState((profile as any).twitch_username || '');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isCustomizationOpen, setIsCustomizationOpen] = useState(false);
@@ -87,12 +88,14 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
 
     setIsLoading(true);
     try {
+      const trimmedTwitch = twitchUsername.trim().replace(/^@/, '');
       const { error } = await supabase
         .from('profiles')
         .update({
           display_name: displayName.trim(),
           bio: bio.trim() || null,
           avatar_url: avatarUrl || null,
+          twitch_username: trimmedTwitch || null,
         })
         .eq('id', profile.id);
 
@@ -180,6 +183,21 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
               maxLength={200}
             />
             <p className="text-xs text-muted-foreground">{bio.length}/200</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="twitch-username" className="flex items-center gap-2">
+              <Tv className="h-4 w-4 text-purple-500" />
+              Twitch Username
+            </Label>
+            <Input
+              id="twitch-username"
+              value={twitchUsername}
+              onChange={(e) => setTwitchUsername(e.target.value)}
+              placeholder="your_twitch_username"
+              maxLength={25}
+            />
+            <p className="text-xs text-muted-foreground">Link your Twitch to show live status on your profile</p>
           </div>
 
           <div className="pt-2">
