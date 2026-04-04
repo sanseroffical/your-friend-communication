@@ -1244,6 +1244,7 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          ambient_volume: number | null
           bonzi_chaos_level: number | null
           bonzi_enabled: boolean | null
           command_prompt_mode: boolean | null
@@ -1259,6 +1260,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ambient_volume?: number | null
           bonzi_chaos_level?: number | null
           bonzi_enabled?: boolean | null
           command_prompt_mode?: boolean | null
@@ -1274,6 +1276,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ambient_volume?: number | null
           bonzi_chaos_level?: number | null
           bonzi_enabled?: boolean | null
           command_prompt_mode?: boolean | null
