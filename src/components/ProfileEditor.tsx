@@ -88,12 +88,14 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
 
     setIsLoading(true);
     try {
+      const trimmedTwitch = twitchUsername.trim().replace(/^@/, '');
       const { error } = await supabase
         .from('profiles')
         .update({
           display_name: displayName.trim(),
           bio: bio.trim() || null,
           avatar_url: avatarUrl || null,
+          twitch_username: trimmedTwitch || null,
         })
         .eq('id', profile.id);
 
