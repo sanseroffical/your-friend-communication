@@ -185,6 +185,21 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
             <p className="text-xs text-muted-foreground">{bio.length}/200</p>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="twitch-username" className="flex items-center gap-2">
+              <Tv className="h-4 w-4 text-purple-500" />
+              Twitch Username
+            </Label>
+            <Input
+              id="twitch-username"
+              value={twitchUsername}
+              onChange={(e) => setTwitchUsername(e.target.value)}
+              placeholder="your_twitch_username"
+              maxLength={25}
+            />
+            <p className="text-xs text-muted-foreground">Link your Twitch to show live status on your profile</p>
+          </div>
+
           <div className="pt-2">
             <Button 
               variant="outline" 
