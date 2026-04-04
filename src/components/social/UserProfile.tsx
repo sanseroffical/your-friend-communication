@@ -89,6 +89,7 @@ const UserProfile = ({
   const [wallMessage, setWallMessage] = useState('');
   const [postingOnWall, setPostingOnWall] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [twitchLive, setTwitchLive] = useState<TwitchLiveInfo | null>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
