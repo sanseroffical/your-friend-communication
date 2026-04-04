@@ -287,6 +287,28 @@ const UserProfile = ({
               <h2 className="text-2xl font-bold">{profile.display_name || 'User'}</h2>
               <p className="text-muted-foreground">@{profile.clip_id}</p>
               {profile.bio && <p className="mt-2">{profile.bio}</p>}
+              
+              {/* Twitch link */}
+              {profile.twitch_username && (
+                <div className="mt-2 flex items-center gap-2">
+                  <a
+                    href={`https://twitch.tv/${profile.twitch_username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm text-purple-500 hover:text-purple-400 transition-colors"
+                  >
+                    <Tv className="h-4 w-4" />
+                    {profile.twitch_username}
+                  </a>
+                  {twitchLive && (
+                    <span className="inline-flex items-center gap-1 text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-medium">
+                      <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                      LIVE — {twitchLive.viewer_count.toLocaleString()} viewers
+                    </span>
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-4 mt-3 justify-center sm:justify-start">
                 <span><strong>{followStats.followers_count}</strong> Followers</span>
                 <span><strong>{followStats.following_count}</strong> Following</span>
