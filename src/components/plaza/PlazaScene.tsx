@@ -1802,7 +1802,7 @@ class BiomeAudioEngine {
   }
 
   playFootstep(x: number, z: number) {
-    if (!this.ctx || !this.masterGain) return;
+    if (!this.ctx || !this.footstepGain) return;
     const now = this.ctx.currentTime;
     if (now - this.lastFootstepTime < this.footstepInterval) return;
     this.lastFootstepTime = now;
