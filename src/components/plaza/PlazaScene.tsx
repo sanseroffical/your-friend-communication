@@ -1778,6 +1778,11 @@ class BiomeAudioEngine {
     }
   }
 
+  setFootstepVolume(v: number) {
+    if (this.footstepGain && this.ctx) {
+      this.footstepGain.gain.linearRampToValueAtTime(v, this.ctx.currentTime + 0.05);
+    }
+  }
   // --- Footstep system ---
   private lastFootstepTime = 0;
   private footstepInterval = 0.35; // seconds between steps
