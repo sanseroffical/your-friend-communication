@@ -874,19 +874,30 @@ const Plaza = () => {
             <Button variant="secondary" size="sm" className="shadow-lg"><TreePine className="h-4 w-4" /></Button>
           </PopoverTrigger>
           <PopoverContent className="w-56 p-3" side="bottom" align="end">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ambient Volume</p>
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={toggleAmbientMute}>
-                  {isAmbientMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-                </Button>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ambient Volume</p>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={toggleAmbientMute}>
+                    {isAmbientMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <VolumeX className="h-3 w-3 text-muted-foreground shrink-0" />
+                  <Slider value={[ambientVolume * 100]} max={100} step={1} onValueChange={(v) => { const vol = v[0] / 100; setAmbientVolume(vol); biomeAudioEngine.setMasterVolume(vol); updateSettings({ ambient_volume: vol }); if (vol > 0) setPreMuteVolume(null); }} className="flex-1" />
+                  <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">{isAmbientMuted ? 'Muted' : `${Math.round(ambientVolume * 100)}%`}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <VolumeX className="h-3 w-3 text-muted-foreground shrink-0" />
-                <Slider value={[ambientVolume * 100]} max={100} step={1} onValueChange={(v) => { const vol = v[0] / 100; setAmbientVolume(vol); biomeAudioEngine.setMasterVolume(vol); updateSettings({ ambient_volume: vol }); if (vol > 0) setPreMuteVolume(null); }} className="flex-1" />
-                <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" />
+              <div className="border-t border-border pt-2 space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Footstep Volume</p>
+                <div className="flex items-center gap-2">
+                  <VolumeX className="h-3 w-3 text-muted-foreground shrink-0" />
+                  <Slider value={[footstepVolume * 100]} max={100} step={1} onValueChange={(v) => { const vol = v[0] / 100; setFootstepVolume(vol); biomeAudioEngine.setFootstepVolume(vol); }} className="flex-1" />
+                  <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">{footstepVolume === 0 ? 'Muted' : `${Math.round(footstepVolume * 100)}%`}</p>
               </div>
-              <p className="text-xs text-muted-foreground text-center">{isAmbientMuted ? 'Muted' : `${Math.round(ambientVolume * 100)}%`}</p>
             </div>
           </PopoverContent>
         </Popover>
