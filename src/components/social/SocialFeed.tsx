@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { formatDistanceToNow } from 'date-fns';
 import { SocialPost, PostComment } from '@/hooks/useSocial';
 import TranslateButton from '@/components/TranslateButton';
+import LinkPreview from '@/components/LinkPreview';
 import { useMobileUI } from '@/components/MobileUIToggle';
 import { useBookmarks } from '@/hooks/useBookmarks';
 
@@ -114,6 +115,7 @@ const PostCard = ({
         {translatedLang && (
           <p className="text-xs text-muted-foreground mt-1">Translated to {translatedLang}</p>
         )}
+        <LinkPreview text={displayContent} maxPreviews={2} />
         {post.image_url && (
           <img
             src={post.image_url} 
