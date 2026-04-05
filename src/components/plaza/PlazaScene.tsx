@@ -1618,6 +1618,7 @@ class BiomeAudioEngine {
   private ctx: AudioContext | null = null;
   private sources: Map<string, { gain: GainNode; nodes: AudioNode[]; started: boolean }> = new Map();
   private masterGain: GainNode | null = null;
+  private footstepGain: GainNode | null = null;
 
   init() {
     if (this.ctx) return;
@@ -1625,6 +1626,9 @@ class BiomeAudioEngine {
     this.masterGain = this.ctx.createGain();
     this.masterGain.gain.value = 0.5;
     this.masterGain.connect(this.ctx.destination);
+    this.footstepGain = this.ctx.createGain();
+    this.footstepGain.gain.value = 0.5;
+    this.footstepGain.connect(this.ctx.destination);
     this.setupBiomes();
   }
 
@@ -1774,6 +1778,11 @@ class BiomeAudioEngine {
     }
   }
 
+  setFootstepVolume(v: number) {
+    if (this.footstepGain && this.ctx) {
+      this.footstepGain.gain.linearRampToValueAtTime(v, this.ctx.currentTime + 0.05);
+    }
+  }
   // --- Footstep system ---
   private lastFootstepTime = 0;
   private footstepInterval = 0.35; // seconds between steps
@@ -1793,7 +1802,7 @@ class BiomeAudioEngine {
   }
 
   playFootstep(x: number, z: number) {
-    if (!this.ctx || !this.masterGain) return;
+    if (!this.ctx || !this.footstepGain) return;
     const now = this.ctx.currentTime;
     if (now - this.lastFootstepTime < this.footstepInterval) return;
     this.lastFootstepTime = now;
@@ -1848,7 +1857,7 @@ class BiomeAudioEngine {
 
     source.connect(filter);
     filter.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.footstepGain);
     source.start();
     source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
   }
