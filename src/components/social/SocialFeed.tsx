@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { formatDistanceToNow } from 'date-fns';
 import { SocialPost, PostComment } from '@/hooks/useSocial';
 import TranslateButton from '@/components/TranslateButton';
+import LinkPreview from '@/components/LinkPreview';
 import { useMobileUI } from '@/components/MobileUIToggle';
 import { useBookmarks } from '@/hooks/useBookmarks';
 
