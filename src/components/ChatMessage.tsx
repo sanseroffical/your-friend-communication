@@ -8,6 +8,7 @@ import ReadReceiptIndicator from "@/components/ReadReceiptIndicator";
 import UserProfileCard from "@/components/UserProfileCard";
 import TranslateButton from "@/components/TranslateButton";
 import StickerRenderer, { parseMessageWithStickers } from "@/components/chat/StickerRenderer";
+import LinkPreview from "@/components/LinkPreview";
 import { Reaction } from "@/hooks/useMessageReactions";
 
 interface ChatMessageProps {
