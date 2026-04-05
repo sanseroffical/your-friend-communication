@@ -194,6 +194,23 @@ const Plaza = () => {
   // Weather
   const [weather, setWeather] = useState<WeatherState>({ type: "clear", intensity: 0, temperature: 20, windSpeed: 0 });
   const [ambientVolume, setAmbientVolume] = useState(userSettings.ambient_volume);
+  const [preMuteVolume, setPreMuteVolume] = useState<number | null>(null);
+  const isMuted = ambientVolume === 0;
+
+  const toggleMute = () => {
+    if (isMuted) {
+      const restored = preMuteVolume ?? 0.5;
+      setAmbientVolume(restored);
+      biomeAudioEngine.setMasterVolume(restored);
+      updateSettings({ ambient_volume: restored });
+      setPreMuteVolume(null);
+    } else {
+      setPreMuteVolume(ambientVolume);
+      setAmbientVolume(0);
+      biomeAudioEngine.setMasterVolume(0);
+      updateSettings({ ambient_volume: 0 });
+    }
+  };
 
   // Sync ambient volume from persisted settings once loaded
   useEffect(() => {
