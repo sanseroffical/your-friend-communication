@@ -876,8 +876,8 @@ const Plaza = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ambient Volume</p>
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={toggleMute}>
-                  {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={toggleAmbientMute}>
+                  {isAmbientMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
                 </Button>
               </div>
               <div className="flex items-center gap-2">
@@ -885,7 +885,7 @@ const Plaza = () => {
                 <Slider value={[ambientVolume * 100]} max={100} step={1} onValueChange={(v) => { const vol = v[0] / 100; setAmbientVolume(vol); biomeAudioEngine.setMasterVolume(vol); updateSettings({ ambient_volume: vol }); if (vol > 0) setPreMuteVolume(null); }} className="flex-1" />
                 <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" />
               </div>
-              <p className="text-xs text-muted-foreground text-center">{isMuted ? 'Muted' : `${Math.round(ambientVolume * 100)}%`}</p>
+              <p className="text-xs text-muted-foreground text-center">{isAmbientMuted ? 'Muted' : `${Math.round(ambientVolume * 100)}%`}</p>
             </div>
           </PopoverContent>
         </Popover>
