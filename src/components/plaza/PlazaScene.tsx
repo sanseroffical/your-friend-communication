@@ -1857,7 +1857,7 @@ class BiomeAudioEngine {
 
     source.connect(filter);
     filter.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.footstepGain);
     source.start();
     source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
   }
