@@ -194,6 +194,7 @@ const Plaza = () => {
   // Weather
   const [weather, setWeather] = useState<WeatherState>({ type: "clear", intensity: 0, temperature: 20, windSpeed: 0 });
   const [ambientVolume, setAmbientVolume] = useState(userSettings.ambient_volume);
+  const [footstepVolume, setFootstepVolume] = useState(0.5);
   const [preMuteVolume, setPreMuteVolume] = useState<number | null>(null);
   const isAmbientMuted = ambientVolume === 0;
 
