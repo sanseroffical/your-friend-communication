@@ -57,7 +57,7 @@ const GenericPreview = memo(({ data }: { data: LinkPreviewData }) => {
       href={data.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-2 flex overflow-hidden rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors group block"
+      className="mt-2 flex overflow-hidden rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors group block animate-fade-in"
     >
       {data.image && (
         <div className="w-24 h-24 sm:w-32 sm:h-24 shrink-0 bg-muted">
