@@ -115,6 +115,7 @@ const PostCard = ({
         {translatedLang && (
           <p className="text-xs text-muted-foreground mt-1">Translated to {translatedLang}</p>
         )}
+        <LinkPreview text={displayContent} maxPreviews={2} />
         {post.image_url && (
           <img
             src={post.image_url} 

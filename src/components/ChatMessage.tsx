@@ -259,6 +259,7 @@ const ChatMessage = ({
                       onTranslate={(translated) => setTranslatedMessage(translated === message ? null : translated)}
                       size="icon"
                     />
+                    <LinkPreview text={translatedMessage || message} maxPreviews={2} />
                   </div>
                 )}
               </div>
