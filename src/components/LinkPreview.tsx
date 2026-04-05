@@ -1,5 +1,6 @@
 import { useState, useEffect, memo } from 'react';
 import { ExternalLink, Play } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 
 interface LinkPreviewData {
