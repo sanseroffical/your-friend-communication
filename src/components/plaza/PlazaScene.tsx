@@ -1618,6 +1618,7 @@ class BiomeAudioEngine {
   private ctx: AudioContext | null = null;
   private sources: Map<string, { gain: GainNode; nodes: AudioNode[]; started: boolean }> = new Map();
   private masterGain: GainNode | null = null;
+  private footstepGain: GainNode | null = null;
 
   init() {
     if (this.ctx) return;
@@ -1625,6 +1626,9 @@ class BiomeAudioEngine {
     this.masterGain = this.ctx.createGain();
     this.masterGain.gain.value = 0.5;
     this.masterGain.connect(this.ctx.destination);
+    this.footstepGain = this.ctx.createGain();
+    this.footstepGain.gain.value = 0.5;
+    this.footstepGain.connect(this.ctx.destination);
     this.setupBiomes();
   }
 
