@@ -1,5 +1,6 @@
 import { useState, useEffect, memo } from 'react';
 import { ExternalLink, Play } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 
 interface LinkPreviewData {
@@ -95,29 +96,45 @@ interface LinkPreviewProps {
   maxPreviews?: number;
 }
 
+const PreviewSkeleton = memo(() => (
+  <div className="mt-2 flex overflow-hidden rounded-lg border border-border bg-card">
+    <Skeleton className="w-24 h-24 sm:w-32 sm:h-24 shrink-0 rounded-none" />
+    <div className="flex-1 min-w-0 p-3 space-y-2">
+      <Skeleton className="h-3 w-20" />
+      <Skeleton className="h-4 w-3/4" />
+      <Skeleton className="h-3 w-full" />
+    </div>
+  </div>
+));
+PreviewSkeleton.displayName = 'PreviewSkeleton';
+
 const LinkPreview = ({ text, maxPreviews = 3 }: LinkPreviewProps) => {
   const [previews, setPreviews] = useState<Map<string, LinkPreviewData | null>>(new Map());
+  const [loading, setLoading] = useState<Set<string>>(new Set());
   const urls = extractUrls(text).slice(0, maxPreviews);
 
   useEffect(() => {
     if (urls.length === 0) return;
 
+    const nonStreamUrls = urls.filter((u) => !u.includes(STREAM_DOMAIN));
+    const uncached = nonStreamUrls.filter((u) => !previewCache.has(u));
+
+    // Immediately apply cached results
+    const cached = new Map<string, LinkPreviewData | null>();
+    nonStreamUrls.forEach((u) => {
+      if (previewCache.has(u)) cached.set(u, previewCache.get(u)!);
+    });
+    if (cached.size > 0) setPreviews(cached);
+
+    if (uncached.length === 0) return;
+
+    setLoading(new Set(uncached));
+
     const fetchPreviews = async () => {
-      const newPreviews = new Map<string, LinkPreviewData | null>();
+      const newPreviews = new Map(cached);
 
       await Promise.all(
-        urls.map(async (url) => {
-          // Skip stream-smile-share URLs (they get embedded directly)
-          if (url.includes(STREAM_DOMAIN)) {
-            return;
-          }
-
-          // Check cache
-          if (previewCache.has(url)) {
-            newPreviews.set(url, previewCache.get(url)!);
-            return;
-          }
-
+        uncached.map(async (url) => {
           try {
             const { data, error } = await supabase.functions.invoke('link-preview', {
               body: { url },
@@ -135,6 +152,7 @@ const LinkPreview = ({ text, maxPreviews = 3 }: LinkPreviewProps) => {
       );
 
       setPreviews(newPreviews);
+      setLoading(new Set());
     };
 
     fetchPreviews();
@@ -147,6 +165,10 @@ const LinkPreview = ({ text, maxPreviews = 3 }: LinkPreviewProps) => {
       {urls.map((url) => {
         if (url.includes(STREAM_DOMAIN)) {
           return <StreamEmbed key={url} url={url} />;
+        }
+
+        if (loading.has(url)) {
+          return <PreviewSkeleton key={url} />;
         }
 
         const data = previews.get(url);
