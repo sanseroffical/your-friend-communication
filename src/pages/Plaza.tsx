@@ -195,10 +195,10 @@ const Plaza = () => {
   const [weather, setWeather] = useState<WeatherState>({ type: "clear", intensity: 0, temperature: 20, windSpeed: 0 });
   const [ambientVolume, setAmbientVolume] = useState(userSettings.ambient_volume);
   const [preMuteVolume, setPreMuteVolume] = useState<number | null>(null);
-  const isMuted = ambientVolume === 0;
+  const isAmbientMuted = ambientVolume === 0;
 
-  const toggleMute = () => {
-    if (isMuted) {
+  const toggleAmbientMute = () => {
+    if (isAmbientMuted) {
       const restored = preMuteVolume ?? 0.5;
       setAmbientVolume(restored);
       biomeAudioEngine.setMasterVolume(restored);
