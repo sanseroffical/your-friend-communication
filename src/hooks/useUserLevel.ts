@@ -113,7 +113,7 @@ export function useUserLevel() {
 
     const previousLevel = userLevel.level;
 
-    const { error } = await (supabase.rpc as any)('increment_user_xp', {
+    const { error } = await supabase.rpc('increment_user_xp', {
       p_user_id: authUser.id,
       p_xp_amount: amount,
     });
