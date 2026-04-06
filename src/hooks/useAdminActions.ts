@@ -7,6 +7,7 @@ export function useAdminActions(isAdmin: boolean, isModerator: boolean) {
   const canModerate = isAdmin || isModerator;
 
   const deleteUserMessage = useCallback(async (messageId: string) => {
+    // UX-only early return — actual security enforced by RLS policies
     if (!canModerate) {
       toast({
         title: "Unauthorized",
@@ -35,6 +36,7 @@ export function useAdminActions(isAdmin: boolean, isModerator: boolean) {
   }, [canModerate, toast]);
 
   const deleteUserAccount = useCallback(async (targetUserId: string) => {
+    // UX-only early return — actual security enforced by RLS policies
     if (!isAdmin) {
       toast({
         title: "Unauthorized",
