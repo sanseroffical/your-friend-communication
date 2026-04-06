@@ -79,7 +79,7 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
 
       const [{ data: roles }, { data: shadowBans }] = await Promise.all([
         supabase.from('user_roles').select('user_id, role'),
-        supabase.from('shadow_bans').select('user_id'),
+        (supabase.from('shadow_bans') as any).select('user_id'),
       ]);
 
       const shadowBannedIds = new Set((shadowBans || []).map(b => b.user_id));
