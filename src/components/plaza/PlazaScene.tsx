@@ -910,7 +910,7 @@ const Jukebox = ({ onClick }: { onClick: () => void }) => {
   const ref = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   return (
-    <group ref={ref} position={[12, 0, -8]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
+    <group ref={ref} position={[18, 0, -14]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
       <mesh position={[0, 1, 0]} castShadow><boxGeometry args={[1.2, 2, 0.8]} /><meshStandardMaterial color="#8B0000" roughness={0.4} metalness={0.3} emissive="#ff4444" emissiveIntensity={hovered ? 0.5 : 0.2} /></mesh>
       <mesh position={[0, 2.2, 0]} castShadow><cylinderGeometry args={[0.6, 0.6, 0.3, 16, 1, false, 0, Math.PI]} /><meshStandardMaterial color="#ffd700" metalness={0.7} roughness={0.2} /></mesh>
       <mesh position={[0, 0.7, 0.41]}><planeGeometry args={[0.8, 0.6]} /><meshStandardMaterial color="#333" /></mesh>
@@ -925,7 +925,7 @@ const Jukebox = ({ onClick }: { onClick: () => void }) => {
 const BulletinBoard = ({ onClick }: { onClick: () => void }) => {
   const [hovered, setHovered] = useState(false);
   return (
-    <group position={[-10, 0, 8]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
+    <group position={[-16, 0, 14]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
       <mesh position={[0, 1, 0]} castShadow><boxGeometry args={[0.15, 2, 0.15]} /><meshStandardMaterial color="#5c3a1e" /></mesh>
       <mesh position={[0, 2.2, 0]} castShadow><boxGeometry args={[0.15, 2, 0.15]} /><meshStandardMaterial color="#5c3a1e" /></mesh>
       <mesh position={[0, 2.2, 0.1]} castShadow><boxGeometry args={[2.5, 1.8, 0.1]} /><meshStandardMaterial color="#d2691e" roughness={0.8} emissive={hovered ? "#443322" : "#000"} emissiveIntensity={0.3} /></mesh>
@@ -970,7 +970,7 @@ const PvPArena3D = ({ onClick }: { onClick: () => void }) => {
   });
 
   return (
-    <group ref={ref} position={[-20, 0, -20]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
+    <group ref={ref} position={[-28, 0, -28]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
       {/* Arena platform - octagonal stone floor */}
       <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <cylinderGeometry args={[5, 5.5, 0.3, 8]} />
@@ -1982,9 +1982,9 @@ const PlazaScene = ({ localUser, remoteUsers, onMove, onUserClick, onInteract, u
       {/* Static interactive objects */}
       <Jukebox onClick={() => handleInteract("jukebox")} />
       <BulletinBoard onClick={() => handleInteract("bulletin")} />
-      <GameStation position={[15, 0, 22]} gameLabel="Snake" color="#e74c3c" onClick={() => handleInteract("game-station-1")} />
-      <GameStation position={[20, 0, 22]} gameLabel="Tetris" color="#3498db" onClick={() => handleInteract("game-station-2")} />
-      <GameStation position={[25, 0, 22]} gameLabel="Memory" color="#2ecc71" onClick={() => handleInteract("game-station-3")} />
+      <GameStation position={[22, 0, 32]} gameLabel="Snake" color="#e74c3c" onClick={() => handleInteract("game-station-1")} />
+      <GameStation position={[30, 0, 32]} gameLabel="Tetris" color="#3498db" onClick={() => handleInteract("game-station-2")} />
+      <GameStation position={[38, 0, 32]} gameLabel="Memory" color="#2ecc71" onClick={() => handleInteract("game-station-3")} />
       <PvPArena3D onClick={() => handleInteract("pvp-arena")} />
 
       {/* User houses */}
