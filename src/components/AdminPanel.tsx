@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, UserX, Users, Search, ShieldCheck, ShieldOff, Megaphone, Trash2, Ban, ScrollText, Zap, EyeOff, Lock } from 'lucide-react';
+import { Shield, UserX, Users, Search, ShieldCheck, ShieldOff, Megaphone, Trash2, Ban, ScrollText, Zap, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -121,7 +121,7 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
   const logAction = async (action: string, targetUserId?: string, details?: Record<string, unknown>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from('admin_audit_log').insert({
+    await (supabase.from('admin_audit_log') as any).insert({
       admin_id: user.id,
       action,
       target_user_id: targetUserId || null,
@@ -133,7 +133,7 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
       .select('*')
       .order('created_at', { ascending: false })
       .limit(50);
-    setAuditLog((data as AuditLogEntry[]) || []);
+    setAuditLog((data as unknown as AuditLogEntry[]) || []);
   };
 
   const filteredUsers = users.filter(user => 
