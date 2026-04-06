@@ -111,23 +111,32 @@ export function useUserLevel() {
   const addXp = useCallback(async (amount: number) => {
     if (!authUser?.id || !userLevel) return null;
 
-    const newTotalXp = userLevel.xp + amount;
-    const { level: newLevel } = getLevelFromXp(newTotalXp);
-    const leveledUp = newLevel > userLevel.level;
+    const previousLevel = userLevel.level;
 
-    const { data, error } = await supabase
-      .from('user_levels')
-      .update({ xp: newTotalXp, level: newLevel })
-      .eq('user_id', authUser.id)
-      .select()
-      .single();
+    const { error } = await supabase.rpc('increment_user_xp', {
+      p_user_id: authUser.id,
+      p_xp_amount: amount,
+    });
 
     if (error) {
       console.error('Error adding XP:', error);
       return null;
     }
 
-    return { newLevel: data, leveledUp, previousLevel: userLevel.level };
+    // Re-fetch the updated level
+    const { data } = await supabase
+      .from('user_levels')
+      .select('*')
+      .eq('user_id', authUser.id)
+      .single();
+
+    if (data) {
+      setUserLevel(data);
+      const leveledUp = data.level > previousLevel;
+      return { newLevel: data, leveledUp, previousLevel };
+    }
+
+    return null;
   }, [authUser?.id, userLevel]);
 
   const levelInfo = userLevel ? getLevelFromXp(userLevel.xp) : null;

@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       admin_whitelist: {
         Row: {
           added_at: string | null
@@ -823,6 +850,30 @@ export type Database = {
         }
         Relationships: []
       }
+      shadow_bans: {
+        Row: {
+          banned_by: string
+          created_at: string
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          banned_by: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          banned_by?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       social_posts: {
         Row: {
           content: string
@@ -1385,6 +1436,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_boost_xp: {
+        Args: { p_target_user_id: string; p_xp_amount: number }
+        Returns: undefined
+      }
       generate_clip_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -1392,6 +1447,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_user_xp: {
+        Args: { p_user_id: string; p_xp_amount: number }
+        Returns: undefined
       }
     }
     Enums: {
