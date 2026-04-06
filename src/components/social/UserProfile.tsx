@@ -9,6 +9,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { SocialPost, WallPost, FollowStats } from '@/hooks/useSocial';
 import SocialFeed from './SocialFeed';
+import LinkPreview from '@/components/LinkPreview';
 import { useToast } from '@/hooks/use-toast';
 
 interface UserProfileProps {
@@ -390,6 +391,7 @@ const UserProfile = ({
                           <span className="text-muted-foreground"> · {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
                         </p>
                         <p className="mt-1">{post.content}</p>
+                        <LinkPreview text={post.content} maxPreviews={1} />
                       </div>
                       {(currentUserId === post.author_id || currentUserId === post.profile_owner_id) && (
                         <Button 
