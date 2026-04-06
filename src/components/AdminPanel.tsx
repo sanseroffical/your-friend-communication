@@ -177,7 +177,7 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase.from('shadow_bans').insert({
+    const { error } = await (supabase.from('shadow_bans') as any).insert({
       user_id: shadowBanTarget.id,
       banned_by: user.id,
       reason: shadowBanReason || null,
@@ -195,7 +195,7 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
   };
 
   const handleRemoveShadowBan = async (userId: string) => {
-    const { error } = await supabase.from('shadow_bans').delete().eq('user_id', userId);
+    const { error } = await (supabase.from('shadow_bans') as any).delete().eq('user_id', userId);
     if (!error) {
       await logAction('remove_shadow_ban', userId);
       toast({ title: 'Shadow ban removed' });
