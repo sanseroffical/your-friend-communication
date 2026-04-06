@@ -59,7 +59,7 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
   const [xpBoostAmount, setXpBoostAmount] = useState('100');
   const [shadowBanReason, setShadowBanReason] = useState('');
   const [shadowBanTarget, setShadowBanTarget] = useState<User | null>(null);
-  const { deleteUserMessage, deleteUserAccount, grantRole, revokeRole, clearAllMessages, createAnnouncement, deleteAnnouncement } = useAdminActions(isAdmin, isModerator);
+  const { deleteUserAccount, grantRole, revokeRole, clearAllMessages, createAnnouncement, deleteAnnouncement } = useAdminActions(isAdmin, isModerator);
   const { toast } = useToast();
 
   useEffect(() => {
