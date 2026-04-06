@@ -266,19 +266,19 @@ interface CollisionZone {
 }
 
 const STATIC_COLLISION_ZONES: CollisionZone[] = [
-  // === TOWN CENTER ===
-  { type: "circle", x: 0, z: 0, radius: 2 },       // Fountain
-  { type: "circle", x: 20, z: 0, radius: 5.5 },     // Gazebo
-  { type: "circle", x: -15, z: -15, radius: 4.5 },   // Pond
-  { type: "box", x: 0, z: -28, halfW: 5, halfD: 3.5 }, // Stage
-  { type: "circle", x: 12, z: -8, radius: 1.5 },     // Jukebox
-  { type: "circle", x: -10, z: 8, radius: 1.5 },     // Bulletin
-  { type: "box", x: 15, z: 22, halfW: 2, halfD: 1.5 },  // Game stations
-  { type: "box", x: 20, z: 22, halfW: 2, halfD: 1.5 },
-  { type: "box", x: 25, z: 22, halfW: 2, halfD: 1.5 },
-  { type: "circle", x: -30, z: 20, radius: 3 },      // Park pond
-  { type: "box", x: 35, z: 10, halfW: 4, halfD: 3 }, // Library
-  { type: "circle", x: -35, z: -25, radius: 6 },     // Amphitheater
+  // === TOWN CENTER (spread out) ===
+  { type: "circle", x: 0, z: 0, radius: 2 },         // Fountain
+  { type: "circle", x: 28, z: 0, radius: 5.5 },      // Gazebo
+  { type: "circle", x: -22, z: -22, radius: 4.5 },   // Pond
+  { type: "box", x: 0, z: -38, halfW: 5, halfD: 3.5 }, // Stage
+  { type: "circle", x: 18, z: -14, radius: 1.5 },    // Jukebox
+  { type: "circle", x: -16, z: 14, radius: 1.5 },    // Bulletin
+  { type: "box", x: 22, z: 32, halfW: 2, halfD: 1.5 },  // Game stations
+  { type: "box", x: 30, z: 32, halfW: 2, halfD: 1.5 },
+  { type: "box", x: 38, z: 32, halfW: 2, halfD: 1.5 },
+  { type: "circle", x: -38, z: 28, radius: 3 },      // Park pond
+  { type: "box", x: 42, z: 14, halfW: 4, halfD: 3 }, // Library
+  { type: "circle", x: -42, z: -32, radius: 6 },     // Amphitheater
 
   // === DESERT BIOME (NE quadrant ~60-100, 0-100) ===
   { type: "circle", x: 75, z: 30, radius: 3 },   // Oasis pond
@@ -350,12 +350,12 @@ export const checkCollision = (x: number, z: number): boolean => {
 export type InteractableId = string;
 
 const STATIC_INTERACT_ZONES: Array<{ id: InteractableId; x: number; z: number; radius: number }> = [
-  { id: "jukebox", x: 12, z: -8, radius: 3 },
-  { id: "bulletin", x: -10, z: 8, radius: 3 },
-  { id: "game-station-1", x: 15, z: 22, radius: 3 },
-  { id: "game-station-2", x: 20, z: 22, radius: 3 },
-  { id: "game-station-3", x: 25, z: 22, radius: 3 },
-  { id: "pvp-arena", x: -20, z: -20, radius: 5 },
+  { id: "jukebox", x: 18, z: -14, radius: 3 },
+  { id: "bulletin", x: -16, z: 14, radius: 3 },
+  { id: "game-station-1", x: 22, z: 32, radius: 3 },
+  { id: "game-station-2", x: 30, z: 32, radius: 3 },
+  { id: "game-station-3", x: 38, z: 32, radius: 3 },
+  { id: "pvp-arena", x: -28, z: -28, radius: 5 },
 ];
 
 export const getNearbyInteractable = (x: number, z: number): InteractableId | null => {
@@ -910,7 +910,7 @@ const Jukebox = ({ onClick }: { onClick: () => void }) => {
   const ref = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   return (
-    <group ref={ref} position={[12, 0, -8]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
+    <group ref={ref} position={[18, 0, -14]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
       <mesh position={[0, 1, 0]} castShadow><boxGeometry args={[1.2, 2, 0.8]} /><meshStandardMaterial color="#8B0000" roughness={0.4} metalness={0.3} emissive="#ff4444" emissiveIntensity={hovered ? 0.5 : 0.2} /></mesh>
       <mesh position={[0, 2.2, 0]} castShadow><cylinderGeometry args={[0.6, 0.6, 0.3, 16, 1, false, 0, Math.PI]} /><meshStandardMaterial color="#ffd700" metalness={0.7} roughness={0.2} /></mesh>
       <mesh position={[0, 0.7, 0.41]}><planeGeometry args={[0.8, 0.6]} /><meshStandardMaterial color="#333" /></mesh>
@@ -925,7 +925,7 @@ const Jukebox = ({ onClick }: { onClick: () => void }) => {
 const BulletinBoard = ({ onClick }: { onClick: () => void }) => {
   const [hovered, setHovered] = useState(false);
   return (
-    <group position={[-10, 0, 8]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
+    <group position={[-16, 0, 14]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
       <mesh position={[0, 1, 0]} castShadow><boxGeometry args={[0.15, 2, 0.15]} /><meshStandardMaterial color="#5c3a1e" /></mesh>
       <mesh position={[0, 2.2, 0]} castShadow><boxGeometry args={[0.15, 2, 0.15]} /><meshStandardMaterial color="#5c3a1e" /></mesh>
       <mesh position={[0, 2.2, 0.1]} castShadow><boxGeometry args={[2.5, 1.8, 0.1]} /><meshStandardMaterial color="#d2691e" roughness={0.8} emissive={hovered ? "#443322" : "#000"} emissiveIntensity={0.3} /></mesh>
@@ -970,7 +970,7 @@ const PvPArena3D = ({ onClick }: { onClick: () => void }) => {
   });
 
   return (
-    <group ref={ref} position={[-20, 0, -20]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
+    <group ref={ref} position={[-28, 0, -28]} onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
       {/* Arena platform - octagonal stone floor */}
       <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <cylinderGeometry args={[5, 5.5, 0.3, 8]} />
@@ -1435,7 +1435,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     ))}
 
     {/* Gazebo */}
-    <group position={[20, 0, 0]}>
+    <group position={[28, 0, 0]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><circleGeometry args={[5, 6]} /><meshStandardMaterial color="#d4c4a8" roughness={0.6} /></mesh>
       {[0, 1, 2, 3, 4, 5].map((i) => {
         const a = (i / 6) * Math.PI * 2;
@@ -1445,7 +1445,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Garden */}
-    <group position={[-20, 0, 5]}>
+    <group position={[-28, 0, 8]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><circleGeometry args={[6, 32]} /><meshStandardMaterial color="#3d6b40" roughness={0.9} /></mesh>
       {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
         const a = (i / 8) * Math.PI * 2;
@@ -1455,7 +1455,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Stage */}
-    <group position={[0, 0, -28]}>
+    <group position={[0, 0, -38]}>
       <mesh position={[0, 0.3, 0]} castShadow><boxGeometry args={[10, 0.6, 6]} /><meshStandardMaterial color="#666" roughness={0.5} /></mesh>
       <mesh position={[0, 0.65, -2.5]} castShadow><boxGeometry args={[8, 0.1, 1]} /><meshStandardMaterial color="#888" roughness={0.5} /></mesh>
       {[-1, 0, 1].map((row) => (
@@ -1464,7 +1464,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Library */}
-    <group position={[35, 0, 10]}>
+    <group position={[42, 0, 14]}>
       <mesh position={[0, 2, 0]} castShadow><boxGeometry args={[6, 4, 5]} /><meshStandardMaterial color="#d4c4a8" roughness={0.7} /></mesh>
       <mesh position={[0, 4.5, 0]} castShadow><boxGeometry args={[7, 1, 6]} /><meshStandardMaterial color="#8B4513" roughness={0.8} /></mesh>
       <mesh position={[0, 0.8, 2.51]}><boxGeometry args={[1, 1.6, 0.05]} /><meshStandardMaterial color="#5c3a1e" /></mesh>
@@ -1475,7 +1475,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Park with pond */}
-    <group position={[-30, 0, 20]}>
+    <group position={[-38, 0, 28]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}><circleGeometry args={[5, 32]} /><meshStandardMaterial color="#2980b9" transparent opacity={0.7} roughness={0.1} metalness={0.3} /></mesh>
       {[0, 1, 2, 3].map((i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, i * 1.5]} position={[Math.cos(i * 1.5) * 2.5, 0.04, Math.sin(i * 1.5) * 2.5]}><circleGeometry args={[0.4, 16]} /><meshStandardMaterial color="#27ae60" side={THREE.DoubleSide} /></mesh>
@@ -1489,7 +1489,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Original pond */}
-    <group position={[-15, 0, -15]}>
+    <group position={[-22, 0, -22]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}><circleGeometry args={[4, 32]} /><meshStandardMaterial color="#2980b9" transparent opacity={0.7} roughness={0.1} metalness={0.3} /></mesh>
       {[0, 1, 2].map((i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, i * 2]} position={[Math.cos(i * 2) * 2, 0.04, Math.sin(i * 2) * 2]}><circleGeometry args={[0.4, 16]} /><meshStandardMaterial color="#27ae60" side={THREE.DoubleSide} /></mesh>
@@ -1497,7 +1497,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Amphitheater */}
-    <group position={[-35, 0, -25]}>
+    <group position={[-42, 0, -32]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[6, 32]} /><meshStandardMaterial color="#888" roughness={0.6} /></mesh>
       {[0, 1, 2].map((ring) => (
         <mesh key={ring} position={[0, 0.2 + ring * 0.4, 0]}><cylinderGeometry args={[4 + ring * 1.5, 4 + ring * 1.5, 0.4, 32, 1, false, 0, Math.PI]} /><meshStandardMaterial color="#777" roughness={0.6} /></mesh>
@@ -1982,9 +1982,9 @@ const PlazaScene = ({ localUser, remoteUsers, onMove, onUserClick, onInteract, u
       {/* Static interactive objects */}
       <Jukebox onClick={() => handleInteract("jukebox")} />
       <BulletinBoard onClick={() => handleInteract("bulletin")} />
-      <GameStation position={[15, 0, 22]} gameLabel="Snake" color="#e74c3c" onClick={() => handleInteract("game-station-1")} />
-      <GameStation position={[20, 0, 22]} gameLabel="Tetris" color="#3498db" onClick={() => handleInteract("game-station-2")} />
-      <GameStation position={[25, 0, 22]} gameLabel="Memory" color="#2ecc71" onClick={() => handleInteract("game-station-3")} />
+      <GameStation position={[22, 0, 32]} gameLabel="Snake" color="#e74c3c" onClick={() => handleInteract("game-station-1")} />
+      <GameStation position={[30, 0, 32]} gameLabel="Tetris" color="#3498db" onClick={() => handleInteract("game-station-2")} />
+      <GameStation position={[38, 0, 32]} gameLabel="Memory" color="#2ecc71" onClick={() => handleInteract("game-station-3")} />
       <PvPArena3D onClick={() => handleInteract("pvp-arena")} />
 
       {/* User houses */}
