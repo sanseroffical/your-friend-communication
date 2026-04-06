@@ -56,12 +56,12 @@ const WEATHER_ICONS: Record<WeatherType, typeof Sun> = {
 
 const HOUSE_COLORS = ["#e8d5b7", "#b0c4de", "#deb887", "#d4c4a8", "#c8b4a0", "#a8c4b8", "#c4a8b8", "#b8c4a8"];
 
-// Generate house positions in a neighborhood grid
+// Generate house positions in a spread-out neighborhood grid
 const generateHousePosition = (index: number): { x: number; z: number } => {
-  const cols = 4;
-  const spacing = 12;
-  const startX = -45;
-  const startZ = -35;
+  const cols = 3;
+  const spacing = 18;
+  const startX = -50;
+  const startZ = -40;
   const col = index % cols;
   const row = Math.floor(index / cols);
   return { x: startX + col * spacing, z: startZ - row * spacing };

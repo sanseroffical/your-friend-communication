@@ -266,19 +266,19 @@ interface CollisionZone {
 }
 
 const STATIC_COLLISION_ZONES: CollisionZone[] = [
-  // === TOWN CENTER ===
-  { type: "circle", x: 0, z: 0, radius: 2 },       // Fountain
-  { type: "circle", x: 20, z: 0, radius: 5.5 },     // Gazebo
-  { type: "circle", x: -15, z: -15, radius: 4.5 },   // Pond
-  { type: "box", x: 0, z: -28, halfW: 5, halfD: 3.5 }, // Stage
-  { type: "circle", x: 12, z: -8, radius: 1.5 },     // Jukebox
-  { type: "circle", x: -10, z: 8, radius: 1.5 },     // Bulletin
-  { type: "box", x: 15, z: 22, halfW: 2, halfD: 1.5 },  // Game stations
-  { type: "box", x: 20, z: 22, halfW: 2, halfD: 1.5 },
-  { type: "box", x: 25, z: 22, halfW: 2, halfD: 1.5 },
-  { type: "circle", x: -30, z: 20, radius: 3 },      // Park pond
-  { type: "box", x: 35, z: 10, halfW: 4, halfD: 3 }, // Library
-  { type: "circle", x: -35, z: -25, radius: 6 },     // Amphitheater
+  // === TOWN CENTER (spread out) ===
+  { type: "circle", x: 0, z: 0, radius: 2 },         // Fountain
+  { type: "circle", x: 28, z: 0, radius: 5.5 },      // Gazebo
+  { type: "circle", x: -22, z: -22, radius: 4.5 },   // Pond
+  { type: "box", x: 0, z: -38, halfW: 5, halfD: 3.5 }, // Stage
+  { type: "circle", x: 18, z: -14, radius: 1.5 },    // Jukebox
+  { type: "circle", x: -16, z: 14, radius: 1.5 },    // Bulletin
+  { type: "box", x: 22, z: 32, halfW: 2, halfD: 1.5 },  // Game stations
+  { type: "box", x: 30, z: 32, halfW: 2, halfD: 1.5 },
+  { type: "box", x: 38, z: 32, halfW: 2, halfD: 1.5 },
+  { type: "circle", x: -38, z: 28, radius: 3 },      // Park pond
+  { type: "box", x: 42, z: 14, halfW: 4, halfD: 3 }, // Library
+  { type: "circle", x: -42, z: -32, radius: 6 },     // Amphitheater
 
   // === DESERT BIOME (NE quadrant ~60-100, 0-100) ===
   { type: "circle", x: 75, z: 30, radius: 3 },   // Oasis pond
@@ -350,12 +350,12 @@ export const checkCollision = (x: number, z: number): boolean => {
 export type InteractableId = string;
 
 const STATIC_INTERACT_ZONES: Array<{ id: InteractableId; x: number; z: number; radius: number }> = [
-  { id: "jukebox", x: 12, z: -8, radius: 3 },
-  { id: "bulletin", x: -10, z: 8, radius: 3 },
-  { id: "game-station-1", x: 15, z: 22, radius: 3 },
-  { id: "game-station-2", x: 20, z: 22, radius: 3 },
-  { id: "game-station-3", x: 25, z: 22, radius: 3 },
-  { id: "pvp-arena", x: -20, z: -20, radius: 5 },
+  { id: "jukebox", x: 18, z: -14, radius: 3 },
+  { id: "bulletin", x: -16, z: 14, radius: 3 },
+  { id: "game-station-1", x: 22, z: 32, radius: 3 },
+  { id: "game-station-2", x: 30, z: 32, radius: 3 },
+  { id: "game-station-3", x: 38, z: 32, radius: 3 },
+  { id: "pvp-arena", x: -28, z: -28, radius: 5 },
 ];
 
 export const getNearbyInteractable = (x: number, z: number): InteractableId | null => {
