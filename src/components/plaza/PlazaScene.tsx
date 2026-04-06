@@ -1435,7 +1435,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     ))}
 
     {/* Gazebo */}
-    <group position={[20, 0, 0]}>
+    <group position={[28, 0, 0]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><circleGeometry args={[5, 6]} /><meshStandardMaterial color="#d4c4a8" roughness={0.6} /></mesh>
       {[0, 1, 2, 3, 4, 5].map((i) => {
         const a = (i / 6) * Math.PI * 2;
@@ -1445,7 +1445,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Garden */}
-    <group position={[-20, 0, 5]}>
+    <group position={[-28, 0, 8]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><circleGeometry args={[6, 32]} /><meshStandardMaterial color="#3d6b40" roughness={0.9} /></mesh>
       {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
         const a = (i / 8) * Math.PI * 2;
@@ -1455,7 +1455,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Stage */}
-    <group position={[0, 0, -28]}>
+    <group position={[0, 0, -38]}>
       <mesh position={[0, 0.3, 0]} castShadow><boxGeometry args={[10, 0.6, 6]} /><meshStandardMaterial color="#666" roughness={0.5} /></mesh>
       <mesh position={[0, 0.65, -2.5]} castShadow><boxGeometry args={[8, 0.1, 1]} /><meshStandardMaterial color="#888" roughness={0.5} /></mesh>
       {[-1, 0, 1].map((row) => (
@@ -1464,7 +1464,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Library */}
-    <group position={[35, 0, 10]}>
+    <group position={[42, 0, 14]}>
       <mesh position={[0, 2, 0]} castShadow><boxGeometry args={[6, 4, 5]} /><meshStandardMaterial color="#d4c4a8" roughness={0.7} /></mesh>
       <mesh position={[0, 4.5, 0]} castShadow><boxGeometry args={[7, 1, 6]} /><meshStandardMaterial color="#8B4513" roughness={0.8} /></mesh>
       <mesh position={[0, 0.8, 2.51]}><boxGeometry args={[1, 1.6, 0.05]} /><meshStandardMaterial color="#5c3a1e" /></mesh>
@@ -1475,7 +1475,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Park with pond */}
-    <group position={[-30, 0, 20]}>
+    <group position={[-38, 0, 28]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}><circleGeometry args={[5, 32]} /><meshStandardMaterial color="#2980b9" transparent opacity={0.7} roughness={0.1} metalness={0.3} /></mesh>
       {[0, 1, 2, 3].map((i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, i * 1.5]} position={[Math.cos(i * 1.5) * 2.5, 0.04, Math.sin(i * 1.5) * 2.5]}><circleGeometry args={[0.4, 16]} /><meshStandardMaterial color="#27ae60" side={THREE.DoubleSide} /></mesh>
@@ -1489,7 +1489,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Original pond */}
-    <group position={[-15, 0, -15]}>
+    <group position={[-22, 0, -22]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}><circleGeometry args={[4, 32]} /><meshStandardMaterial color="#2980b9" transparent opacity={0.7} roughness={0.1} metalness={0.3} /></mesh>
       {[0, 1, 2].map((i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, i * 2]} position={[Math.cos(i * 2) * 2, 0.04, Math.sin(i * 2) * 2]}><circleGeometry args={[0.4, 16]} /><meshStandardMaterial color="#27ae60" side={THREE.DoubleSide} /></mesh>
@@ -1497,7 +1497,7 @@ const Ground = ({ lampIntensity }: { lampIntensity: number }) => (
     </group>
 
     {/* Amphitheater */}
-    <group position={[-35, 0, -25]}>
+    <group position={[-42, 0, -32]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[6, 32]} /><meshStandardMaterial color="#888" roughness={0.6} /></mesh>
       {[0, 1, 2].map((ring) => (
         <mesh key={ring} position={[0, 0.2 + ring * 0.4, 0]}><cylinderGeometry args={[4 + ring * 1.5, 4 + ring * 1.5, 0.4, 32, 1, false, 0, Math.PI]} /><meshStandardMaterial color="#777" roughness={0.6} /></mesh>
