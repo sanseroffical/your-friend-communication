@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Settings, AlertTriangle, Palette, Accessibility, Sparkles, Eye, Terminal, User, Upload, Loader2, UserCircle } from 'lucide-react';
 import AvatarCustomizer, { DEFAULT_CUSTOMIZATION, type AvatarCustomization } from './plaza/AvatarCustomizer';
+import { useTextToSpeech, TTS_VOICES } from '@/hooks/useTextToSpeech';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -517,6 +518,8 @@ const SettingsContent = ({
             onCheckedChange={(v) => updateSettings({ screen_reader_mode: v })}
           />
         </div>
+
+        <ReadAloudSettings enabled={settings.screen_reader_mode} />
       </div>
     </TabsContent>
 
@@ -649,5 +652,51 @@ const StrobeWarningModal = ({ onCancel, onConfirm }: { onCancel: () => void; onC
     </div>
   </div>
 );
+
+const ReadAloudSettings = ({ enabled }: { enabled: boolean }) => {
+  const { speak, stop, isLoading, isPlaying, getVoice, setVoice } = useTextToSpeech();
+  const [voiceId, setVoiceId] = useState<string>(getVoice());
+
+  if (!enabled) return null;
+
+  const handleVoice = (v: string) => {
+    setVoiceId(v);
+    setVoice(v);
+  };
+
+  return (
+    <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+      <div>
+        <Label className="text-base">Read-aloud voice</Label>
+        <p className="text-sm text-muted-foreground">
+          Select any text on the page to get a "Read aloud" button powered by ElevenLabs.
+        </p>
+      </div>
+      <Select value={voiceId} onValueChange={handleVoice}>
+        <SelectTrigger><SelectValue /></SelectTrigger>
+        <SelectContent>
+          {TTS_VOICES.map((v) => (
+            <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full"
+        onClick={() =>
+          isPlaying
+            ? stop()
+            : speak("Hi! This is your Lovable read-aloud voice. Select any text on the page to hear it spoken.", voiceId)
+        }
+        disabled={isLoading}
+      >
+        {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+        {isPlaying ? "Stop" : "Test voice"}
+      </Button>
+    </div>
+  );
+};
+
 
 export default SettingsPanel;
