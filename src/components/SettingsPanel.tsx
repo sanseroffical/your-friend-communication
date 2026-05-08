@@ -256,7 +256,7 @@ const SettingsContent = ({
   return (
     <>
       <Tabs defaultValue="appearance" className="mt-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="appearance">
             <Palette className="h-4 w-4 mr-1" />
             Theme
@@ -264,6 +264,10 @@ const SettingsContent = ({
           <TabsTrigger value="profile">
             <User className="h-4 w-4 mr-1" />
             Profile
+          </TabsTrigger>
+          <TabsTrigger value="avatar">
+            <UserCircle className="h-4 w-4 mr-1" />
+            Avatar
           </TabsTrigger>
           <TabsTrigger value="accessibility">
             <Accessibility className="h-4 w-4 mr-1" />
