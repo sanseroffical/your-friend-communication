@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Settings, AlertTriangle, Palette, Accessibility, Sparkles, Eye, Terminal, User, Upload, Loader2 } from 'lucide-react';
+import { Settings, AlertTriangle, Palette, Accessibility, Sparkles, Eye, Terminal, User, Upload, Loader2, UserCircle } from 'lucide-react';
+import AvatarCustomizer, { DEFAULT_CUSTOMIZATION, type AvatarCustomization } from './plaza/AvatarCustomizer';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
