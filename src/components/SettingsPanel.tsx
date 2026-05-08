@@ -135,6 +135,8 @@ const SettingsContent = ({
   isAdmin?: boolean;
 }) => {
   const [showProfileCustomization, setShowProfileCustomization] = useState(false);
+  const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false);
+  const [avatarCustomization, setAvatarCustomization] = useState<AvatarCustomization>(DEFAULT_CUSTOMIZATION);
   const [profile, setProfile] = useState<{
     display_name: string;
     bio: string;
