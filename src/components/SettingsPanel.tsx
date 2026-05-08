@@ -155,7 +155,7 @@ const SettingsContent = ({
     const fetchProfile = async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('display_name, bio, avatar_url, profile_theme, card_style')
+        .select('display_name, bio, avatar_url, profile_theme, card_style, avatar_customization')
         .eq('id', userId)
         .single();
       
@@ -167,6 +167,9 @@ const SettingsContent = ({
           profile_theme: data.profile_theme || 'default',
           card_style: data.card_style || 'default',
         });
+        if (data.avatar_customization) {
+          setAvatarCustomization({ ...DEFAULT_CUSTOMIZATION, ...(data.avatar_customization as any) });
+        }
       }
     };
     
