@@ -136,12 +136,12 @@ const LinkPreview = ({ text, maxPreviews = 3 }: LinkPreviewProps) => {
   useEffect(() => {
     if (urls.length === 0) return;
 
-    const nonStreamUrls = urls.filter((u) => !u.includes(STREAM_DOMAIN));
-    const uncached = nonStreamUrls.filter((u) => !previewCache.has(u));
+    const nonEmbedUrls = urls.filter((u) => !isEmbeddableApp(u));
+    const uncached = nonEmbedUrls.filter((u) => !previewCache.has(u));
 
     // Immediately apply cached results
     const cached = new Map<string, LinkPreviewData | null>();
-    nonStreamUrls.forEach((u) => {
+    nonEmbedUrls.forEach((u) => {
       if (previewCache.has(u)) cached.set(u, previewCache.get(u)!);
     });
     if (cached.size > 0) setPreviews(cached);
@@ -183,8 +183,8 @@ const LinkPreview = ({ text, maxPreviews = 3 }: LinkPreviewProps) => {
   return (
     <div className="space-y-2">
       {urls.map((url) => {
-        if (url.includes(STREAM_DOMAIN)) {
-          return <StreamEmbed key={url} url={url} />;
+        if (isEmbeddableApp(url)) {
+          return <AppEmbed key={url} url={url} />;
         }
 
         if (loading.has(url)) {
