@@ -12,6 +12,7 @@ interface LinkPreviewData {
 }
 
 const STREAM_DOMAIN = 'stream-smile-share.lovable.app';
+const EMBED_HOST_REGEX = /^https?:\/\/([^\/]*\.)?(lovable\.app|base44\.app)(\/|$)/i;
 
 const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
 
@@ -22,17 +23,36 @@ export function extractUrls(text: string): string[] {
   return text.match(URL_REGEX) || [];
 }
 
-const StreamEmbed = memo(({ url }: { url: string }) => {
+function isEmbeddableApp(url: string): boolean {
+  return EMBED_HOST_REGEX.test(url);
+}
+
+function getEmbedLabel(url: string): string {
+  try {
+    const host = new URL(url).hostname;
+    if (host === STREAM_DOMAIN) return 'Open on Stream Smile Share';
+    if (host.endsWith('.lovable.app') || host === 'lovable.app') return 'Open Lovable app';
+    if (host.endsWith('.base44.app') || host === 'base44.app') return 'Open Base44 app';
+    return 'Open app';
+  } catch {
+    return 'Open app';
+  }
+}
+
+const AppEmbed = memo(({ url }: { url: string }) => {
   return (
     <div className="mt-2 rounded-lg overflow-hidden border border-border bg-card">
       <iframe
         src={url}
         width="100%"
-        height="360"
+        height="420"
         frameBorder="0"
-        allow="autoplay; fullscreen"
-        className="w-full"
-        title="Stream video"
+        loading="lazy"
+        allow="autoplay; fullscreen; clipboard-write; encrypted-media; picture-in-picture"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
+        referrerPolicy="no-referrer-when-downgrade"
+        className="w-full bg-background"
+        title="Embedded app preview"
       />
       <a
         href={url}
@@ -41,13 +61,13 @@ const StreamEmbed = memo(({ url }: { url: string }) => {
         className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors border-t border-border"
       >
         <Play className="h-3 w-3" />
-        Open on Stream Smile Share
+        {getEmbedLabel(url)}
         <ExternalLink className="h-3 w-3 ml-auto" />
       </a>
     </div>
   );
 });
-StreamEmbed.displayName = 'StreamEmbed';
+AppEmbed.displayName = 'AppEmbed';
 
 const GenericPreview = memo(({ data }: { data: LinkPreviewData }) => {
   if (!data.title && !data.description && !data.image) return null;
