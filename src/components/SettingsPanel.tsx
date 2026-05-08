@@ -614,6 +614,16 @@ const SettingsContent = ({
       }}
     />
   )}
+
+  {userId && (
+    <AvatarCustomizer
+      isOpen={showAvatarCustomizer}
+      onClose={() => setShowAvatarCustomizer(false)}
+      userId={userId}
+      currentCustomization={avatarCustomization}
+      onSave={(c) => setAvatarCustomization(c)}
+    />
+  )}
 </>
   );
 };
