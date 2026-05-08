@@ -449,6 +449,33 @@ const SettingsContent = ({
       </div>
     </TabsContent>
 
+    <TabsContent value="avatar" className="space-y-4 mt-4">
+      <div>
+        <Label className="text-base font-medium">Plaza 3D Avatar</Label>
+        <p className="text-sm text-muted-foreground mt-1">
+          Customize the character that represents you in the 3D Plaza — body, head, accessories and effects.
+        </p>
+      </div>
+      <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-4 w-4 rounded-full border" style={{ backgroundColor: avatarCustomization.bodyColor }} />
+            <span className="text-muted-foreground">Skin</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-4 w-4 rounded-full border" style={{ backgroundColor: avatarCustomization.shirtColor }} />
+            <span className="text-muted-foreground">Shirt</span>
+          </div>
+          <div className="text-muted-foreground">Hat: <span className="text-foreground capitalize">{avatarCustomization.hatStyle}</span></div>
+          <div className="text-muted-foreground">Glasses: <span className="text-foreground capitalize">{avatarCustomization.glassesStyle}</span></div>
+        </div>
+      </div>
+      <Button className="w-full gap-2" onClick={() => setShowAvatarCustomizer(true)}>
+        <UserCircle className="h-4 w-4" />
+        Open Avatar Customizer
+      </Button>
+    </TabsContent>
+
     <TabsContent value="accessibility" className="space-y-6 mt-4">
       <Alert>
         <Eye className="h-4 w-4" />
