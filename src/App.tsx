@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MobileUIToggle, { MobileUIProvider } from "./components/MobileUIToggle";
 import ClippyButton from "./components/ClippyButton";
+import GlobalReadAloud from "./components/GlobalReadAloud";
 
 // Lazy load pages to reduce initial bundle size
 const Index = lazy(() => import("./pages/Index"));
@@ -58,6 +59,7 @@ const App = () => (
         </BrowserRouter>
         <MobileUIToggle />
         <ClippyButton />
+        <GlobalReadAloud />
       </MobileUIProvider>
     </TooltipProvider>
   </QueryClientProvider>
