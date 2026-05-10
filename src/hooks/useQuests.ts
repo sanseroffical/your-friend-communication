@@ -181,20 +181,16 @@ export function useQuests() {
     if (!quest) return false;
 
     try {
-      // Mark as claimed
-      const { error } = await supabase
-        .from('user_quest_progress')
-        .update({ claimed_at: new Date().toISOString() })
-        .eq('id', questProgressId);
+      // Atomic server-side claim (prevents double-claim)
+      const { data: awardedXp, error } = await supabase.rpc('claim_quest_reward', {
+        p_progress_id: questProgressId,
+      });
 
       if (error) throw error;
 
-      // Add XP
-      const result = await addXp(quest.xp_reward);
-      
       toast({
         title: '✨ Reward Claimed!',
-        description: `+${quest.xp_reward} XP${result?.leveledUp ? ` - Level Up! You're now level ${result.newLevel.level}!` : ''}`,
+        description: `+${awardedXp ?? quest.xp_reward} XP`,
       });
 
       fetchProgress();
