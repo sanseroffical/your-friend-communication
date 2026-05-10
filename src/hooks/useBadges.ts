@@ -58,18 +58,13 @@ export const useBadges = (userId: string | null) => {
     if (badges.some(b => b.badge_type === badgeType)) return false;
 
     try {
-      const { error } = await supabase
-        .from('user_badges')
-        .insert({
-          user_id: userId,
-          badge_type: badgeType,
-          badge_name: badgeDef.name
-        });
-
-      if (error) {
-        if (error.code === '23505') return false; // Already has badge
-        throw error;
-      }
+      // Server-side validates eligibility before granting
+      const { data: granted, error } = await supabase.rpc('award_badge', {
+        p_badge_type: badgeType,
+        p_badge_name: badgeDef.name,
+      });
+      if (error) throw error;
+      if (!granted) return false;
 
       toast({
         title: '🏆 Badge Earned!',
