@@ -381,3 +381,50 @@ html {
 .animate-confetti {
   animation: confetti 3s ease-in-out forwards;
 }
+
+/* Command Prompt Mode — terminal aesthetic applied to entire app */
+.cmd-mode {
+  --background: 0 0% 0%;
+  --foreground: 120 100% 75%;
+  --card: 0 0% 3%;
+  --card-foreground: 120 100% 75%;
+  --popover: 0 0% 3%;
+  --popover-foreground: 120 100% 75%;
+  --primary: 120 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 8%;
+  --secondary-foreground: 120 100% 75%;
+  --muted: 0 0% 8%;
+  --muted-foreground: 120 40% 55%;
+  --accent: 120 60% 20%;
+  --accent-foreground: 120 100% 80%;
+  --border: 120 60% 25%;
+  --input: 120 60% 25%;
+  --ring: 120 100% 50%;
+  --radius: 0.125rem;
+  --glass-bg: hsl(0 0% 0% / 0.85);
+  --glass-border: hsl(120 100% 50% / 0.25);
+}
+.cmd-mode, .cmd-mode * {
+  font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  text-shadow: 0 0 2px hsl(120 100% 50% / 0.4);
+  letter-spacing: 0.01em;
+}
+.cmd-mode body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    hsla(120, 100%, 50%, 0.04) 0px,
+    hsla(120, 100%, 50%, 0.04) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: screen;
+}
+.cmd-mode img, .cmd-mode video {
+  filter: hue-rotate(60deg) saturate(0.6) brightness(0.9);
+}
