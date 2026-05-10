@@ -41,7 +41,9 @@ const PageLoader = () => (
   </div>
 );
 
-const App = () => (
+const App = () => {
+  useCmdModeSettings(); // applies CSS vars for scanline + caret
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <MobileUIProvider>
