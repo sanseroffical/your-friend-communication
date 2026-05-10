@@ -702,4 +702,40 @@ const ReadAloudSettings = ({ enabled }: { enabled: boolean }) => {
 };
 
 
+const CmdModeControls = () => {
+  const { scanline, setScanline, caretMs, setCaretMs } = useCmdModeSettings();
+  return (
+    <div className="space-y-4 p-4 bg-muted rounded-lg border border-primary/20">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm">Scanline intensity</Label>
+          <span className="text-xs font-mono text-muted-foreground">{scanline}%</span>
+        </div>
+        <Slider
+          value={[scanline]}
+          min={0}
+          max={100}
+          step={5}
+          onValueChange={([v]) => setScanline(v)}
+        />
+        <p className="text-xs text-muted-foreground">0% = off, 100% = heavy CRT scanlines.</p>
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm">Caret blink speed</Label>
+          <span className="text-xs font-mono text-muted-foreground">{caretMs}ms</span>
+        </div>
+        <Slider
+          value={[caretMs]}
+          min={150}
+          max={2500}
+          step={50}
+          onValueChange={([v]) => setCaretMs(v)}
+        />
+        <p className="text-xs text-muted-foreground">Lower = faster blink. Higher = slower.</p>
+      </div>
+    </div>
+  );
+};
+
 export default SettingsPanel;
