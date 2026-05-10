@@ -66,6 +66,7 @@ const App = () => {
       </MobileUIProvider>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
