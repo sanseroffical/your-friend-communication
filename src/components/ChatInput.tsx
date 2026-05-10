@@ -27,9 +27,11 @@ interface ChatInputProps {
   onCancelReply?: () => void;
   onTyping?: () => void;
   onProcessCommand?: (input: string) => Promise<{ handled: boolean; message?: string }>;
+  commandPromptMode?: boolean;
+  promptUser?: string;
 }
 
-const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping, onProcessCommand }: ChatInputProps) => {
+const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping, onProcessCommand, commandPromptMode, promptUser }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -276,6 +278,33 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping, onProce
   };
 
   const isImage = attachment?.file.type.startsWith("image/");
+
+  if (commandPromptMode) {
+    return (
+      <form onSubmit={handleSubmit} className="bg-background border-t border-primary/40 font-mono">
+        {replyTo && (
+          <div className="px-4 pt-2 text-xs text-primary/80">
+            # replying to {replyTo.senderName}: {replyTo.content.slice(0, 60)}
+            <button type="button" onClick={onCancelReply} className="ml-2 underline">[cancel]</button>
+          </div>
+        )}
+        <div className="flex items-center gap-1 px-3 py-2 text-sm">
+          <span className="text-primary shrink-0">{promptUser || "user"}@chat</span>
+          <span className="text-muted-foreground shrink-0">:~$</span>
+          <input
+            ref={inputRef}
+            value={message}
+            onChange={handleInputChange}
+            placeholder="type message or /help"
+            disabled={disabled || isUploading}
+            className="flex-1 bg-transparent outline-none border-0 text-foreground placeholder:text-muted-foreground/60 font-mono"
+            autoFocus
+          />
+          <span className="inline-block w-2 h-4 bg-primary animate-pulse" aria-hidden />
+        </div>
+      </form>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="bg-card border-t border-border">
