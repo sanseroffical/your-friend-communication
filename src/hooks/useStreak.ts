@@ -161,38 +161,28 @@
      }
    }, [authUser?.id, fetchStreak]);
  
-   const claimDailyBonus = useCallback(async () => {
-     if (!authUser?.id || !streak || streak.streakXpClaimedToday) return false;
- 
-     const bonus = getStreakBonus(streak.currentStreak);
-     if (bonus === 0) return false;
- 
-     try {
-       // Mark as claimed
-       const { error } = await supabase
-         .from('user_streaks')
-         .update({ streak_xp_claimed_today: true })
-         .eq('user_id', authUser.id);
- 
-       if (error) throw error;
- 
-       // Add XP
-       const result = await addXp(bonus);
- 
-       const milestone = getStreakMilestone(streak.currentStreak);
-       
-       toast({
-         title: milestone || `🔥 ${streak.currentStreak} Day Streak!`,
-         description: `+${bonus} XP bonus claimed!${result?.leveledUp ? ` Level up to ${result.newLevel.level}!` : ''}`,
-       });
- 
-       await fetchStreak();
-       return true;
-     } catch (error) {
-       console.error('Error claiming daily bonus:', error);
-       return false;
-     }
-   }, [authUser?.id, streak, addXp, toast, fetchStreak]);
+  const claimDailyBonus = useCallback(async () => {
+    if (!authUser?.id || !streak || streak.streakXpClaimedToday) return false;
+
+    try {
+      // Atomic server-side claim (prevents double-claim)
+      const { data: bonus, error } = await supabase.rpc('claim_streak_bonus');
+      if (error) throw error;
+      if (!bonus || bonus === 0) return false;
+
+      const milestone = getStreakMilestone(streak.currentStreak);
+      toast({
+        title: milestone || `🔥 ${streak.currentStreak} Day Streak!`,
+        description: `+${bonus} XP bonus claimed!`,
+      });
+
+      await fetchStreak();
+      return true;
+    } catch (error) {
+      console.error('Error claiming daily bonus:', error);
+      return false;
+    }
+  }, [authUser?.id, streak, toast, fetchStreak]);
  
    return {
      streak,
