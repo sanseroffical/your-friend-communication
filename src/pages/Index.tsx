@@ -538,6 +538,8 @@ const Index = () => {
               onCancelReply={() => setReplyTo(null)}
               onTyping={setTyping}
               onProcessCommand={processCommand}
+              commandPromptMode={settings.command_prompt_mode}
+              promptUser={user?.clip_id || user?.display_name}
             />
           </div>
         </div>
