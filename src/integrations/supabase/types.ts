@@ -1440,6 +1440,12 @@ export type Database = {
         Args: { p_target_user_id: string; p_xp_amount: number }
         Returns: undefined
       }
+      award_badge: {
+        Args: { p_badge_name: string; p_badge_type: string }
+        Returns: boolean
+      }
+      claim_quest_reward: { Args: { p_progress_id: string }; Returns: number }
+      claim_streak_bonus: { Args: never; Returns: number }
       generate_clip_id: { Args: never; Returns: string }
       has_role: {
         Args: {
