@@ -151,6 +151,13 @@ export function useUserSettings(userId: string | null) {
     } else {
       document.documentElement.classList.remove('high-contrast');
     }
+
+    // Command prompt (terminal) mode
+    if (settings.command_prompt_mode) {
+      document.documentElement.classList.add('cmd-mode');
+    } else {
+      document.documentElement.classList.remove('cmd-mode');
+    }
   }, [settings, roomTheme]);
 
   const updateSettings = useCallback(async (newSettings: Partial<UserSettings>) => {
