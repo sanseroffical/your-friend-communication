@@ -418,8 +418,8 @@ html {
   z-index: 9999;
   background: repeating-linear-gradient(
     0deg,
-    hsla(120, 100%, 50%, 0.04) 0px,
-    hsla(120, 100%, 50%, 0.04) 1px,
+    hsla(120, 100%, 50%, var(--cmd-scanline-opacity, 0.04)) 0px,
+    hsla(120, 100%, 50%, var(--cmd-scanline-opacity, 0.04)) 1px,
     transparent 1px,
     transparent 3px
   );
@@ -427,4 +427,13 @@ html {
 }
 .cmd-mode img, .cmd-mode video {
   filter: hue-rotate(60deg) saturate(0.6) brightness(0.9);
+}
+
+/* Caret blink driven by user-controlled duration */
+@keyframes cmd-caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.cmd-mode .animate-pulse {
+  animation: cmd-caret-blink var(--cmd-caret-duration, 1000ms) steps(1, end) infinite !important;
 }
