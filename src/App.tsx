@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MobileUIToggle, { MobileUIProvider } from "./components/MobileUIToggle";
 import ClippyButton from "./components/ClippyButton";
 import GlobalReadAloud from "./components/GlobalReadAloud";
+import { useCmdModeSettings } from "./hooks/useCmdModeSettings";
 
 // Lazy load pages to reduce initial bundle size
 const Index = lazy(() => import("./pages/Index"));
