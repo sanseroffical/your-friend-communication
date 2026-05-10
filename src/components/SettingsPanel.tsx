@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useUserSettings, THEMES, FONTS, FONT_SIZES } from '@/hooks/useUserSettings';
+import { useCmdModeSettings } from '@/hooks/useCmdModeSettings';
 import ProfileCustomization from './ProfileCustomization';
 import SeasonalClock from './SeasonalClock';
 import { supabase } from '@/integrations/supabase/client';
@@ -540,6 +541,8 @@ const SettingsContent = ({
             onCheckedChange={(v) => updateSettings({ command_prompt_mode: v })}
           />
         </div>
+
+        {settings.command_prompt_mode && <CmdModeControls />}
 
         <div className="flex items-center justify-between">
           <div>
