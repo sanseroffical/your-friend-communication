@@ -1,13 +1,17 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "friend-chat",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "A modern, full-featured communication platform with real-time messaging, 3D environments, and rich user interactions",
+  "author": "Sanser",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
