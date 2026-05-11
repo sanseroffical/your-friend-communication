@@ -7,18 +7,44 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build outputs
 dist
 dist-ssr
 *.local
 
-# Editor directories and files
+# ESLint
+.eslintcache
+eslint-report.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE & Editor
 .vscode/*
 !.vscode/extensions.json
 .idea
+.settings
+*.sublime-workspace
+*.sublime-project
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Testing
+coverage
+.nyc_output
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# OS
+Thumbs.db
