@@ -8,6 +8,16 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    strictPort: false,
+  },
+  build: {
+    sourcemap: mode === "development",
+    minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: mode === "production",
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
