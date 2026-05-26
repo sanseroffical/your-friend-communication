@@ -437,3 +437,15 @@ html {
 .cmd-mode .animate-pulse {
   animation: cmd-caret-blink var(--cmd-caret-duration, 1000ms) steps(1, end) infinite !important;
 }
+
+/* Reduced-motion: when OS requests it AND the user opted in (default on),
+   suppress the scanline overlay and freeze the caret in the visible state. */
+@media (prefers-reduced-motion: reduce) {
+  .cmd-respect-reduced-motion.cmd-mode body::before {
+    display: none !important;
+  }
+  .cmd-respect-reduced-motion.cmd-mode .animate-pulse {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
