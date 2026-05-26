@@ -703,7 +703,11 @@ const ReadAloudSettings = ({ enabled }: { enabled: boolean }) => {
 
 
 const CmdModeControls = () => {
-  const { scanline, setScanline, caretMs, setCaretMs } = useCmdModeSettings();
+  const {
+    scanline, setScanline,
+    caretMs, setCaretMs,
+    respectReducedMotion, setRespectReducedMotion,
+  } = useCmdModeSettings();
   return (
     <div className="space-y-4 p-4 bg-muted rounded-lg border border-primary/20">
       <div className="space-y-2">
@@ -733,6 +737,19 @@ const CmdModeControls = () => {
           onValueChange={([v]) => setCaretMs(v)}
         />
         <p className="text-xs text-muted-foreground">Lower = faster blink. Higher = slower.</p>
+      </div>
+      <div className="flex items-center justify-between gap-3 pt-2 border-t border-border">
+        <div className="space-y-0.5">
+          <Label htmlFor="cmd-reduced-motion" className="text-sm">Respect reduced motion</Label>
+          <p className="text-xs text-muted-foreground">
+            When your OS requests reduced motion, disable scanlines and freeze the caret.
+          </p>
+        </div>
+        <Switch
+          id="cmd-reduced-motion"
+          checked={respectReducedMotion}
+          onCheckedChange={setRespectReducedMotion}
+        />
       </div>
     </div>
   );
