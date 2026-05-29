@@ -186,7 +186,7 @@ export const useDirectMessages = (userId: string) => {
     if (!userId) return;
 
     const channel = supabase
-      .channel("dm-updates")
+      .channel(`dm-updates-${userId}`)
       .on(
         "postgres_changes",
         {
