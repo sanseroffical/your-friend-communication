@@ -8,6 +8,7 @@ import { containsProfanity } from "@/utils/profanityFilter";
 import { useMentions } from "@/hooks/useMentions";
 import MentionSuggestions from "@/components/MentionSuggestions";
 import EmojiStickerPicker from "@/components/chat/EmojiStickerPicker";
+import { getStorageRef } from "@/hooks/useSignedStorageUrl";
 
 interface Attachment {
   file: File;
@@ -114,12 +115,8 @@ const ChatInput = ({ onSend, disabled, replyTo, onCancelReply, onTyping, onProce
       return null;
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from("chat-attachments")
-      .getPublicUrl(filePath);
-
     return {
-      url: publicUrl,
+      url: getStorageRef("chat-attachments", filePath),
       type: file.type,
       name: file.name,
     };
