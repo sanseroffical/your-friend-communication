@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getStorageRef } from '@/hooks/useSignedStorageUrl';
 
 interface GifAvatarUploadProps {
   userId: string;
@@ -68,12 +69,8 @@ const GifAvatarUpload = ({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-attachments')
-        .getPublicUrl(fileName);
-
       // Add cache buster
-      const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
+      const urlWithCacheBuster = `${getStorageRef('chat-attachments', fileName)}?t=${Date.now()}`;
 
       if (isGif) {
         await supabase.from('profiles').update({ gif_avatar_url: urlWithCacheBuster }).eq('id', userId);
