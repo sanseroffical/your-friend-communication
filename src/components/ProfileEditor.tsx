@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Upload, Palette, Tv } from 'lucide-react';
 import ProfileCustomization from './ProfileCustomization';
+import { getStorageRef } from '@/hooks/useSignedStorageUrl';
 
 interface ProfileEditorProps {
   isOpen: boolean;
@@ -59,11 +60,7 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-attachments')
-        .getPublicUrl(fileName);
-
-      setAvatarUrl(publicUrl);
+      setAvatarUrl(getStorageRef('chat-attachments', fileName));
       toast({ title: 'Avatar uploaded' });
     } catch (error: any) {
       toast({
