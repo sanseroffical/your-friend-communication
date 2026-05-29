@@ -13,11 +13,6 @@ export default defineConfig(({ mode }) => ({
   build: {
     sourcemap: mode === "development",
     minify: "terser",
-    terserOptions: {
-      compress: {
-        drop_console: mode === "production",
-      },
-    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
