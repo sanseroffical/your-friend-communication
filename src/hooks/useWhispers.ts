@@ -56,20 +56,35 @@ export const useWhispers = (roomCode: string | null, userId: string) => {
 
     loadWhispers();
 
-    // Subscribe to new whispers
+    // Subscribe only to whisper rows involving the current user.
     const channel = supabase
-      .channel(`whispers-${roomCode}`)
+      .channel(`whispers-${roomCode}-${userId}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "whispers",
-          filter: `room_code=eq.${roomCode}`,
+          filter: `recipient_id=eq.${userId}`,
         },
         (payload) => {
           const newWhisper = payload.new as Whisper;
-          if (newWhisper.sender_id === userId || newWhisper.recipient_id === userId) {
+          if (newWhisper.room_code === roomCode) {
+            setWhispers(prev => [...prev, newWhisper]);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "whispers",
+          filter: `sender_id=eq.${userId}`,
+        },
+        (payload) => {
+          const newWhisper = payload.new as Whisper;
+          if (newWhisper.room_code === roomCode) {
             setWhispers(prev => [...prev, newWhisper]);
           }
         }
