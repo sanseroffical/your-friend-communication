@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQuests } from './useQuests';
+import { getStorageRef } from './useSignedStorageUrl';
 
 export interface Story {
   id: string;
@@ -125,16 +126,12 @@ export const useStories = (currentUserId: string | null) => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('social-images')
-        .getPublicUrl(fileName);
-
       const { error } = await supabase
         .from('stories')
         .insert({
           user_id: currentUserId,
           content: content || null,
-          media_url: publicUrl,
+          media_url: getStorageRef('social-images', fileName),
           media_type: mediaType
         });
 

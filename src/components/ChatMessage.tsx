@@ -10,6 +10,7 @@ import TranslateButton from "@/components/TranslateButton";
 import StickerRenderer, { parseMessageWithStickers } from "@/components/chat/StickerRenderer";
 import LinkPreview from "@/components/LinkPreview";
 import { Reaction } from "@/hooks/useMessageReactions";
+import { useSignedStorageUrl } from "@/hooks/useSignedStorageUrl";
 
 interface ChatMessageProps {
   id: string;
@@ -66,6 +67,8 @@ const ChatMessage = ({
   const [editContent, setEditContent] = useState(message);
   const [translatedMessage, setTranslatedMessage] = useState<string | null>(null);
   const messageRef = useRef<HTMLDivElement>(null);
+  const signedAttachmentUrl = useSignedStorageUrl(attachmentUrl, "chat-attachments");
+  const displayAttachmentUrl = signedAttachmentUrl || attachmentUrl;
 
   // Intersection observer for marking messages as read
   useEffect(() => {
@@ -180,16 +183,16 @@ const ChatMessage = ({
             {hasAttachment && (
               <div className={cn(hasMessage && "border-b border-border/20")}>
                 {isImage ? (
-                  <a href={attachmentUrl!} target="_blank" rel="noopener noreferrer">
+                  <a href={displayAttachmentUrl!} target="_blank" rel="noopener noreferrer">
                     <img
-                      src={attachmentUrl!}
+                      src={displayAttachmentUrl!}
                       alt={attachmentName || "Attachment"}
                       className="max-w-full max-h-64 object-contain"
                     />
                   </a>
                 ) : (
                   <a
-                    href={attachmentUrl!}
+                    href={displayAttachmentUrl!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={cn(
