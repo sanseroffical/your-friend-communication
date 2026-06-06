@@ -903,7 +903,7 @@ const FlickeringFlame = ({ position, color, emissiveColor, baseLampIntensity, li
 const lerpAngle = (current: number, target: number, factor: number) => current + (target - current) * factor;
 
 // ============ AVATAR FACE EXPRESSIONS ============
-const AvatarFace = ({ emote, emoteTime }: { emote?: string; emoteTime?: number }) => {
+const AvatarFace = ({ emote, emoteTime, eyeColor = "#2c1810" }: { emote?: string; emoteTime?: number; eyeColor?: string }) => {
   const leftEyeRef = useRef<THREE.Mesh>(null);
   const rightEyeRef = useRef<THREE.Mesh>(null);
   const leftPupilRef = useRef<THREE.Mesh>(null);
