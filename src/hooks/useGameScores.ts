@@ -1,179 +1,88 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
-export interface GameScore {
+export interface GameScoreRow {
   id: string;
   user_id: string;
   game_type: string;
   score: number;
   time_seconds: number | null;
-  difficulty: string | null;
+  difficulty?: string | null;
   created_at: string;
   display_name?: string;
 }
 
-export const useGameScores = (gameType: string) => {
-  const [topScores, setTopScores] = useState<GameScore[]>([]);
-  const [userBestScore, setUserBestScore] = useState<GameScore | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+// Backward-compat alias
+export type GameScore = GameScoreRow;
 
-  const fetchTopScores = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      // Fetch top 10 scores for this game with profile info
-      const { data, error } = await supabase
-        .from("game_scores")
-        .select(`
-          id,
-          user_id,
-          game_type,
-          score,
-          time_seconds,
-          difficulty,
-          created_at
-        `)
-        .eq("game_type", gameType)
-        .order("score", { ascending: false })
-        .limit(10);
+export function useGameScores(gameType: string, limit = 10) {
+  const [scores, setScores] = useState<GameScoreRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userBestScore, setUserBestScore] = useState<GameScoreRow | null>(null);
 
-      if (error) throw error;
-
-      // Fetch display names for these users
-      if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(s => s.user_id))];
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, display_name")
-          .in("id", userIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.id, p.display_name]) || []);
-        
-        const scoresWithNames = data.map(score => ({
-          ...score,
-          display_name: profileMap.get(score.user_id) || "Anonymous",
-        }));
-
-        setTopScores(scoresWithNames);
-      } else {
-        setTopScores([]);
-      }
-    } catch (error) {
-      console.error("Error fetching top scores:", error);
-    } finally {
-      setIsLoading(false);
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("game_scores")
+      .select("id, user_id, game_type, score, time_seconds, difficulty, created_at")
+      .eq("game_type", gameType)
+      .order("score", { ascending: false })
+      .limit(limit);
+    if (data) {
+      const ids = Array.from(new Set(data.map((d) => d.user_id)));
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .in("id", ids);
+      const nameMap = new Map((profs ?? []).map((p) => [p.id, p.display_name]));
+      setScores(data.map((d) => ({ ...d, display_name: nameMap.get(d.user_id) ?? "Player" })));
     }
-  }, [gameType]);
-
-  const fetchUserBest = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
+    // User's best
+    const { data: auth } = await supabase.auth.getUser();
+    if (auth.user) {
+      const { data: best } = await supabase
         .from("game_scores")
-        .select("*")
+        .select("id, user_id, game_type, score, time_seconds, difficulty, created_at")
         .eq("game_type", gameType)
-        .eq("user_id", user.id)
+        .eq("user_id", auth.user.id)
         .order("score", { ascending: false })
         .limit(1)
-        .single();
-
-      if (!error && data) {
-        setUserBestScore(data);
-      }
-    } catch (error) {
-      // No previous score
+        .maybeSingle();
+      setUserBestScore(best ?? null);
     }
-  }, [gameType]);
+    setLoading(false);
+  }, [gameType, limit]);
 
-  const submitScore = useCallback(async (
-    score: number,
-    timeSeconds?: number,
-    difficulty?: string
-  ): Promise<boolean> => {
+  useEffect(() => { load(); }, [load]);
+
+  const submit = useCallback(async (score: number, timeSeconds?: number) => {
     const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Log in to save your score to the leaderboard!",
-        variant: "default",
-      });
-      return false;
+    if (!user) return { ok: false as const, reason: "auth" as const };
+    const clamped = Math.max(0, Math.min(10_000_000, Math.floor(score)));
+    const { error } = await supabase.from("game_scores").insert({
+      user_id: user.id,
+      game_type: gameType,
+      score: clamped,
+      time_seconds: timeSeconds != null ? Math.max(0, Math.min(86400, Math.floor(timeSeconds))) : null,
+    });
+    if (!error) {
+      try { await supabase.rpc("increment_user_xp", { p_user_id: user.id, p_xp_amount: Math.min(50, Math.floor(clamped / 100) + 5) }); } catch {}
+      load();
+      return { ok: true as const };
     }
+    return { ok: false as const, reason: error.message };
+  }, [gameType, load]);
 
-    try {
-      const { error } = await supabase
-        .from("game_scores")
-        .insert({
-          user_id: user.id,
-          game_type: gameType,
-          score,
-          time_seconds: timeSeconds || null,
-          difficulty: difficulty || null,
-        });
-
-      if (error) throw error;
-
-      // Check if this is a new personal best
-      const isNewBest = !userBestScore || score > userBestScore.score;
-      
-      if (isNewBest) {
-        toast({
-          title: "🎉 New Personal Best!",
-          description: `Score: ${score.toLocaleString()}`,
-        });
-      }
-
-      // Refresh leaderboard
-      await fetchTopScores();
-      await fetchUserBest();
-
-      return isNewBest;
-    } catch (error) {
-      console.error("Error submitting score:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save score",
-        variant: "destructive",
-      });
-      return false;
-    }
-  }, [gameType, userBestScore, fetchTopScores, fetchUserBest, toast]);
-
-  // Subscribe to realtime updates
-  useEffect(() => {
-    fetchTopScores();
-    fetchUserBest();
-
-    const channel = supabase
-      .channel(`leaderboard-${gameType}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "game_scores",
-          filter: `game_type=eq.${gameType}`,
-        },
-        () => {
-          fetchTopScores();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [gameType, fetchTopScores, fetchUserBest]);
-
-  return {
-    topScores,
+  return useMemo(() => ({
+    scores,
+    loading,
+    submit,
+    reload: load,
+    // Backward-compat aliases used by older 2D games:
+    topScores: scores,
+    isLoading: loading,
+    refreshScores: load,
+    submitScore: submit,
     userBestScore,
-    isLoading,
-    submitScore,
-    refreshScores: fetchTopScores,
-  };
-};
+  }), [scores, loading, submit, load, userBestScore]);
+}
