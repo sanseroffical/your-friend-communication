@@ -14,6 +14,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Plaza = lazy(() => import("./pages/Plaza"));
+const Games = lazy(() => import("./pages/Games"));
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/plaza" element={<Plaza />} />
+              <Route path="/games" element={<Games />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

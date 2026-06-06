@@ -265,6 +265,10 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
               <Box className="mr-2 h-5 w-5" />
               Enter 3D Plaza
             </Button>
+            <Button onClick={() => navigate("/games")} variant="default" className="w-full" size="lg">
+              <Box className="mr-2 h-5 w-5" />
+              3D Games Arcade
+            </Button>
             <Button onClick={handleCreateRoom} variant="outline" className="w-full" size="lg">
               <MessageSquare className="mr-2 h-5 w-5" />
               Create Private Room
