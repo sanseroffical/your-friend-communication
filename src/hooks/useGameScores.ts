@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface GameScoreRow {
@@ -11,9 +11,13 @@ export interface GameScoreRow {
   display_name?: string;
 }
 
+// Backward-compat alias
+export type GameScore = GameScoreRow;
+
 export function useGameScores(gameType: string, limit = 10) {
   const [scores, setScores] = useState<GameScoreRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userBestScore, setUserBestScore] = useState<GameScoreRow | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -32,6 +36,19 @@ export function useGameScores(gameType: string, limit = 10) {
       const nameMap = new Map((profs ?? []).map((p) => [p.id, p.display_name]));
       setScores(data.map((d) => ({ ...d, display_name: nameMap.get(d.user_id) ?? "Player" })));
     }
+    // User's best
+    const { data: auth } = await supabase.auth.getUser();
+    if (auth.user) {
+      const { data: best } = await supabase
+        .from("game_scores")
+        .select("id, user_id, game_type, score, time_seconds, created_at")
+        .eq("game_type", gameType)
+        .eq("user_id", auth.user.id)
+        .order("score", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setUserBestScore(best ?? null);
+    }
     setLoading(false);
   }, [gameType, limit]);
 
@@ -39,7 +56,7 @@ export function useGameScores(gameType: string, limit = 10) {
 
   const submit = useCallback(async (score: number, timeSeconds?: number) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { ok: false, reason: "auth" as const };
+    if (!user) return { ok: false as const, reason: "auth" as const };
     const clamped = Math.max(0, Math.min(10_000_000, Math.floor(score)));
     const { error } = await supabase.from("game_scores").insert({
       user_id: user.id,
@@ -48,7 +65,6 @@ export function useGameScores(gameType: string, limit = 10) {
       time_seconds: timeSeconds != null ? Math.max(0, Math.min(86400, Math.floor(timeSeconds))) : null,
     });
     if (!error) {
-      // Award small XP (best-effort, server caps at 500)
       try { await supabase.rpc("increment_user_xp", { p_user_id: user.id, p_xp_amount: Math.min(50, Math.floor(clamped / 100) + 5) }); } catch {}
       load();
       return { ok: true as const };
@@ -56,5 +72,16 @@ export function useGameScores(gameType: string, limit = 10) {
     return { ok: false as const, reason: error.message };
   }, [gameType, load]);
 
-  return { scores, loading, submit, reload: load };
+  return useMemo(() => ({
+    scores,
+    loading,
+    submit,
+    reload: load,
+    // Backward-compat aliases used by older 2D games:
+    topScores: scores,
+    isLoading: loading,
+    refreshScores: load,
+    submitScore: submit,
+    userBestScore,
+  }), [scores, loading, submit, load, userBestScore]);
 }
