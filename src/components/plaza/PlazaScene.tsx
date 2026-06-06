@@ -1128,8 +1128,10 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
   const showMessage = user.message && user.messageTime && Date.now() - user.messageTime < 5000;
   const headScale: [number, number, number] = custom.headShape === "oval" ? [1, 1.2, 1] : custom.headShape === "square" ? [1.1, 1, 1.1] : [1, 1, 1];
 
+  const heightScale = custom.height ?? 1;
+  const buildScale = custom.build ?? 1;
   return (
-    <group ref={groupRef} position={[user.position[0], 0.5, user.position[2]]} onClick={onClick}
+    <group ref={groupRef} position={[user.position[0], 0.5 * heightScale, user.position[2]]} scale={[buildScale, heightScale, buildScale]} onClick={onClick}
       onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
       <mesh ref={bodyRef} castShadow><capsuleGeometry args={[0.22, 0.45, 8, 16]} /><meshStandardMaterial color={shirtColor} roughness={0.7} emissive={hovered || isLocal ? shirtColor : new THREE.Color(0, 0, 0)} emissiveIntensity={hovered ? 0.25 : isLocal ? 0.1 : 0} /></mesh>
       <mesh position={[-0.28, 0.2, 0]} castShadow><sphereGeometry args={[0.08, 10, 10]} /><meshStandardMaterial color={shirtColor} roughness={0.7} /></mesh>
@@ -1174,9 +1176,12 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
           <meshBasicMaterial color="#ff00ff" transparent opacity={0.3 + Math.sin(Date.now() * 0.01) * 0.2} side={THREE.DoubleSide} />
         </mesh>
       )}
-      <AvatarFace emote={user.emote} emoteTime={user.emoteTime} />
+      <AvatarFace emote={user.emote} emoteTime={user.emoteTime} eyeColor={custom.eyeColor} />
+      <Hair style={custom.hairStyle ?? "short"} color={custom.hairColor ?? "#4a2c1a"} />
       <Hat style={custom.hatStyle} color={custom.hatColor} />
       <Glasses style={custom.glassesStyle} color={custom.glassesColor} />
+      <Cape style={custom.capeStyle ?? "none"} color={custom.capeColor ?? "#a855f7"} />
+      <Aura style={custom.auraStyle ?? "none"} color={custom.auraColor ?? "#a855f7"} />
       <EmoteDisplay emote={user.emote} emoteTime={user.emoteTime} />
       <EmoteParticles emote={user.emote} emoteTime={user.emoteTime} />
       {user.isAdmin && (
@@ -1194,7 +1199,7 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
       {user.isSpeaking && (
         <mesh position={[0.35, 0.8, 0]}><sphereGeometry args={[0.06, 8, 8]} /><meshStandardMaterial color="#2ecc71" emissive="#2ecc71" emissiveIntensity={0.8} /></mesh>
       )}
-      <Text position={[0, 1.1, 0]} fontSize={0.15} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="#000000">{user.name}</Text>
+      <Text position={[0, 1.1, 0]} fontSize={0.15} color={custom.nameColor ?? "white"} anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="#000000">{user.name}</Text>
       {showMessage && (
         <group position={[0, 1.5, 0]}>
           <mesh><planeGeometry args={[Math.min(user.message!.length * 0.1 + 0.4, 3), 0.35]} /><meshBasicMaterial color="white" transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>
