@@ -477,6 +477,8 @@ const EmoteParticles = ({ emote, emoteTime }: { emote?: string; emoteTime?: numb
 // ============ HAT ============
 const Hat = ({ style, color }: { style: string; color: string }) => {
   const col = useMemo(() => new THREE.Color(color), [color]);
+  const propellerRef = useRef<THREE.Group>(null);
+  useFrame((_, dt) => { if (propellerRef.current) propellerRef.current.rotation.y += dt * 12; });
   if (style === "none") return null;
   if (style === "tophat") return (
     <group position={[0, 0.85, 0]}>
@@ -507,6 +509,50 @@ const Hat = ({ style, color }: { style: string; color: string }) => {
       <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
     </mesh>
   );
+  if (style === "wizard") return (
+    <group position={[0, 0.78, 0]}>
+      <mesh position={[0, 0.25, 0]}><coneGeometry args={[0.22, 0.7, 12]} /><meshStandardMaterial color={col} /></mesh>
+      <mesh position={[0, -0.02, 0]}><cylinderGeometry args={[0.32, 0.32, 0.04, 16]} /><meshStandardMaterial color={col} /></mesh>
+      <mesh position={[0, 0.6, 0]}><sphereGeometry args={[0.05, 8, 8]} /><meshStandardMaterial color="#fde047" emissive="#fde047" emissiveIntensity={1} /></mesh>
+    </group>
+  );
+  if (style === "cowboy") return (
+    <group position={[0, 0.74, 0]}>
+      <mesh><cylinderGeometry args={[0.16, 0.18, 0.18, 16]} /><meshStandardMaterial color={col} roughness={0.9} /></mesh>
+      <mesh position={[0, -0.08, 0]} rotation={[0, 0, 0]}><cylinderGeometry args={[0.36, 0.36, 0.03, 16]} /><meshStandardMaterial color={col} roughness={0.9} /></mesh>
+      <mesh position={[0.36, -0.06, 0]} rotation={[0, 0, 0.3]}><boxGeometry args={[0.05, 0.02, 0.3]} /><meshStandardMaterial color={col} /></mesh>
+    </group>
+  );
+  if (style === "propeller") return (
+    <group position={[0, 0.72, 0]}>
+      <mesh><sphereGeometry args={[0.24, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color={col} /></mesh>
+      <mesh position={[0, 0.18, 0]}><cylinderGeometry args={[0.015, 0.015, 0.1, 6]} /><meshStandardMaterial color="#333" /></mesh>
+      <group ref={propellerRef} position={[0, 0.24, 0]}>
+        <mesh><boxGeometry args={[0.4, 0.015, 0.04]} /><meshStandardMaterial color="#ef4444" /></mesh>
+        <mesh rotation={[0, Math.PI / 2, 0]}><boxGeometry args={[0.4, 0.015, 0.04]} /><meshStandardMaterial color="#3b82f6" /></mesh>
+      </group>
+    </group>
+  );
+  if (style === "headphones") return (
+    <group position={[0, 0.7, 0]}>
+      <mesh rotation={[0, 0, Math.PI / 2]}><torusGeometry args={[0.22, 0.02, 8, 24, Math.PI]} /><meshStandardMaterial color={col} metalness={0.6} /></mesh>
+      <mesh position={[-0.22, -0.05, 0]}><sphereGeometry args={[0.06, 12, 12]} /><meshStandardMaterial color={col} metalness={0.4} /></mesh>
+      <mesh position={[0.22, -0.05, 0]}><sphereGeometry args={[0.06, 12, 12]} /><meshStandardMaterial color={col} metalness={0.4} /></mesh>
+    </group>
+  );
+  if (style === "horns") return (
+    <group position={[0, 0.72, 0]}>
+      <mesh position={[-0.14, 0.05, 0]} rotation={[0, 0, -0.3]}><coneGeometry args={[0.04, 0.18, 8]} /><meshStandardMaterial color={col} roughness={0.4} metalness={0.3} /></mesh>
+      <mesh position={[0.14, 0.05, 0]} rotation={[0, 0, 0.3]}><coneGeometry args={[0.04, 0.18, 8]} /><meshStandardMaterial color={col} roughness={0.4} metalness={0.3} /></mesh>
+    </group>
+  );
+  if (style === "antenna") return (
+    <group position={[0, 0.78, 0]}>
+      <mesh position={[0, 0.1, 0]}><cylinderGeometry args={[0.01, 0.01, 0.22, 6]} /><meshStandardMaterial color="#333" /></mesh>
+      <mesh position={[0, 0.24, 0]}><sphereGeometry args={[0.04, 12, 12]} /><meshStandardMaterial color={col} emissive={col} emissiveIntensity={0.8} /></mesh>
+      <pointLight position={[0, 0.24, 0]} color={color} intensity={0.4} distance={1.5} />
+    </group>
+  );
   return null;
 };
 
@@ -521,6 +567,33 @@ const Glasses = ({ style, color }: { style: string; color: string }) => {
       <mesh><torusGeometry args={[0.06, 0.008, 8, 16]} /><meshStandardMaterial color={col} /></mesh>
     </group>
   );
+  if (style === "cyber") return (
+    <group position={[0, 0.6, 0.18]}>
+      <mesh><boxGeometry args={[0.32, 0.05, 0.01]} /><meshStandardMaterial color={col} emissive={col} emissiveIntensity={0.6} metalness={0.8} /></mesh>
+      <mesh position={[0, 0, 0.005]}><boxGeometry args={[0.3, 0.04, 0.005]} /><meshStandardMaterial color="#00ffff" emissive="#00ffff" emissiveIntensity={1} transparent opacity={0.6} /></mesh>
+    </group>
+  );
+  if (style === "heart") return (
+    <group position={[0, 0.6, 0.18]}>
+      {[-0.08, 0.08].map((x, i) => (
+        <group key={i} position={[x, 0, 0]}>
+          <mesh position={[-0.025, 0.01, 0]}><sphereGeometry args={[0.03, 8, 8]} /><meshStandardMaterial color={col} emissive={col} emissiveIntensity={0.3} /></mesh>
+          <mesh position={[0.025, 0.01, 0]}><sphereGeometry args={[0.03, 8, 8]} /><meshStandardMaterial color={col} emissive={col} emissiveIntensity={0.3} /></mesh>
+          <mesh position={[0, -0.025, 0]} rotation={[0, 0, Math.PI / 4]}><boxGeometry args={[0.05, 0.05, 0.01]} /><meshStandardMaterial color={col} emissive={col} emissiveIntensity={0.3} /></mesh>
+        </group>
+      ))}
+    </group>
+  );
+  if (style === "star") return (
+    <group position={[0, 0.6, 0.18]}>
+      {[-0.08, 0.08].map((x, i) => (
+        <mesh key={i} position={[x, 0, 0]} rotation={[0, 0, Math.PI / 5]}>
+          <torusGeometry args={[0.05, 0.01, 6, 5]} />
+          <meshStandardMaterial color={col} emissive={col} emissiveIntensity={0.5} />
+        </mesh>
+      ))}
+    </group>
+  );
   return (
     <group position={[0, 0.6, 0.18]}>
       <mesh position={[-0.08, 0, 0]}><torusGeometry args={[lensRadius, 0.006, 8, 16]} /><meshStandardMaterial color={col} /></mesh>
@@ -533,6 +606,238 @@ const Glasses = ({ style, color }: { style: string; color: string }) => {
     </group>
   );
 };
+
+// ============ HAIR ============
+const Hair = ({ style, color }: { style: string; color: string }) => {
+  const col = useMemo(() => new THREE.Color(color), [color]);
+  if (!style || style === "none") return null;
+  if (style === "short") return (
+    <mesh position={[0, 0.66, -0.02]} castShadow>
+      <sphereGeometry args={[0.235, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2.2]} />
+      <meshStandardMaterial color={col} roughness={0.85} />
+    </mesh>
+  );
+  if (style === "long") return (
+    <group>
+      <mesh position={[0, 0.66, -0.02]} castShadow>
+        <sphereGeometry args={[0.235, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2.2]} />
+        <meshStandardMaterial color={col} roughness={0.85} />
+      </mesh>
+      <mesh position={[0, 0.4, -0.16]} castShadow>
+        <boxGeometry args={[0.42, 0.35, 0.1]} />
+        <meshStandardMaterial color={col} roughness={0.85} />
+      </mesh>
+    </group>
+  );
+  if (style === "mohawk") return (
+    <mesh position={[0, 0.78, 0]} castShadow>
+      <boxGeometry args={[0.06, 0.18, 0.4]} />
+      <meshStandardMaterial color={col} roughness={0.8} />
+    </mesh>
+  );
+  if (style === "afro") return (
+    <mesh position={[0, 0.7, 0]} castShadow>
+      <sphereGeometry args={[0.3, 16, 16]} />
+      <meshStandardMaterial color={col} roughness={1} />
+    </mesh>
+  );
+  if (style === "ponytail") return (
+    <group>
+      <mesh position={[0, 0.66, -0.02]} castShadow>
+        <sphereGeometry args={[0.235, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2.2]} />
+        <meshStandardMaterial color={col} roughness={0.85} />
+      </mesh>
+      <mesh position={[0, 0.5, -0.22]} rotation={[0.4, 0, 0]} castShadow>
+        <capsuleGeometry args={[0.05, 0.3, 6, 12]} />
+        <meshStandardMaterial color={col} roughness={0.85} />
+      </mesh>
+    </group>
+  );
+  if (style === "bun") return (
+    <group>
+      <mesh position={[0, 0.66, -0.02]} castShadow>
+        <sphereGeometry args={[0.235, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2.2]} />
+        <meshStandardMaterial color={col} roughness={0.85} />
+      </mesh>
+      <mesh position={[0, 0.88, -0.05]} castShadow>
+        <sphereGeometry args={[0.1, 12, 12]} />
+        <meshStandardMaterial color={col} roughness={0.85} />
+      </mesh>
+    </group>
+  );
+  if (style === "spiky") return (
+    <group position={[0, 0.7, 0]}>
+      {Array.from({ length: 9 }).map((_, i) => {
+        const a = (i / 9) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.12, 0.05, Math.sin(a) * 0.12]} rotation={[0, 0, 0]} castShadow>
+            <coneGeometry args={[0.045, 0.18, 6]} />
+            <meshStandardMaterial color={col} roughness={0.8} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+  if (style === "curly") return (
+    <group position={[0, 0.66, -0.02]}>
+      {Array.from({ length: 14 }).map((_, i) => {
+        const a = (i / 14) * Math.PI * 2;
+        const r = 0.2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * r, Math.sin(i * 1.7) * 0.08, Math.sin(a) * r]} castShadow>
+            <sphereGeometry args={[0.07, 8, 8]} />
+            <meshStandardMaterial color={col} roughness={0.9} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+  return null;
+};
+
+// ============ CAPE / BACK ACCESSORY ============
+const Cape = ({ style, color }: { style: string; color: string }) => {
+  const col = useMemo(() => new THREE.Color(color), [color]);
+  const capeRef = useRef<THREE.Mesh>(null);
+  const wingRefL = useRef<THREE.Group>(null);
+  const wingRefR = useRef<THREE.Group>(null);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (capeRef.current) capeRef.current.rotation.x = Math.sin(t * 1.5) * 0.08;
+    if (wingRefL.current) wingRefL.current.rotation.z = Math.PI / 3 + Math.sin(t * 3) * 0.15;
+    if (wingRefR.current) wingRefR.current.rotation.z = -Math.PI / 3 - Math.sin(t * 3) * 0.15;
+  });
+  if (!style || style === "none") return null;
+  if (style === "cape") return (
+    <mesh ref={capeRef} position={[0, 0.05, -0.18]} castShadow>
+      <boxGeometry args={[0.5, 0.7, 0.02]} />
+      <meshStandardMaterial color={col} side={THREE.DoubleSide} roughness={0.8} />
+    </mesh>
+  );
+  if (style === "scarf") return (
+    <group position={[0, 0.35, 0]}>
+      <mesh><torusGeometry args={[0.18, 0.04, 6, 16]} /><meshStandardMaterial color={col} roughness={0.9} /></mesh>
+      <mesh position={[0.05, -0.15, 0.1]}><boxGeometry args={[0.08, 0.25, 0.02]} /><meshStandardMaterial color={col} side={THREE.DoubleSide} /></mesh>
+    </group>
+  );
+  if (style === "wings") return (
+    <group position={[0, 0.25, -0.1]}>
+      <group ref={wingRefL} position={[-0.05, 0, 0]}>
+        <mesh position={[-0.2, 0, 0]} castShadow>
+          <boxGeometry args={[0.45, 0.35, 0.03]} />
+          <meshStandardMaterial color={col} emissive={col} emissiveIntensity={0.2} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+      <group ref={wingRefR} position={[0.05, 0, 0]}>
+        <mesh position={[0.2, 0, 0]} castShadow>
+          <boxGeometry args={[0.45, 0.35, 0.03]} />
+          <meshStandardMaterial color={col} emissive={col} emissiveIntensity={0.2} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+    </group>
+  );
+  if (style === "backpack") return (
+    <group position={[0, 0.05, -0.18]}>
+      <mesh castShadow><boxGeometry args={[0.3, 0.4, 0.18]} /><meshStandardMaterial color={col} roughness={0.7} /></mesh>
+      <mesh position={[0, 0.1, 0.09]}><boxGeometry args={[0.25, 0.1, 0.02]} /><meshStandardMaterial color={col} /></mesh>
+    </group>
+  );
+  if (style === "jetpack") return (
+    <group position={[0, 0.05, -0.2]}>
+      <mesh position={[-0.1, 0, 0]} castShadow><cylinderGeometry args={[0.08, 0.08, 0.4, 12]} /><meshStandardMaterial color={col} metalness={0.7} roughness={0.3} /></mesh>
+      <mesh position={[0.1, 0, 0]} castShadow><cylinderGeometry args={[0.08, 0.08, 0.4, 12]} /><meshStandardMaterial color={col} metalness={0.7} roughness={0.3} /></mesh>
+      <mesh position={[-0.1, -0.25, 0]}><coneGeometry args={[0.05, 0.15, 8]} /><meshStandardMaterial color="#fb923c" emissive="#fb923c" emissiveIntensity={1.5} /></mesh>
+      <mesh position={[0.1, -0.25, 0]}><coneGeometry args={[0.05, 0.15, 8]} /><meshStandardMaterial color="#fb923c" emissive="#fb923c" emissiveIntensity={1.5} /></mesh>
+      <pointLight position={[0, -0.3, 0]} color="#fb923c" intensity={0.8} distance={2} />
+    </group>
+  );
+  return null;
+};
+
+// ============ AURA ============
+const Aura = ({ style, color }: { style: string; color: string }) => {
+  const col = useMemo(() => new THREE.Color(color), [color]);
+  const ringRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (ringRef.current) {
+      const mat = ringRef.current.material as THREE.MeshBasicMaterial;
+      if (mat) mat.opacity = 0.25 + Math.sin(t * 2) * 0.15;
+      ringRef.current.rotation.z = t * 0.5;
+    }
+    if (groupRef.current) groupRef.current.rotation.y = t * (style === "electric" ? 4 : 1);
+  });
+  if (!style || style === "none") return null;
+  if (style === "glow") return (
+    <>
+      <pointLight color={color} intensity={1.2} distance={3} />
+      <mesh ref={ringRef} position={[0, -0.85, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.35, 0.6, 32]} />
+        <meshBasicMaterial color={col} transparent opacity={0.3} side={THREE.DoubleSide} />
+      </mesh>
+    </>
+  );
+  if (style === "flames") return (
+    <group ref={groupRef} position={[0, -0.4, 0]}>
+      {Array.from({ length: 8 }).map((_, i) => {
+        const a = (i / 8) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.3, Math.sin(i) * 0.1, Math.sin(a) * 0.3]}>
+            <coneGeometry args={[0.06, 0.25, 6]} />
+            <meshBasicMaterial color="#fb923c" transparent opacity={0.7} />
+          </mesh>
+        );
+      })}
+      <pointLight color="#fb923c" intensity={1.5} distance={3} />
+    </group>
+  );
+  if (style === "electric") return (
+    <group ref={groupRef}>
+      {Array.from({ length: 6 }).map((_, i) => {
+        const a = (i / 6) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.5, 0, Math.sin(a) * 0.5]}>
+            <boxGeometry args={[0.02, 1.2, 0.02]} />
+            <meshBasicMaterial color={col} transparent opacity={0.7} />
+          </mesh>
+        );
+      })}
+      <pointLight color={color} intensity={1.5} distance={3} />
+    </group>
+  );
+  if (style === "rainbow") return (
+    <group>
+      {["#ef4444", "#f97316", "#fde047", "#10b981", "#3b82f6", "#a855f7"].map((c, i) => (
+        <mesh key={i} position={[0, -0.85 + i * 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.3 + i * 0.05, 0.34 + i * 0.05, 32]} />
+          <meshBasicMaterial color={c} transparent opacity={0.5} side={THREE.DoubleSide} />
+        </mesh>
+      ))}
+    </group>
+  );
+  if (style === "shadow") return (
+    <mesh position={[0, -0.88, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <ringGeometry args={[0, 0.6, 32]} />
+      <meshBasicMaterial color="#000" transparent opacity={0.6} side={THREE.DoubleSide} />
+    </mesh>
+  );
+  if (style === "leaves") return (
+    <group ref={groupRef}>
+      {Array.from({ length: 10 }).map((_, i) => {
+        const a = (i / 10) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.45, -0.3 + Math.sin(i) * 0.2, Math.sin(a) * 0.45]} rotation={[0, a, 0.3]}>
+            <boxGeometry args={[0.08, 0.02, 0.12]} />
+            <meshStandardMaterial color="#10b981" />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+  return null;
+};
+
 
 // ============ FLICKERING FLAME ============
 interface FlickeringFlameProps {
@@ -598,7 +903,7 @@ const FlickeringFlame = ({ position, color, emissiveColor, baseLampIntensity, li
 const lerpAngle = (current: number, target: number, factor: number) => current + (target - current) * factor;
 
 // ============ AVATAR FACE EXPRESSIONS ============
-const AvatarFace = ({ emote, emoteTime }: { emote?: string; emoteTime?: number }) => {
+const AvatarFace = ({ emote, emoteTime, eyeColor = "#2c1810" }: { emote?: string; emoteTime?: number; eyeColor?: string }) => {
   const leftEyeRef = useRef<THREE.Mesh>(null);
   const rightEyeRef = useRef<THREE.Mesh>(null);
   const leftPupilRef = useRef<THREE.Mesh>(null);
@@ -675,8 +980,8 @@ const AvatarFace = ({ emote, emoteTime }: { emote?: string; emoteTime?: number }
       <mesh ref={leftEyeRef} position={[-0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#f0f0f0" roughness={0.2} /></mesh>
       <mesh ref={rightEyeRef} position={[0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#f0f0f0" roughness={0.2} /></mesh>
       {/* Pupils */}
-      <mesh ref={leftPupilRef} position={[-0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#222" /></mesh>
-      <mesh ref={rightPupilRef} position={[0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh ref={leftPupilRef} position={[-0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color={eyeColor} /></mesh>
+      <mesh ref={rightPupilRef} position={[0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color={eyeColor} /></mesh>
       {/* Mouth */}
       <mesh ref={mouthRef} position={[0, 0.5, 0.2]}><boxGeometry args={[0.08, 0.015, 0.01]} /><meshStandardMaterial color="#cc6666" /></mesh>
       {/* Eyebrows */}
@@ -823,8 +1128,10 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
   const showMessage = user.message && user.messageTime && Date.now() - user.messageTime < 5000;
   const headScale: [number, number, number] = custom.headShape === "oval" ? [1, 1.2, 1] : custom.headShape === "square" ? [1.1, 1, 1.1] : [1, 1, 1];
 
+  const heightScale = custom.height ?? 1;
+  const buildScale = custom.build ?? 1;
   return (
-    <group ref={groupRef} position={[user.position[0], 0.5, user.position[2]]} onClick={onClick}
+    <group ref={groupRef} position={[user.position[0], 0.5 * heightScale, user.position[2]]} scale={[buildScale, heightScale, buildScale]} onClick={onClick}
       onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
       <mesh ref={bodyRef} castShadow><capsuleGeometry args={[0.22, 0.45, 8, 16]} /><meshStandardMaterial color={shirtColor} roughness={0.7} emissive={hovered || isLocal ? shirtColor : new THREE.Color(0, 0, 0)} emissiveIntensity={hovered ? 0.25 : isLocal ? 0.1 : 0} /></mesh>
       <mesh position={[-0.28, 0.2, 0]} castShadow><sphereGeometry args={[0.08, 10, 10]} /><meshStandardMaterial color={shirtColor} roughness={0.7} /></mesh>
@@ -869,9 +1176,12 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
           <meshBasicMaterial color="#ff00ff" transparent opacity={0.3 + Math.sin(Date.now() * 0.01) * 0.2} side={THREE.DoubleSide} />
         </mesh>
       )}
-      <AvatarFace emote={user.emote} emoteTime={user.emoteTime} />
+      <AvatarFace emote={user.emote} emoteTime={user.emoteTime} eyeColor={custom.eyeColor} />
+      <Hair style={custom.hairStyle ?? "short"} color={custom.hairColor ?? "#4a2c1a"} />
       <Hat style={custom.hatStyle} color={custom.hatColor} />
       <Glasses style={custom.glassesStyle} color={custom.glassesColor} />
+      <Cape style={custom.capeStyle ?? "none"} color={custom.capeColor ?? "#a855f7"} />
+      <Aura style={custom.auraStyle ?? "none"} color={custom.auraColor ?? "#a855f7"} />
       <EmoteDisplay emote={user.emote} emoteTime={user.emoteTime} />
       <EmoteParticles emote={user.emote} emoteTime={user.emoteTime} />
       {user.isAdmin && (
@@ -889,7 +1199,7 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
       {user.isSpeaking && (
         <mesh position={[0.35, 0.8, 0]}><sphereGeometry args={[0.06, 8, 8]} /><meshStandardMaterial color="#2ecc71" emissive="#2ecc71" emissiveIntensity={0.8} /></mesh>
       )}
-      <Text position={[0, 1.1, 0]} fontSize={0.15} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="#000000">{user.name}</Text>
+      <Text position={[0, 1.1, 0]} fontSize={0.15} color={custom.nameColor ?? "white"} anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="#000000">{user.name}</Text>
       {showMessage && (
         <group position={[0, 1.5, 0]}>
           <mesh><planeGeometry args={[Math.min(user.message!.length * 0.1 + 0.4, 3), 0.35]} /><meshBasicMaterial color="white" transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>
