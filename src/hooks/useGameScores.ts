@@ -7,6 +7,7 @@ export interface GameScoreRow {
   game_type: string;
   score: number;
   time_seconds: number | null;
+  difficulty?: string | null;
   created_at: string;
   display_name?: string;
 }
@@ -23,7 +24,7 @@ export function useGameScores(gameType: string, limit = 10) {
     setLoading(true);
     const { data } = await supabase
       .from("game_scores")
-      .select("id, user_id, game_type, score, time_seconds, created_at")
+      .select("id, user_id, game_type, score, time_seconds, difficulty, created_at")
       .eq("game_type", gameType)
       .order("score", { ascending: false })
       .limit(limit);
@@ -41,7 +42,7 @@ export function useGameScores(gameType: string, limit = 10) {
     if (auth.user) {
       const { data: best } = await supabase
         .from("game_scores")
-        .select("id, user_id, game_type, score, time_seconds, created_at")
+        .select("id, user_id, game_type, score, time_seconds, difficulty, created_at")
         .eq("game_type", gameType)
         .eq("user_id", auth.user.id)
         .order("score", { ascending: false })
