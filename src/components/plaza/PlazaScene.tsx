@@ -980,8 +980,8 @@ const AvatarFace = ({ emote, emoteTime, eyeColor = "#2c1810" }: { emote?: string
       <mesh ref={leftEyeRef} position={[-0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#f0f0f0" roughness={0.2} /></mesh>
       <mesh ref={rightEyeRef} position={[0.08, 0.6, 0.18]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#f0f0f0" roughness={0.2} /></mesh>
       {/* Pupils */}
-      <mesh ref={leftPupilRef} position={[-0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#222" /></mesh>
-      <mesh ref={rightPupilRef} position={[0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh ref={leftPupilRef} position={[-0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color={eyeColor} /></mesh>
+      <mesh ref={rightPupilRef} position={[0.08, 0.6, 0.21]}><sphereGeometry args={[0.02, 8, 8]} /><meshStandardMaterial color={eyeColor} /></mesh>
       {/* Mouth */}
       <mesh ref={mouthRef} position={[0, 0.5, 0.2]}><boxGeometry args={[0.08, 0.015, 0.01]} /><meshStandardMaterial color="#cc6666" /></mesh>
       {/* Eyebrows */}
