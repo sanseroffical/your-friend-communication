@@ -31,6 +31,9 @@ export interface AvatarCustomization {
   nameColor?: string;
   height?: number; // 0.85 - 1.2
   build?: number;  // 0.85 - 1.2
+  // Image uploads
+  customAvatarUrl?: string; // Photo billboard above avatar
+  customThemeUrl?: string;  // Texture wrapped on body/shirt
 }
 
 export const DEFAULT_CUSTOMIZATION: AvatarCustomization = {
@@ -52,6 +55,8 @@ export const DEFAULT_CUSTOMIZATION: AvatarCustomization = {
   nameColor: "#ffffff",
   height: 1,
   build: 1,
+  customAvatarUrl: "",
+  customThemeUrl: "",
 };
 
 const SKIN_COLORS = [
