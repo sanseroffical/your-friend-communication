@@ -380,13 +380,14 @@ const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSav
         </DialogHeader>
         <ScrollArea className="h-[62vh]">
           <Tabs defaultValue="body" className="pr-4">
-            <TabsList className="w-full grid grid-cols-6">
+            <TabsList className="w-full grid grid-cols-7">
               <TabsTrigger value="body">Body</TabsTrigger>
               <TabsTrigger value="hair">Hair</TabsTrigger>
               <TabsTrigger value="face">Face</TabsTrigger>
               <TabsTrigger value="acc">Acc.</TabsTrigger>
               <TabsTrigger value="cape">Cape</TabsTrigger>
               <TabsTrigger value="fx">FX</TabsTrigger>
+              <TabsTrigger value="upload"><ImageIcon className="h-3 w-3" /></TabsTrigger>
             </TabsList>
 
             <TabsContent value="body" className="space-y-4 mt-4">
