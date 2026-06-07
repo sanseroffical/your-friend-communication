@@ -1,7 +1,35 @@
 import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Text, Sky, Stars } from "@react-three/drei";
+import { OrbitControls, Text, Sky, Stars, useTexture, Billboard } from "@react-three/drei";
 import * as THREE from "three";
+import { useSignedStorageUrl } from "@/hooks/useSignedStorageUrl";
+
+// ============ CUSTOM TEXTURE HOOK ============
+const useResolvedTexture = (rawUrl?: string) => {
+  const resolved = useSignedStorageUrl(rawUrl || null);
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  useEffect(() => {
+    if (!resolved) { setTexture(null); return; }
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+    let cancelled = false;
+    loader.load(
+      resolved,
+      (tex) => {
+        if (cancelled) { tex.dispose(); return; }
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        setTexture(tex);
+      },
+      undefined,
+      () => setTexture(null)
+    );
+    return () => { cancelled = true; };
+  }, [resolved]);
+  return texture;
+};
+
 
 // ============ TIME OF DAY HELPER ============
 const getTimeOfDay = () => {
@@ -1122,9 +1150,12 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
     if (rightShinRef.current) { rightShinRef.current.rotation.x = s.rsX; }
   });
 
+  const themeTexture = useResolvedTexture(custom.customThemeUrl);
+  const avatarPhotoTexture = useResolvedTexture(custom.customAvatarUrl);
   const bodyColor = useMemo(() => new THREE.Color(custom.bodyColor), [custom.bodyColor]);
   const shirtColor = useMemo(() => new THREE.Color(custom.shirtColor), [custom.shirtColor]);
   const pantsColor = useMemo(() => { const c = new THREE.Color(custom.shirtColor); c.offsetHSL(0, -0.1, -0.15); return c; }, [custom.shirtColor]);
+  const shirtMatColor = themeTexture ? new THREE.Color("#ffffff") : shirtColor;
   const showMessage = user.message && user.messageTime && Date.now() - user.messageTime < 5000;
   const headScale: [number, number, number] = custom.headShape === "oval" ? [1, 1.2, 1] : custom.headShape === "square" ? [1.1, 1, 1.1] : [1, 1, 1];
 
@@ -1133,7 +1164,7 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
   return (
     <group ref={groupRef} position={[user.position[0], 0.5 * heightScale, user.position[2]]} scale={[buildScale, heightScale, buildScale]} onClick={onClick}
       onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
-      <mesh ref={bodyRef} castShadow><capsuleGeometry args={[0.22, 0.45, 8, 16]} /><meshStandardMaterial color={shirtColor} roughness={0.7} emissive={hovered || isLocal ? shirtColor : new THREE.Color(0, 0, 0)} emissiveIntensity={hovered ? 0.25 : isLocal ? 0.1 : 0} /></mesh>
+      <mesh ref={bodyRef} castShadow><capsuleGeometry args={[0.22, 0.45, 8, 16]} /><meshStandardMaterial map={themeTexture ?? undefined} color={shirtMatColor} roughness={0.7} emissive={hovered || isLocal ? shirtColor : new THREE.Color(0, 0, 0)} emissiveIntensity={hovered ? 0.25 : isLocal ? 0.1 : 0} /></mesh>
       <mesh position={[-0.28, 0.2, 0]} castShadow><sphereGeometry args={[0.08, 10, 10]} /><meshStandardMaterial color={shirtColor} roughness={0.7} /></mesh>
       <mesh position={[0.28, 0.2, 0]} castShadow><sphereGeometry args={[0.08, 10, 10]} /><meshStandardMaterial color={shirtColor} roughness={0.7} /></mesh>
       <group ref={leftUpperArmRef} position={[-0.32, 0.18, 0]}>
@@ -1200,6 +1231,18 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
         <mesh position={[0.35, 0.8, 0]}><sphereGeometry args={[0.06, 8, 8]} /><meshStandardMaterial color="#2ecc71" emissive="#2ecc71" emissiveIntensity={0.8} /></mesh>
       )}
       <Text position={[0, 1.1, 0]} fontSize={0.15} color={custom.nameColor ?? "white"} anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="#000000">{user.name}</Text>
+      {avatarPhotoTexture && (
+        <Billboard position={[0, 1.55, 0]}>
+          <mesh>
+            <planeGeometry args={[0.55, 0.55]} />
+            <meshBasicMaterial map={avatarPhotoTexture} transparent side={THREE.DoubleSide} />
+          </mesh>
+          <mesh position={[0, 0, -0.01]}>
+            <planeGeometry args={[0.6, 0.6]} />
+            <meshBasicMaterial color={custom.nameColor ?? "#ffffff"} transparent opacity={0.85} side={THREE.DoubleSide} />
+          </mesh>
+        </Billboard>
+      )}
       {showMessage && (
         <group position={[0, 1.5, 0]}>
           <mesh><planeGeometry args={[Math.min(user.message!.length * 0.1 + 0.4, 3), 0.35]} /><meshBasicMaterial color="white" transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>
