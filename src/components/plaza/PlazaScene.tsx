@@ -2,6 +2,34 @@ import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Text, Sky, Stars, useTexture, Billboard } from "@react-three/drei";
 import * as THREE from "three";
+import { useSignedStorageUrl } from "@/hooks/useSignedStorageUrl";
+
+// ============ CUSTOM TEXTURE HOOK ============
+const useResolvedTexture = (rawUrl?: string) => {
+  const resolved = useSignedStorageUrl(rawUrl || null);
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  useEffect(() => {
+    if (!resolved) { setTexture(null); return; }
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+    let cancelled = false;
+    loader.load(
+      resolved,
+      (tex) => {
+        if (cancelled) { tex.dispose(); return; }
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        setTexture(tex);
+      },
+      undefined,
+      () => setTexture(null)
+    );
+    return () => { cancelled = true; };
+  }, [resolved]);
+  return texture;
+};
+
 
 // ============ TIME OF DAY HELPER ============
 const getTimeOfDay = () => {
