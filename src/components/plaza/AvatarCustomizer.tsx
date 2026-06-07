@@ -435,6 +435,28 @@ const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSav
               )}
               <OptionPicker options={PARTICLE_EFFECTS} selected={customization.particleEffect} onSelect={(id) => update("particleEffect", id)} label="Particle Effect" />
             </TabsContent>
+
+            <TabsContent value="upload" className="space-y-4 mt-4">
+              <ImageUploader
+                userId={userId}
+                kind="avatar"
+                value={customization.customAvatarUrl ?? ""}
+                onChange={(url) => update("customAvatarUrl", url)}
+                label="Avatar Photo"
+                description="Floats above your avatar as a portrait billboard"
+              />
+              <ImageUploader
+                userId={userId}
+                kind="theme"
+                value={customization.customThemeUrl ?? ""}
+                onChange={(url) => update("customThemeUrl", url)}
+                label="Outfit Theme"
+                description="Wraps your shirt and body in a custom texture"
+              />
+              <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                <Palette className="h-3 w-3" /> Images up to 3MB · PNG, JPG, WebP, GIF
+              </p>
+            </TabsContent>
           </Tabs>
         </ScrollArea>
         <div className="flex gap-2 pt-2">
