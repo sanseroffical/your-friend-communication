@@ -228,6 +228,85 @@ const SliderRow = ({ label, value, onChange, min = 0.85, max = 1.2, step = 0.01 
 
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
+const ImageUploader = ({ userId, kind, value, onChange, label, description }: {
+  userId: string; kind: "avatar" | "theme"; value: string; onChange: (url: string) => void; label: string; description: string;
+}) => {
+  const [uploading, setUploading] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Invalid file", description: "Please upload an image", variant: "destructive" });
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 3MB", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${userId}/avatar-${kind}.${ext}`;
+      const { error } = await supabase.storage.from("chat-attachments").upload(path, file, { upsert: true });
+      if (error) throw error;
+      onChange(`${getStorageRef("chat-attachments", path)}?t=${Date.now()}`);
+      toast({ title: "Uploaded!" });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="space-y-2 rounded-lg border border-border/50 p-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <Label className="text-sm font-medium">{label}</Label>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
+        {value && (
+          <Button size="sm" variant="ghost" onClick={() => onChange("")} title="Remove">
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      {value && (
+        <div className="flex justify-center">
+          <img src={value} alt="preview" className="h-20 w-20 rounded-md object-cover border border-border" />
+        </div>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+      <Button variant="outline" size="sm" className="w-full" onClick={() => inputRef.current?.click()} disabled={uploading}>
+        {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+        Upload Image
+      </Button>
+      <div className="flex gap-2">
+        <Input
+          placeholder="or paste image URL"
+          value={urlInput}
+          onChange={(e) => setUrlInput(e.target.value)}
+          className="h-9 text-xs"
+        />
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={!urlInput.trim()}
+          onClick={() => { onChange(urlInput.trim()); setUrlInput(""); }}
+        >
+          Set
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+
 const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSave }: AvatarCustomizerProps) => {
   const [customization, setCustomization] = useState<AvatarCustomization>({ ...DEFAULT_CUSTOMIZATION, ...currentCustomization });
   const [saving, setSaving] = useState(false);
