@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Text, Sky, Stars } from "@react-three/drei";
+import { OrbitControls, Text, Sky, Stars, useTexture, Billboard } from "@react-three/drei";
 import * as THREE from "three";
 
 // ============ TIME OF DAY HELPER ============
