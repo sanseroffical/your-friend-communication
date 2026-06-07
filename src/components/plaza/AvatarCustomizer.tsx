@@ -459,7 +459,7 @@ const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSav
             </TabsContent>
 
             <TabsContent value="upload" className="space-y-4 mt-4">
-              <ImageUploader
+              <MediaUploader
                 userId={userId}
                 kind="avatar"
                 value={customization.customAvatarUrl ?? ""}
@@ -467,16 +467,16 @@ const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSav
                 label="Avatar Photo"
                 description="Floats above your avatar as a portrait billboard"
               />
-              <ImageUploader
+              <MediaUploader
                 userId={userId}
                 kind="theme"
                 value={customization.customThemeUrl ?? ""}
                 onChange={(url) => update("customThemeUrl", url)}
-                label="Outfit Theme"
-                description="Wraps your shirt and body in a custom texture"
+                label="Theme Song"
+                description="MP3 that plays when someone clicks your avatar"
               />
               <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                <Palette className="h-3 w-3" /> Images up to 3MB · PNG, JPG, WebP, GIF
+                <Music className="h-3 w-3" /> Images ≤3MB · Audio ≤8MB (MP3, WAV, OGG)
               </p>
             </TabsContent>
           </Tabs>
