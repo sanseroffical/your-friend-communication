@@ -1231,6 +1231,18 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
         <mesh position={[0.35, 0.8, 0]}><sphereGeometry args={[0.06, 8, 8]} /><meshStandardMaterial color="#2ecc71" emissive="#2ecc71" emissiveIntensity={0.8} /></mesh>
       )}
       <Text position={[0, 1.1, 0]} fontSize={0.15} color={custom.nameColor ?? "white"} anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="#000000">{user.name}</Text>
+      {avatarPhotoTexture && (
+        <Billboard position={[0, 1.55, 0]}>
+          <mesh>
+            <planeGeometry args={[0.55, 0.55]} />
+            <meshBasicMaterial map={avatarPhotoTexture} transparent side={THREE.DoubleSide} />
+          </mesh>
+          <mesh position={[0, 0, -0.01]}>
+            <planeGeometry args={[0.6, 0.6]} />
+            <meshBasicMaterial color={custom.nameColor ?? "#ffffff"} transparent opacity={0.85} side={THREE.DoubleSide} />
+          </mesh>
+        </Billboard>
+      )}
       {showMessage && (
         <group position={[0, 1.5, 0]}>
           <mesh><planeGeometry args={[Math.min(user.message!.length * 0.1 + 0.4, 3), 0.35]} /><meshBasicMaterial color="white" transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>
