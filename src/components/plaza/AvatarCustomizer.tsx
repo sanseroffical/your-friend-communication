@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Shuffle, RotateCcw, Upload, Loader2, X, ImageIcon, Palette } from "lucide-react";
+import { Shuffle, RotateCcw, Upload, Loader2, X, ImageIcon, Music, Play, Pause } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getStorageRef } from "@/hooks/useSignedStorageUrl";
@@ -228,28 +228,33 @@ const SliderRow = ({ label, value, onChange, min = 0.85, max = 1.2, step = 0.01 
 
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
-const ImageUploader = ({ userId, kind, value, onChange, label, description }: {
+const MediaUploader = ({ userId, kind, value, onChange, label, description }: {
   userId: string; kind: "avatar" | "theme"; value: string; onChange: (url: string) => void; label: string; description: string;
 }) => {
+  const isAudio = kind === "theme";
   const [uploading, setUploading] = useState(false);
   const [urlInput, setUrlInput] = useState("");
+  const [playing, setPlaying] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
+  const maxBytes = isAudio ? 8 * 1024 * 1024 : 3 * 1024 * 1024;
+  const acceptType = isAudio ? "audio/*" : "image/*";
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast({ title: "Invalid file", description: "Please upload an image", variant: "destructive" });
+    if (isAudio ? !file.type.startsWith("audio/") : !file.type.startsWith("image/")) {
+      toast({ title: "Invalid file", description: isAudio ? "Please upload an audio file" : "Please upload an image", variant: "destructive" });
       return;
     }
-    if (file.size > 3 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max 3MB", variant: "destructive" });
+    if (file.size > maxBytes) {
+      toast({ title: "File too large", description: `Max ${isAudio ? "8MB" : "3MB"}`, variant: "destructive" });
       return;
     }
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "png";
+      const ext = file.name.split(".").pop() || (isAudio ? "mp3" : "png");
       const path = `${userId}/avatar-${kind}.${ext}`;
       const { error } = await supabase.storage.from("chat-attachments").upload(path, file, { upsert: true });
       if (error) throw error;
@@ -263,6 +268,12 @@ const ImageUploader = ({ userId, kind, value, onChange, label, description }: {
     }
   };
 
+  const togglePreview = () => {
+    if (!audioRef.current) return;
+    if (playing) { audioRef.current.pause(); setPlaying(false); }
+    else { audioRef.current.play().then(() => setPlaying(true)).catch(() => {}); }
+  };
+
   return (
     <div className="space-y-2 rounded-lg border border-border/50 p-3">
       <div className="flex items-center justify-between">
@@ -271,24 +282,34 @@ const ImageUploader = ({ userId, kind, value, onChange, label, description }: {
           <p className="text-xs text-muted-foreground">{description}</p>
         </div>
         {value && (
-          <Button size="sm" variant="ghost" onClick={() => onChange("")} title="Remove">
+          <Button size="sm" variant="ghost" onClick={() => { audioRef.current?.pause(); setPlaying(false); onChange(""); }} title="Remove">
             <X className="h-4 w-4" />
           </Button>
         )}
       </div>
-      {value && (
+      {value && !isAudio && (
         <div className="flex justify-center">
           <img src={value} alt="preview" className="h-20 w-20 rounded-md object-cover border border-border" />
         </div>
       )}
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+      {value && isAudio && (
+        <div className="flex items-center gap-2 rounded-md bg-muted/40 p-2">
+          <Button size="icon" variant="secondary" className="h-8 w-8" onClick={togglePreview}>
+            {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          </Button>
+          <Music className="h-4 w-4 text-primary" />
+          <span className="text-xs truncate flex-1">Theme song loaded</span>
+          <audio ref={audioRef} src={value} preload="metadata" onEnded={() => setPlaying(false)} />
+        </div>
+      )}
+      <input ref={inputRef} type="file" accept={acceptType} className="hidden" onChange={handleFile} disabled={uploading} />
       <Button variant="outline" size="sm" className="w-full" onClick={() => inputRef.current?.click()} disabled={uploading}>
         {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
-        Upload Image
+        {isAudio ? "Upload MP3" : "Upload Image"}
       </Button>
       <div className="flex gap-2">
         <Input
-          placeholder="or paste image URL"
+          placeholder={isAudio ? "or paste audio URL" : "or paste image URL"}
           value={urlInput}
           onChange={(e) => setUrlInput(e.target.value)}
           className="h-9 text-xs"
@@ -305,6 +326,7 @@ const ImageUploader = ({ userId, kind, value, onChange, label, description }: {
     </div>
   );
 };
+
 
 
 const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSave }: AvatarCustomizerProps) => {
@@ -437,7 +459,7 @@ const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSav
             </TabsContent>
 
             <TabsContent value="upload" className="space-y-4 mt-4">
-              <ImageUploader
+              <MediaUploader
                 userId={userId}
                 kind="avatar"
                 value={customization.customAvatarUrl ?? ""}
@@ -445,16 +467,16 @@ const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSav
                 label="Avatar Photo"
                 description="Floats above your avatar as a portrait billboard"
               />
-              <ImageUploader
+              <MediaUploader
                 userId={userId}
                 kind="theme"
                 value={customization.customThemeUrl ?? ""}
                 onChange={(url) => update("customThemeUrl", url)}
-                label="Outfit Theme"
-                description="Wraps your shirt and body in a custom texture"
+                label="Theme Song"
+                description="MP3 that plays when someone clicks your avatar"
               />
               <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                <Palette className="h-3 w-3" /> Images up to 3MB · PNG, JPG, WebP, GIF
+                <Music className="h-3 w-3" /> Images ≤3MB · Audio ≤8MB (MP3, WAV, OGG)
               </p>
             </TabsContent>
           </Tabs>
