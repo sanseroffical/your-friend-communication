@@ -581,6 +581,45 @@ const Hat = ({ style, color }: { style: string; color: string }) => {
       <pointLight position={[0, 0.24, 0]} color={color} intensity={0.4} distance={1.5} />
     </group>
   );
+  if (style === "graduation") return (
+    <group position={[0, 0.82, 0]}>
+      <mesh position={[0, -0.04, 0]}><cylinderGeometry args={[0.2, 0.22, 0.1, 12]} /><meshStandardMaterial color="#1a1a1a" /></mesh>
+      <mesh position={[0, 0.04, 0]}><boxGeometry args={[0.5, 0.04, 0.5]} /><meshStandardMaterial color="#1a1a1a" /></mesh>
+      <mesh position={[0.2, 0.06, 0.2]}><sphereGeometry args={[0.04, 8, 8]} /><meshStandardMaterial color="#fde047" /></mesh>
+    </group>
+  );
+  if (style === "santa") return (
+    <group position={[0, 0.78, 0]}>
+      <mesh position={[0, 0.18, 0]} rotation={[0, 0, 0.3]}><coneGeometry args={[0.18, 0.5, 12]} /><meshStandardMaterial color="#dc2626" /></mesh>
+      <mesh position={[0.13, 0.43, 0]}><sphereGeometry args={[0.06, 12, 12]} /><meshStandardMaterial color="#ffffff" /></mesh>
+      <mesh position={[0, -0.04, 0]}><cylinderGeometry args={[0.22, 0.22, 0.06, 16]} /><meshStandardMaterial color="#ffffff" /></mesh>
+    </group>
+  );
+  if (style === "fishbowl") return (
+    <group position={[0, 0.78, 0]}>
+      <mesh><sphereGeometry args={[0.28, 16, 16]} /><meshPhysicalMaterial color="#a0d8ef" transparent opacity={0.35} roughness={0.05} metalness={0.1} /></mesh>
+      <mesh position={[0, -0.05, 0.05]} rotation={[0, 0.5, 0]}><coneGeometry args={[0.05, 0.12, 6]} /><meshStandardMaterial color="#f97316" /></mesh>
+    </group>
+  );
+  if (style === "viking") return (
+    <group position={[0, 0.74, 0]}>
+      <mesh><sphereGeometry args={[0.22, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color={col} metalness={0.7} roughness={0.4} /></mesh>
+      <mesh position={[-0.22, 0.08, 0]} rotation={[0, 0, -0.4]}><coneGeometry args={[0.05, 0.22, 8]} /><meshStandardMaterial color="#fefce8" /></mesh>
+      <mesh position={[0.22, 0.08, 0]} rotation={[0, 0, 0.4]}><coneGeometry args={[0.05, 0.22, 8]} /><meshStandardMaterial color="#fefce8" /></mesh>
+    </group>
+  );
+  if (style === "partyhat") return (
+    <group position={[0, 0.78, 0]}>
+      <mesh position={[0, 0.22, 0]}><coneGeometry args={[0.18, 0.55, 12]} /><meshStandardMaterial color={col} /></mesh>
+      <mesh position={[0, 0.5, 0]}><sphereGeometry args={[0.05, 8, 8]} /><meshStandardMaterial color="#fde047" /></mesh>
+    </group>
+  );
+  if (style === "beret") return (
+    <group position={[0, 0.72, 0]}>
+      <mesh rotation={[0, 0, 0.2]}><cylinderGeometry args={[0.26, 0.22, 0.08, 16]} /><meshStandardMaterial color={col} /></mesh>
+      <mesh position={[0.1, 0.06, 0]}><sphereGeometry args={[0.025, 8, 8]} /><meshStandardMaterial color={col} /></mesh>
+    </group>
+  );
   return null;
 };
 
@@ -720,6 +759,33 @@ const Hair = ({ style, color }: { style: string; color: string }) => {
       })}
     </group>
   );
+  if (style === "twintails") return (
+    <group>
+      <mesh position={[0, 0.66, -0.02]} castShadow><sphereGeometry args={[0.235, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2.2]} /><meshStandardMaterial color={col} roughness={0.85} /></mesh>
+      <mesh position={[-0.22, 0.4, 0]} rotation={[0, 0, 0.3]} castShadow><capsuleGeometry args={[0.05, 0.3, 6, 12]} /><meshStandardMaterial color={col} roughness={0.85} /></mesh>
+      <mesh position={[0.22, 0.4, 0]} rotation={[0, 0, -0.3]} castShadow><capsuleGeometry args={[0.05, 0.3, 6, 12]} /><meshStandardMaterial color={col} roughness={0.85} /></mesh>
+    </group>
+  );
+  if (style === "buzzcut") return (
+    <mesh position={[0, 0.62, -0.02]} castShadow>
+      <sphereGeometry args={[0.225, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2.5]} />
+      <meshStandardMaterial color={col} roughness={1} />
+    </mesh>
+  );
+  if (style === "dreadlocks") return (
+    <group position={[0, 0.66, -0.02]}>
+      <mesh castShadow><sphereGeometry args={[0.235, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2.2]} /><meshStandardMaterial color={col} roughness={0.95} /></mesh>
+      {Array.from({ length: 12 }).map((_, i) => {
+        const a = (i / 12) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.22, -0.15, Math.sin(a) * 0.22]} castShadow>
+            <capsuleGeometry args={[0.025, 0.25, 4, 8]} />
+            <meshStandardMaterial color={col} roughness={0.95} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
   return null;
 };
 
@@ -777,6 +843,21 @@ const Cape = ({ style, color }: { style: string; color: string }) => {
       <mesh position={[-0.1, -0.25, 0]}><coneGeometry args={[0.05, 0.15, 8]} /><meshStandardMaterial color="#fb923c" emissive="#fb923c" emissiveIntensity={1.5} /></mesh>
       <mesh position={[0.1, -0.25, 0]}><coneGeometry args={[0.05, 0.15, 8]} /><meshStandardMaterial color="#fb923c" emissive="#fb923c" emissiveIntensity={1.5} /></mesh>
       <pointLight position={[0, -0.3, 0]} color="#fb923c" intensity={0.8} distance={2} />
+    </group>
+  );
+  if (style === "tail") return (
+    <group position={[0, -0.05, -0.18]}>
+      <mesh position={[0, -0.15, -0.1]} rotation={[0.6, 0, 0]} castShadow>
+        <capsuleGeometry args={[0.05, 0.4, 6, 12]} />
+        <meshStandardMaterial color={col} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, -0.4, -0.32]}><sphereGeometry args={[0.08, 12, 12]} /><meshStandardMaterial color={col} /></mesh>
+    </group>
+  );
+  if (style === "shield") return (
+    <group position={[0, 0.1, -0.18]}>
+      <mesh castShadow><cylinderGeometry args={[0.22, 0.22, 0.04, 24]} /><meshStandardMaterial color={col} metalness={0.7} roughness={0.3} /></mesh>
+      <mesh position={[0, 0, 0.025]}><torusGeometry args={[0.18, 0.015, 8, 24]} /><meshStandardMaterial color="#fde047" metalness={0.8} /></mesh>
     </group>
   );
   return null;
@@ -863,8 +944,101 @@ const Aura = ({ style, color }: { style: string; color: string }) => {
       })}
     </group>
   );
+  if (style === "bubbles") return (
+    <group ref={groupRef}>
+      {Array.from({ length: 8 }).map((_, i) => {
+        const a = (i / 8) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.45, Math.sin(i * 1.3) * 0.4, Math.sin(a) * 0.45]}>
+            <sphereGeometry args={[0.07 + (i % 3) * 0.02, 12, 12]} />
+            <meshPhysicalMaterial color="#bae6fd" transparent opacity={0.5} roughness={0.05} metalness={0.1} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+  if (style === "petals") return (
+    <group ref={groupRef}>
+      {Array.from({ length: 12 }).map((_, i) => {
+        const a = (i / 12) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.5, Math.sin(i * 0.7) * 0.3 + 0.2, Math.sin(a) * 0.5]} rotation={[0, a, 0.6]}>
+            <boxGeometry args={[0.1, 0.005, 0.06]} />
+            <meshStandardMaterial color="#fda4af" emissive="#f43f5e" emissiveIntensity={0.2} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+  if (style === "sparkstorm") return (
+    <group ref={groupRef}>
+      {Array.from({ length: 14 }).map((_, i) => {
+        const a = (i / 14) * Math.PI * 2;
+        const r = 0.4 + (i % 3) * 0.15;
+        return (
+          <mesh key={i} position={[Math.cos(a) * r, ((i % 5) - 2) * 0.2, Math.sin(a) * r]}>
+            <sphereGeometry args={[0.025, 6, 6]} />
+            <meshBasicMaterial color={col} />
+          </mesh>
+        );
+      })}
+      <pointLight color={color} intensity={1.2} distance={2.5} />
+    </group>
+  );
   return null;
 };
+
+// ============ AVATAR PARTICLES ============
+const AvatarParticles = ({ style, color = "#ffffff" }: { style?: string; color?: string }) => {
+  const ref = useRef<THREE.Group>(null);
+  const seeds = useMemo(() => Array.from({ length: 12 }).map(() => ({
+    a: Math.random() * Math.PI * 2,
+    r: 0.3 + Math.random() * 0.3,
+    yo: Math.random() * 2,
+    spd: 0.5 + Math.random() * 0.8,
+  })), []);
+  useFrame((state) => {
+    if (!ref.current) return;
+    const t = state.clock.elapsedTime;
+    ref.current.children.forEach((c, i) => {
+      const s = seeds[i % seeds.length];
+      const y = ((t * s.spd + s.yo) % 2) - 1;
+      c.position.set(Math.cos(s.a + t * 0.5) * s.r, y * 0.7 + 0.5, Math.sin(s.a + t * 0.5) * s.r);
+      (c as any).rotation && ((c as any).rotation.z = t);
+    });
+  });
+  if (!style || style === "none") return null;
+  const renderOne = (i: number) => {
+    if (style === "sparkles") return (
+      <mesh key={i}><sphereGeometry args={[0.025, 6, 6]} /><meshBasicMaterial color="#fde047" /></mesh>
+    );
+    if (style === "hearts") return (
+      <mesh key={i} rotation={[0, 0, Math.PI / 4]}><boxGeometry args={[0.05, 0.05, 0.02]} /><meshBasicMaterial color="#ec4899" /></mesh>
+    );
+    if (style === "fire") return (
+      <mesh key={i}><coneGeometry args={[0.03, 0.1, 6]} /><meshBasicMaterial color="#fb923c" /></mesh>
+    );
+    if (style === "snow") return (
+      <mesh key={i}><sphereGeometry args={[0.025, 6, 6]} /><meshBasicMaterial color="#e0f2fe" /></mesh>
+    );
+    if (style === "stars") return (
+      <mesh key={i}><torusGeometry args={[0.03, 0.008, 4, 5]} /><meshBasicMaterial color="#fde047" /></mesh>
+    );
+    if (style === "bubbles") return (
+      <mesh key={i}><sphereGeometry args={[0.04, 8, 8]} /><meshPhysicalMaterial color="#bae6fd" transparent opacity={0.5} /></mesh>
+    );
+    if (style === "leaves") return (
+      <mesh key={i}><boxGeometry args={[0.05, 0.005, 0.04]} /><meshBasicMaterial color="#10b981" /></mesh>
+    );
+    if (style === "lightning") return (
+      <mesh key={i}><boxGeometry args={[0.01, 0.12, 0.01]} /><meshBasicMaterial color={color} /></mesh>
+    );
+    return <mesh key={i}><sphereGeometry args={[0.02, 6, 6]} /><meshBasicMaterial color={color} /></mesh>;
+  };
+  return <group ref={ref}>{seeds.map((_, i) => renderOne(i))}</group>;
+};
+
+
 
 
 // ============ FLICKERING FLAME ============
