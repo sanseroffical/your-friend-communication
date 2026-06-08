@@ -12,7 +12,6 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     sourcemap: mode === "development",
-    minify: "terser",
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
