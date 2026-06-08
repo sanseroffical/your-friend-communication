@@ -33,7 +33,8 @@ export interface AvatarCustomization {
   build?: number;  // 0.85 - 1.2
   // Image uploads
   customAvatarUrl?: string; // Photo billboard above avatar
-  customThemeUrl?: string;  // Texture wrapped on body/shirt
+  customThemeUrl?: string;  // MP3 played on click
+  customEmoteUrl?: string;  // Floating sticker beside avatar
 }
 
 export const DEFAULT_CUSTOMIZATION: AvatarCustomization = {
@@ -57,6 +58,7 @@ export const DEFAULT_CUSTOMIZATION: AvatarCustomization = {
   build: 1,
   customAvatarUrl: "",
   customThemeUrl: "",
+  customEmoteUrl: "",
 };
 
 const SKIN_COLORS = [
@@ -107,6 +109,12 @@ const HAT_STYLES = [
   { id: "headphones", label: "Headphones" },
   { id: "horns", label: "Horns" },
   { id: "antenna", label: "Antenna" },
+  { id: "graduation", label: "Graduation" },
+  { id: "santa", label: "Santa" },
+  { id: "viking", label: "Viking" },
+  { id: "fishbowl", label: "Fishbowl" },
+  { id: "partyhat", label: "Party Hat" },
+  { id: "beret", label: "Beret" },
 ];
 
 const GLASSES_STYLES = [
@@ -130,6 +138,9 @@ const HAIR_STYLES = [
   { id: "bun", label: "Bun" },
   { id: "spiky", label: "Spiky" },
   { id: "curly", label: "Curly" },
+  { id: "twintails", label: "Twintails" },
+  { id: "buzzcut", label: "Buzzcut" },
+  { id: "dreadlocks", label: "Dreadlocks" },
 ];
 
 const HEAD_SHAPES = [
@@ -145,6 +156,21 @@ const CAPE_STYLES = [
   { id: "backpack", label: "Backpack" },
   { id: "jetpack", label: "Jetpack" },
   { id: "scarf", label: "Scarf" },
+  { id: "tail", label: "Tail" },
+  { id: "shield", label: "Shield" },
+];
+
+const AURA_STYLES = [
+  { id: "none", label: "None" },
+  { id: "glow", label: "Soft Glow" },
+  { id: "flames", label: "Flames" },
+  { id: "electric", label: "Electric" },
+  { id: "rainbow", label: "Rainbow" },
+  { id: "shadow", label: "Shadow" },
+  { id: "leaves", label: "Leaves" },
+  { id: "bubbles", label: "Bubbles" },
+  { id: "petals", label: "Petals" },
+  { id: "sparkstorm", label: "Sparkstorm" },
 ];
 
 const AURA_STYLES = [
@@ -164,6 +190,9 @@ const PARTICLE_EFFECTS = [
   { id: "fire", label: "🔥 Fire" },
   { id: "snow", label: "❄️ Snow" },
   { id: "stars", label: "⭐ Stars" },
+  { id: "bubbles", label: "🫧 Bubbles" },
+  { id: "leaves", label: "🍃 Leaves" },
+  { id: "lightning", label: "⚡ Lightning" },
 ];
 
 interface AvatarCustomizerProps {
