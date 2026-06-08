@@ -499,6 +499,7 @@ const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSav
               <MediaUploader
                 userId={userId}
                 kind="avatar"
+                slot="emote"
                 value={customization.customEmoteUrl ?? ""}
                 onChange={(url) => update("customEmoteUrl", url)}
                 label="Emote Sticker"
