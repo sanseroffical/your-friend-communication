@@ -248,9 +248,10 @@ const SliderRow = ({ label, value, onChange, min = 0.85, max = 1.2, step = 0.01 
 
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
-const MediaUploader = ({ userId, kind, value, onChange, label, description }: {
-  userId: string; kind: "avatar" | "theme"; value: string; onChange: (url: string) => void; label: string; description: string;
+const MediaUploader = ({ userId, kind, slot, value, onChange, label, description }: {
+  userId: string; kind: "avatar" | "theme"; slot?: string; value: string; onChange: (url: string) => void; label: string; description: string;
 }) => {
+  const slotKey = slot ?? kind;
   const isAudio = kind === "theme";
   const [uploading, setUploading] = useState(false);
   const [urlInput, setUrlInput] = useState("");
@@ -275,7 +276,7 @@ const MediaUploader = ({ userId, kind, value, onChange, label, description }: {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() || (isAudio ? "mp3" : "png");
-      const path = `${userId}/avatar-${kind}.${ext}`;
+      const path = `${userId}/avatar-${slotKey}.${ext}`;
       const { error } = await supabase.storage.from("chat-attachments").upload(path, file, { upsert: true });
       if (error) throw error;
       onChange(`${getStorageRef("chat-attachments", path)}?t=${Date.now()}`);
