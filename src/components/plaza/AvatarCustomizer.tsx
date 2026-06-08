@@ -495,6 +495,14 @@ const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSav
                 label="Theme Song"
                 description="MP3 that plays when someone clicks your avatar"
               />
+              <MediaUploader
+                userId={userId}
+                kind="avatar"
+                value={customization.customEmoteUrl ?? ""}
+                onChange={(url) => update("customEmoteUrl", url)}
+                label="Emote Sticker"
+                description="Image that floats beside your avatar in the Plaza"
+              />
               <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                 <Music className="h-3 w-3" /> Images ≤3MB · Audio ≤8MB (MP3, WAV, OGG)
               </p>
