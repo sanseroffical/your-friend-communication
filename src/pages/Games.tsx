@@ -2,21 +2,23 @@ import { lazy, Suspense, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Box, Gamepad2, Rocket, Swords, TrendingUp, Trophy } from "lucide-react";
+import { ArrowLeft, Box, Boxes, Gamepad2, Rocket, Swords, TrendingUp, Trophy } from "lucide-react";
 
 const TowerStacker = lazy(() => import("@/components/games/three/TowerStacker"));
 const AsteroidGunner = lazy(() => import("@/components/games/three/AsteroidGunner"));
 const NeonRacer = lazy(() => import("@/components/games/three/NeonRacer"));
 const PlazaParkour = lazy(() => import("@/components/games/three/PlazaParkour"));
 const PlazaArena = lazy(() => import("@/components/games/three/PlazaArena"));
+const CubeRunner = lazy(() => import("@/components/games/three/CubeRunner"));
 
-type GameId = "tower" | "asteroid" | "racer" | "parkour" | "arena" | null;
+type GameId = "tower" | "asteroid" | "racer" | "parkour" | "arena" | "runner" | null;
 
 const GAMES: { id: Exclude<GameId, null>; title: string; desc: string; icon: any; gradient: string; tag: string }[] = [
   { id: "tower", title: "Tower Stacker 3D", desc: "Stack blocks higher and higher. One slip and it's over.", icon: TrendingUp, gradient: "from-purple-500/30 to-pink-500/30", tag: "Single-player" },
   { id: "asteroid", title: "Asteroid Gunner", desc: "6DOF space shooter. Survive endless waves.", icon: Rocket, gradient: "from-blue-500/30 to-cyan-500/30", tag: "Single-player" },
   { id: "racer", title: "Neon Racer", desc: "3-lap time trial on a glowing neon circuit.", icon: Gamepad2, gradient: "from-pink-500/30 to-orange-500/30", tag: "Single-player" },
   { id: "parkour", title: "Plaza Parkour", desc: "First-person platforming. Reach the gold goal.", icon: Box, gradient: "from-emerald-500/30 to-cyan-500/30", tag: "Single-player" },
+  { id: "runner", title: "Cube Runner", desc: "Endless dodge-runner. Survive the cube storm.", icon: Boxes, gradient: "from-cyan-500/30 to-purple-500/30", tag: "Single-player" },
   { id: "arena", title: "Plaza Arena", desc: "Real-time multiplayer deathmatch. Up to 8 players.", icon: Swords, gradient: "from-red-500/30 to-purple-500/30", tag: "Multiplayer" },
 ];
 
@@ -29,6 +31,7 @@ export default function Games() {
   if (active === "racer") return <Suspense fallback={<Loader />}><NeonRacer onExit={() => setActive(null)} /></Suspense>;
   if (active === "parkour") return <Suspense fallback={<Loader />}><PlazaParkour onExit={() => setActive(null)} /></Suspense>;
   if (active === "arena") return <Suspense fallback={<Loader />}><PlazaArena onExit={() => setActive(null)} /></Suspense>;
+  if (active === "runner") return <Suspense fallback={<Loader />}><CubeRunner onExit={() => setActive(null)} /></Suspense>;
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
@@ -47,7 +50,7 @@ export default function Games() {
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
             3D Games Arcade
           </h1>
-          <p className="text-muted-foreground">Five hand-crafted 3D experiences. Compete on the global leaderboards.</p>
+          <p className="text-muted-foreground">Six hand-crafted 3D experiences. Compete on the global leaderboards.</p>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

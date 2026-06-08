@@ -33,7 +33,8 @@ export interface AvatarCustomization {
   build?: number;  // 0.85 - 1.2
   // Image uploads
   customAvatarUrl?: string; // Photo billboard above avatar
-  customThemeUrl?: string;  // Texture wrapped on body/shirt
+  customThemeUrl?: string;  // MP3 played on click
+  customEmoteUrl?: string;  // Floating sticker beside avatar
 }
 
 export const DEFAULT_CUSTOMIZATION: AvatarCustomization = {
@@ -57,6 +58,7 @@ export const DEFAULT_CUSTOMIZATION: AvatarCustomization = {
   build: 1,
   customAvatarUrl: "",
   customThemeUrl: "",
+  customEmoteUrl: "",
 };
 
 const SKIN_COLORS = [
@@ -107,6 +109,12 @@ const HAT_STYLES = [
   { id: "headphones", label: "Headphones" },
   { id: "horns", label: "Horns" },
   { id: "antenna", label: "Antenna" },
+  { id: "graduation", label: "Graduation" },
+  { id: "santa", label: "Santa" },
+  { id: "viking", label: "Viking" },
+  { id: "fishbowl", label: "Fishbowl" },
+  { id: "partyhat", label: "Party Hat" },
+  { id: "beret", label: "Beret" },
 ];
 
 const GLASSES_STYLES = [
@@ -130,6 +138,9 @@ const HAIR_STYLES = [
   { id: "bun", label: "Bun" },
   { id: "spiky", label: "Spiky" },
   { id: "curly", label: "Curly" },
+  { id: "twintails", label: "Twintails" },
+  { id: "buzzcut", label: "Buzzcut" },
+  { id: "dreadlocks", label: "Dreadlocks" },
 ];
 
 const HEAD_SHAPES = [
@@ -145,6 +156,8 @@ const CAPE_STYLES = [
   { id: "backpack", label: "Backpack" },
   { id: "jetpack", label: "Jetpack" },
   { id: "scarf", label: "Scarf" },
+  { id: "tail", label: "Tail" },
+  { id: "shield", label: "Shield" },
 ];
 
 const AURA_STYLES = [
@@ -155,7 +168,11 @@ const AURA_STYLES = [
   { id: "rainbow", label: "Rainbow" },
   { id: "shadow", label: "Shadow" },
   { id: "leaves", label: "Leaves" },
+  { id: "bubbles", label: "Bubbles" },
+  { id: "petals", label: "Petals" },
+  { id: "sparkstorm", label: "Sparkstorm" },
 ];
+
 
 const PARTICLE_EFFECTS = [
   { id: "none", label: "None" },
@@ -164,6 +181,9 @@ const PARTICLE_EFFECTS = [
   { id: "fire", label: "🔥 Fire" },
   { id: "snow", label: "❄️ Snow" },
   { id: "stars", label: "⭐ Stars" },
+  { id: "bubbles", label: "🫧 Bubbles" },
+  { id: "leaves", label: "🍃 Leaves" },
+  { id: "lightning", label: "⚡ Lightning" },
 ];
 
 interface AvatarCustomizerProps {
@@ -228,9 +248,10 @@ const SliderRow = ({ label, value, onChange, min = 0.85, max = 1.2, step = 0.01 
 
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
-const MediaUploader = ({ userId, kind, value, onChange, label, description }: {
-  userId: string; kind: "avatar" | "theme"; value: string; onChange: (url: string) => void; label: string; description: string;
+const MediaUploader = ({ userId, kind, slot, value, onChange, label, description }: {
+  userId: string; kind: "avatar" | "theme"; slot?: string; value: string; onChange: (url: string) => void; label: string; description: string;
 }) => {
+  const slotKey = slot ?? kind;
   const isAudio = kind === "theme";
   const [uploading, setUploading] = useState(false);
   const [urlInput, setUrlInput] = useState("");
@@ -255,7 +276,7 @@ const MediaUploader = ({ userId, kind, value, onChange, label, description }: {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() || (isAudio ? "mp3" : "png");
-      const path = `${userId}/avatar-${kind}.${ext}`;
+      const path = `${userId}/avatar-${slotKey}.${ext}`;
       const { error } = await supabase.storage.from("chat-attachments").upload(path, file, { upsert: true });
       if (error) throw error;
       onChange(`${getStorageRef("chat-attachments", path)}?t=${Date.now()}`);
@@ -474,6 +495,15 @@ const AvatarCustomizer = ({ isOpen, onClose, userId, currentCustomization, onSav
                 onChange={(url) => update("customThemeUrl", url)}
                 label="Theme Song"
                 description="MP3 that plays when someone clicks your avatar"
+              />
+              <MediaUploader
+                userId={userId}
+                kind="avatar"
+                slot="emote"
+                value={customization.customEmoteUrl ?? ""}
+                onChange={(url) => update("customEmoteUrl", url)}
+                label="Emote Sticker"
+                description="Image that floats beside your avatar in the Plaza"
               />
               <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                 <Music className="h-3 w-3" /> Images ≤3MB · Audio ≤8MB (MP3, WAV, OGG)
