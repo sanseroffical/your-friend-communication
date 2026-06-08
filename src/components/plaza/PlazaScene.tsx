@@ -1325,6 +1325,7 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
   });
 
   const avatarPhotoTexture = useResolvedTexture(custom.customAvatarUrl);
+  const emoteStickerTexture = useResolvedTexture(custom.customEmoteUrl);
   const themeSongUrl = useSignedStorageUrl(custom.customThemeUrl || null);
   const themeAudioRef = useRef<HTMLAudioElement | null>(null);
   useEffect(() => {
