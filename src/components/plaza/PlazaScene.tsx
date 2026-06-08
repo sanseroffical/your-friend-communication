@@ -1408,6 +1408,15 @@ const Avatar = ({ user, isLocal, onClick }: AvatarProps) => {
       <Aura style={custom.auraStyle ?? "none"} color={custom.auraColor ?? "#a855f7"} />
       <EmoteDisplay emote={user.emote} emoteTime={user.emoteTime} />
       <EmoteParticles emote={user.emote} emoteTime={user.emoteTime} />
+      <AvatarParticles style={custom.particleEffect} color={custom.auraColor ?? custom.nameColor ?? "#ffffff"} />
+      {emoteStickerTexture && (
+        <Billboard position={[0.6, 0.6, 0]}>
+          <mesh>
+            <planeGeometry args={[0.35, 0.35]} />
+            <meshBasicMaterial map={emoteStickerTexture} transparent side={THREE.DoubleSide} />
+          </mesh>
+        </Billboard>
+      )}
       {user.isAdmin && (
         <group position={[0, 1.25, 0]}>
           <mesh><planeGeometry args={[0.55, 0.18]} /><meshBasicMaterial color="#ffd700" transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>
