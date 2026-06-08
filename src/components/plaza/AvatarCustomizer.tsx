@@ -173,15 +173,6 @@ const AURA_STYLES = [
   { id: "sparkstorm", label: "Sparkstorm" },
 ];
 
-const AURA_STYLES = [
-  { id: "none", label: "None" },
-  { id: "glow", label: "Soft Glow" },
-  { id: "flames", label: "Flames" },
-  { id: "electric", label: "Electric" },
-  { id: "rainbow", label: "Rainbow" },
-  { id: "shadow", label: "Shadow" },
-  { id: "leaves", label: "Leaves" },
-];
 
 const PARTICLE_EFFECTS = [
   { id: "none", label: "None" },
