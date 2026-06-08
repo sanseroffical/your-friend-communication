@@ -23,18 +23,34 @@ interface NotificationRequest {
   };
 }
 
+// HTML-escape any user-supplied string before interpolating into email HTML.
+const esc = (s: unknown): string =>
+  String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 const getEmailContent = (type: string, data: NotificationRequest['data']) => {
+  const userName = esc(data.userName);
+  const senderName = esc(data.senderName);
+  const questTitle = esc(data.questTitle);
+  const roomCode = esc(data.roomCode);
+  const level = esc(data.level);
+  const xpReward = esc(data.xpReward);
+
   switch (type) {
     case 'level_up':
       return {
-        subject: `🎉 You reached Level ${data.level}!`,
+        subject: `🎉 You reached Level ${level}!`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px;">
             <h1 style="color: white; text-align: center;">🎮 Level Up!</h1>
             <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
-              <h2 style="color: #667eea; text-align: center;">Congratulations, ${data.userName}!</h2>
+              <h2 style="color: #667eea; text-align: center;">Congratulations, ${userName}!</h2>
               <p style="text-align: center; font-size: 48px; margin: 20px 0;">⭐</p>
-              <p style="text-align: center; font-size: 24px; color: #333;">You've reached <strong>Level ${data.level}</strong>!</p>
+              <p style="text-align: center; font-size: 24px; color: #333;">You've reached <strong>Level ${level}</strong>!</p>
               <p style="text-align: center; color: #666;">Keep up the great work and continue your journey!</p>
             </div>
           </div>
@@ -42,14 +58,14 @@ const getEmailContent = (type: string, data: NotificationRequest['data']) => {
       };
     case 'quest_complete':
       return {
-        subject: `✅ Quest Completed: ${data.questTitle}`,
+        subject: `✅ Quest Completed: ${data.questTitle ?? ''}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 10px;">
             <h1 style="color: white; text-align: center;">🏆 Quest Complete!</h1>
             <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
-              <h2 style="color: #11998e; text-align: center;">${data.questTitle}</h2>
+              <h2 style="color: #11998e; text-align: center;">${questTitle}</h2>
               <p style="text-align: center; font-size: 48px; margin: 20px 0;">🎯</p>
-              <p style="text-align: center; font-size: 20px; color: #333;">You earned <strong>+${data.xpReward} XP</strong>!</p>
+              <p style="text-align: center; font-size: 20px; color: #333;">You earned <strong>+${xpReward} XP</strong>!</p>
               <p style="text-align: center; color: #666;">Check out your quest log for more challenges!</p>
             </div>
           </div>
@@ -57,13 +73,13 @@ const getEmailContent = (type: string, data: NotificationRequest['data']) => {
       };
     case 'friend_request':
       return {
-        subject: `👋 ${data.senderName} sent you a friend request!`,
+        subject: `👋 ${data.senderName ?? 'Someone'} sent you a friend request!`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 10px;">
             <h1 style="color: white; text-align: center;">New Friend Request!</h1>
             <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
               <p style="text-align: center; font-size: 48px; margin: 20px 0;">👥</p>
-              <p style="text-align: center; font-size: 20px; color: #333;"><strong>${data.senderName}</strong> wants to be your friend!</p>
+              <p style="text-align: center; font-size: 20px; color: #333;"><strong>${senderName}</strong> wants to be your friend!</p>
               <p style="text-align: center; color: #666;">Log in to accept or decline the request.</p>
             </div>
           </div>
@@ -71,13 +87,13 @@ const getEmailContent = (type: string, data: NotificationRequest['data']) => {
       };
     case 'mention':
       return {
-        subject: `💬 ${data.senderName} mentioned you!`,
+        subject: `💬 ${data.senderName ?? 'Someone'} mentioned you!`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 10px;">
             <h1 style="color: white; text-align: center;">You were mentioned!</h1>
             <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
               <p style="text-align: center; font-size: 48px; margin: 20px 0;">@</p>
-              <p style="text-align: center; font-size: 20px; color: #333;"><strong>${data.senderName}</strong> mentioned you in room <strong>${data.roomCode}</strong></p>
+              <p style="text-align: center; font-size: 20px; color: #333;"><strong>${senderName}</strong> mentioned you in room <strong>${roomCode}</strong></p>
               <p style="text-align: center; color: #666;">Join the conversation!</p>
             </div>
           </div>
