@@ -131,6 +131,57 @@ export type Database = {
         }
         Relationships: []
       }
+      benchmark_results: {
+        Row: {
+          avg_fps: number | null
+          benchmark_type: string
+          cpu_score: number | null
+          created_at: string
+          details: Json | null
+          game_id: string | null
+          id: string
+          max_fps: number | null
+          memory_score: number | null
+          min_fps: number | null
+          render_score: number | null
+          score: number
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          avg_fps?: number | null
+          benchmark_type: string
+          cpu_score?: number | null
+          created_at?: string
+          details?: Json | null
+          game_id?: string | null
+          id?: string
+          max_fps?: number | null
+          memory_score?: number | null
+          min_fps?: number | null
+          render_score?: number | null
+          score: number
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          avg_fps?: number | null
+          benchmark_type?: string
+          cpu_score?: number | null
+          created_at?: string
+          details?: Json | null
+          game_id?: string | null
+          id?: string
+          max_fps?: number | null
+          memory_score?: number | null
+          min_fps?: number | null
+          render_score?: number | null
+          score?: number
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
           created_at: string
