@@ -409,7 +409,7 @@ function GameFpsLeaderboard({ gameId }: { gameId: string }) {
               <div key={i} className="flex items-center justify-between gap-2 py-1.5 px-2 rounded hover:bg-muted/30">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xs w-5 text-muted-foreground">#{i + 1}</span>
-                  <span className="text-sm truncate">{row.profiles?.display_name || "Anonymous"}</span>
+                  <span className="text-sm truncate">{row.display_name || "Anonymous"}</span>
                 </div>
                 <div className="text-right">
                   <span className="font-mono text-sm font-semibold">{Number(row.avg_fps).toFixed(1)}</span>
