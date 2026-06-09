@@ -169,11 +169,16 @@ function DeviceLeaderboard() {
     (async () => {
       const { data } = await supabase
         .from("benchmark_results")
-        .select("score, cpu_score, render_score, memory_score, user_id, created_at, profiles:user_id(display_name, avatar_url)")
+        .select("score, cpu_score, render_score, memory_score, user_id, created_at")
         .eq("benchmark_type", "device")
         .order("score", { ascending: false })
         .limit(10);
-      setRows(data || []);
+      const userIds = [...new Set((data || []).map((r: any) => r.user_id))];
+      const { data: profs } = userIds.length
+        ? await supabase.from("profiles").select("id, display_name").in("id", userIds)
+        : { data: [] as any[] };
+      const nameById = new Map((profs || []).map((p: any) => [p.id, p.display_name]));
+      setRows((data || []).map((r: any) => ({ ...r, display_name: nameById.get(r.user_id) })));
     })();
   }, []);
   return (
@@ -190,7 +195,7 @@ function DeviceLeaderboard() {
               <div key={i} className="flex items-center justify-between gap-2 py-1.5 px-2 rounded hover:bg-muted/30">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xs w-5 text-muted-foreground">#{i + 1}</span>
-                  <span className="text-sm truncate">{row.profiles?.display_name || "Anonymous"}</span>
+                  <span className="text-sm truncate">{row.display_name || "Anonymous"}</span>
                 </div>
                 <span className="font-mono text-sm font-semibold">{row.score.toLocaleString()}</span>
               </div>
@@ -372,12 +377,17 @@ function GameFpsLeaderboard({ gameId }: { gameId: string }) {
     (async () => {
       const { data } = await supabase
         .from("benchmark_results")
-        .select("avg_fps, min_fps, max_fps, user_id, created_at, profiles:user_id(display_name)")
+        .select("avg_fps, min_fps, max_fps, user_id, created_at")
         .eq("benchmark_type", "game_fps")
         .eq("game_id", gameId)
         .order("avg_fps", { ascending: false })
         .limit(10);
-      setRows(data || []);
+      const userIds = [...new Set((data || []).map((r: any) => r.user_id))];
+      const { data: profs } = userIds.length
+        ? await supabase.from("profiles").select("id, display_name").in("id", userIds)
+        : { data: [] as any[] };
+      const nameById = new Map((profs || []).map((p: any) => [p.id, p.display_name]));
+      setRows((data || []).map((r: any) => ({ ...r, display_name: nameById.get(r.user_id) })));
     })();
   }, [gameId]);
 
