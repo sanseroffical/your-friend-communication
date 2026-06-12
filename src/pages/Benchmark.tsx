@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, ArrowLeft, Cpu, Gauge, HardDrive, Loader2, Play, Trophy, Zap } from "lucide-react";
+import { Activity, ArrowLeft, BatteryCharging, Cpu, Database, Gauge, HardDrive, Loader2, Network, Play, Sparkles, Trophy, Wand2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,13 +9,22 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  collectResourceStats,
   collectWebVitals,
+  getBatteryInfo,
+  getGpuInfo,
   runDeviceBenchmark,
+  runDomStress,
+  runGpuBenchmark,
+  runNetworkBenchmark,
+  runParticleStress,
+  runStorageBenchmark,
   subscribeWebVitals,
   type DeviceBenchmarkResult,
   type WebVitals,
   FpsSampler,
 } from "@/lib/benchmark";
+
 
 const GAMES = [
   { id: "tower", name: "Tower Stacker 3D" },
@@ -242,6 +251,9 @@ function AppMetricsTab() {
             hint={vitals.jsHeapLimitMB ? `of ${vitals.jsHeapLimitMB.toFixed(0)} MB` : undefined}
           />
         </div>
+
+        <ResourceBreakdown />
+
         <p className="text-xs text-muted-foreground pt-2">
           Tip: click around the app then return here — interactions feed live INP samples.
         </p>
@@ -249,6 +261,40 @@ function AppMetricsTab() {
     </Card>
   );
 }
+
+function ResourceBreakdown() {
+  const [stats, setStats] = useState(() => collectResourceStats());
+  useEffect(() => {
+    const id = setInterval(() => setStats(collectResourceStats()), 2500);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="pt-2 border-t space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase text-muted-foreground">Bundle & Resources</p>
+        <Badge variant="outline" className="text-[10px]">{stats.count} files</Badge>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <SimpleStat label="Total" value={`${stats.totalKB.toFixed(0)} KB`} />
+        <SimpleStat label="JS" value={`${stats.jsKB.toFixed(0)} KB`} />
+        <SimpleStat label="CSS" value={`${stats.cssKB.toFixed(0)} KB`} />
+        <SimpleStat label="Images" value={`${stats.imgKB.toFixed(0)} KB`} />
+      </div>
+      {stats.top.length > 0 && (
+        <div className="rounded-lg border bg-card/50 p-2 max-h-40 overflow-auto">
+          <p className="text-[10px] text-muted-foreground mb-1 px-1">Heaviest resources</p>
+          {stats.top.map((r, i) => (
+            <div key={i} className="flex items-center justify-between text-xs px-1 py-0.5">
+              <span className="truncate flex-1 font-mono">{r.name}</span>
+              <span className="text-muted-foreground ml-2 font-mono">{r.sizeKB.toFixed(1)} KB</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function VitalCard({ label, value, rating, desc }: { label: string; value: string; rating: { label: string; color: string }; desc: string }) {
   return (
@@ -426,6 +472,128 @@ function GameFpsLeaderboard({ gameId }: { gameId: string }) {
   );
 }
 
+/* --- Extras Tab: GPU / Network / Storage / Battery --- */
+function ExtrasTab() {
+  const [gpu] = useState(() => getGpuInfo());
+  const [battery, setBattery] = useState<{ level: number; charging: boolean } | null>(null);
+  const [gpuRes, setGpuRes] = useState<{ fps: number; triangles: number } | null>(null);
+  const [netRes, setNetRes] = useState<{ mbps: number; latencyMs: number; bytes: number } | null>(null);
+  const [storeRes, setStoreRes] = useState<{ writeMBs: number; readMBs: number } | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => { getBatteryInfo().then(setBattery); }, []);
+
+  const runGpu = async () => { setBusy("gpu"); try { setGpuRes(await runGpuBenchmark()); } finally { setBusy(null); } };
+  const runNet = async () => { setBusy("net"); try { setNetRes(await runNetworkBenchmark()); } catch { toast.error("Network test failed"); } finally { setBusy(null); } };
+  const runStore = async () => { setBusy("store"); try { setStoreRes(await runStorageBenchmark()); } finally { setBusy(null); } };
+
+  return (
+    <div className="space-y-4">
+      <Card className="glass">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Wand2 className="h-5 w-5" /> Hardware & Connectivity</CardTitle>
+          <CardDescription>GPU info, network throughput, storage speed, and battery state.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border bg-card/50 p-3 space-y-1">
+            <p className="text-xs font-semibold uppercase text-muted-foreground">GPU</p>
+            {gpu ? (
+              <>
+                <p className="text-sm font-mono truncate"><span className="text-muted-foreground">Renderer:</span> {gpu.renderer}</p>
+                <p className="text-sm font-mono truncate"><span className="text-muted-foreground">Vendor:</span> {gpu.vendor}</p>
+                <div className="flex gap-2 pt-1">
+                  <Badge variant="outline" className="text-[10px]">{gpu.webgl2 ? "WebGL 2" : "WebGL 1"}</Badge>
+                  <Badge variant="outline" className="text-[10px]">Max tex: {gpu.maxTextureSize}px</Badge>
+                </div>
+              </>
+            ) : <p className="text-sm text-muted-foreground">WebGL unavailable</p>}
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-3">
+            <ExtraCard
+              icon={<Sparkles className="h-4 w-4" />} label="GPU stress" busy={busy === "gpu"}
+              onRun={runGpu} result={gpuRes && `${gpuRes.fps.toFixed(0)} FPS @ ${gpuRes.triangles.toLocaleString()} tri`}
+            />
+            <ExtraCard
+              icon={<Network className="h-4 w-4" />} label="Network" busy={busy === "net"}
+              onRun={runNet} result={netRes && `${netRes.mbps.toFixed(1)} Mbps · ${netRes.latencyMs.toFixed(0)} ms`}
+            />
+            <ExtraCard
+              icon={<Database className="h-4 w-4" />} label="Storage I/O" busy={busy === "store"}
+              onRun={runStore} result={storeRes && `W ${storeRes.writeMBs.toFixed(0)} · R ${storeRes.readMBs.toFixed(0)} MB/s`}
+            />
+          </div>
+
+          <div className="rounded-lg border bg-card/50 p-3 flex items-center gap-3">
+            <BatteryCharging className="h-5 w-5 text-muted-foreground" />
+            {battery
+              ? <p className="text-sm">Battery: <span className="font-mono font-bold">{Math.round(battery.level * 100)}%</span> {battery.charging ? "⚡ charging" : ""}</p>
+              : <p className="text-sm text-muted-foreground">Battery API not available on this device.</p>}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ExtraCard({ icon, label, onRun, busy, result }: { icon: React.ReactNode; label: string; onRun: () => void; busy: boolean; result: string | null | false }) {
+  return (
+    <div className="rounded-lg border bg-card/50 p-3 space-y-2">
+      <div className="flex items-center gap-2 text-sm font-semibold">{icon}{label}</div>
+      <p className="text-sm font-mono min-h-[1.25rem] text-muted-foreground">{result || "—"}</p>
+      <Button size="sm" variant="outline" className="w-full" onClick={onRun} disabled={busy}>
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Play className="h-3.5 w-3.5 mr-1" /> Run</>}
+      </Button>
+    </div>
+  );
+}
+
+/* --- Stress Tab --- */
+function StressTab() {
+  const [domRes, setDomRes] = useState<{ insertMs: number; layoutMs: number } | null>(null);
+  const [partRes, setPartRes] = useState<{ fps: number; particles: number } | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const runDom = async () => { setBusy("dom"); try { setDomRes(await runDomStress(5000)); } finally { setBusy(null); } };
+  const runPart = async () => { setBusy("part"); try { setPartRes(await runParticleStress(50_000)); } finally { setBusy(null); } };
+
+  return (
+    <Card className="glass">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Zap className="h-5 w-5" /> Stress Tests</CardTitle>
+        <CardDescription>Push the browser past comfortable limits and measure the damage.</CardDescription>
+      </CardHeader>
+      <CardContent className="grid sm:grid-cols-2 gap-3">
+        <div className="rounded-lg border bg-card/50 p-4 space-y-2">
+          <div className="flex items-center gap-2 font-semibold"><HardDrive className="h-4 w-4" /> DOM Stress (5k nodes)</div>
+          {domRes ? (
+            <div className="space-y-1 text-sm font-mono">
+              <p>Insert: <span className="font-bold">{domRes.insertMs.toFixed(1)} ms</span></p>
+              <p>Layout: <span className="font-bold">{domRes.layoutMs.toFixed(1)} ms</span></p>
+            </div>
+          ) : <p className="text-sm text-muted-foreground">Not run yet</p>}
+          <Button onClick={runDom} disabled={busy === "dom"} className="w-full" size="sm">
+            {busy === "dom" ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Play className="h-4 w-4 mr-1" /> Run</>}
+          </Button>
+        </div>
+
+        <div className="rounded-lg border bg-card/50 p-4 space-y-2">
+          <div className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4" /> Particle Stress (50k)</div>
+          {partRes ? (
+            <div className="space-y-1 text-sm font-mono">
+              <p>Frame rate: <span className="font-bold">{partRes.fps.toFixed(0)} FPS</span></p>
+              <p>Particles: <span className="font-bold">{partRes.particles.toLocaleString()}</span></p>
+            </div>
+          ) : <p className="text-sm text-muted-foreground">Not run yet</p>}
+          <Button onClick={runPart} disabled={busy === "part"} className="w-full" size="sm">
+            {busy === "part" ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Play className="h-4 w-4 mr-1" /> Run</>}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 /* --- Page --- */
 export default function Benchmark() {
   const navigate = useNavigate();
@@ -443,20 +611,25 @@ export default function Benchmark() {
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
             Benchmark Lab
           </h1>
-          <p className="text-muted-foreground">Score your device, inspect app performance, and compete on the FPS leaderboards.</p>
+          <p className="text-muted-foreground">Score your device, inspect app performance, push it to the limit, and compete on the leaderboards.</p>
         </header>
 
         <Tabs defaultValue="device" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full">
-            <TabsTrigger value="device"><Cpu className="h-4 w-4 mr-1.5" />Device</TabsTrigger>
-            <TabsTrigger value="app"><Activity className="h-4 w-4 mr-1.5" />App Metrics</TabsTrigger>
-            <TabsTrigger value="fps"><Zap className="h-4 w-4 mr-1.5" />Game FPS</TabsTrigger>
+          <TabsList className="grid grid-cols-5 w-full">
+            <TabsTrigger value="device"><Cpu className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Device</span></TabsTrigger>
+            <TabsTrigger value="extras"><Wand2 className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Extras</span></TabsTrigger>
+            <TabsTrigger value="app"><Activity className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">App</span></TabsTrigger>
+            <TabsTrigger value="stress"><Zap className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Stress</span></TabsTrigger>
+            <TabsTrigger value="fps"><Gauge className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Game FPS</span></TabsTrigger>
           </TabsList>
           <TabsContent value="device" className="mt-4"><DeviceTab /></TabsContent>
+          <TabsContent value="extras" className="mt-4"><ExtrasTab /></TabsContent>
           <TabsContent value="app" className="mt-4"><AppMetricsTab /></TabsContent>
+          <TabsContent value="stress" className="mt-4"><StressTab /></TabsContent>
           <TabsContent value="fps" className="mt-4"><GameFpsTab /></TabsContent>
         </Tabs>
       </div>
     </div>
   );
 }
+
