@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, ArrowLeft, Cpu, Gauge, HardDrive, Loader2, Play, Trophy, Zap } from "lucide-react";
+import { Activity, ArrowLeft, BatteryCharging, Cpu, Database, Gauge, HardDrive, Loader2, Network, Play, Sparkles, Trophy, Wand2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,13 +9,22 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  collectResourceStats,
   collectWebVitals,
+  getBatteryInfo,
+  getGpuInfo,
   runDeviceBenchmark,
+  runDomStress,
+  runGpuBenchmark,
+  runNetworkBenchmark,
+  runParticleStress,
+  runStorageBenchmark,
   subscribeWebVitals,
   type DeviceBenchmarkResult,
   type WebVitals,
   FpsSampler,
 } from "@/lib/benchmark";
+
 
 const GAMES = [
   { id: "tower", name: "Tower Stacker 3D" },
