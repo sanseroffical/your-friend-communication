@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Box, Boxes, Gamepad2, Plane, Rocket, Swords, TrendingUp, Trophy } from "lucide-react";
+import { ArrowLeft, Box, Boxes, Gamepad2, Plane, Rocket, Swords, TrendingUp } from "lucide-react";
 import ArcadeLeaderboards from "@/components/ArcadeLeaderboards";
 
 const TowerStacker = lazy(() => import("@/components/games/three/TowerStacker"));
