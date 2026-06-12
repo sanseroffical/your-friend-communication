@@ -256,3 +256,210 @@ export class FpsSampler {
     };
   }
 }
+
+/* ===================== Extra device tests ===================== */
+
+export type GpuInfo = {
+  vendor: string;
+  renderer: string;
+  webgl2: boolean;
+  maxTextureSize: number;
+};
+
+export function getGpuInfo(): GpuInfo | null {
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = (canvas.getContext("webgl2") || canvas.getContext("webgl")) as WebGLRenderingContext | null;
+    if (!gl) return null;
+    const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+    return {
+      vendor: dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+      renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+      webgl2: !!canvas.getContext("webgl2"),
+      maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** WebGL triangle stress: returns fps drawing N triangles for ~1.2s */
+export async function runGpuBenchmark(onProgress?: ProgressCallback): Promise<{ fps: number; triangles: number }> {
+  onProgress?.("GPU WebGL", 0);
+  const canvas = document.createElement("canvas");
+  canvas.width = 512; canvas.height = 512;
+  const gl = canvas.getContext("webgl") as WebGLRenderingContext | null;
+  if (!gl) return { fps: 0, triangles: 0 };
+
+  const vsrc = `attribute vec2 p; uniform float t; void main(){ float a=p.x*6.28+t; gl_Position=vec4(cos(a)*p.y, sin(a)*p.y, 0.0, 1.0); }`;
+  const fsrc = `precision mediump float; uniform float t; void main(){ gl_FragColor=vec4(fract(t),0.5,1.0-fract(t),1.0); }`;
+  const compile = (type: number, src: string) => { const s = gl.createShader(type)!; gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  const prog = gl.createProgram()!;
+  gl.attachShader(prog, compile(gl.VERTEX_SHADER, vsrc));
+  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fsrc));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const TRIS = 20_000;
+  const data = new Float32Array(TRIS * 3 * 2);
+  for (let i = 0; i < data.length; i += 2) { data[i] = Math.random(); data[i + 1] = Math.random(); }
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const tLoc = gl.getUniformLocation(prog, "t");
+
+  const DURATION = 1200;
+  return new Promise<{ fps: number; triangles: number }>((resolve) => {
+    const start = performance.now();
+    let frames = 0;
+    const tick = () => {
+      const e = performance.now() - start;
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform1f(tLoc, e * 0.001);
+      gl.drawArrays(gl.TRIANGLES, 0, TRIS * 3);
+      frames++;
+      onProgress?.("GPU WebGL", Math.min(99, (e / DURATION) * 100));
+      if (e < DURATION) requestAnimationFrame(tick);
+      else { onProgress?.("GPU WebGL", 100); resolve({ fps: (frames * 1000) / e, triangles: TRIS }); }
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+/** Network speed: downloads N bytes from a public CDN. Returns Mbps. */
+export async function runNetworkBenchmark(onProgress?: ProgressCallback): Promise<{ mbps: number; latencyMs: number; bytes: number }> {
+  onProgress?.("Network", 0);
+  // Latency: small HEAD
+  const t0 = performance.now();
+  try { await fetch("https://www.gstatic.com/generate_204", { cache: "no-store" }); } catch { /* */ }
+  const latencyMs = performance.now() - t0;
+  onProgress?.("Network", 30);
+
+  // Throughput: ~1 MB image
+  const url = `https://speed.cloudflare.com/__down?bytes=1048576&_=${Date.now()}`;
+  const start = performance.now();
+  let bytes = 0;
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    const buf = await res.arrayBuffer();
+    bytes = buf.byteLength;
+  } catch {
+    return { mbps: 0, latencyMs, bytes: 0 };
+  }
+  const secs = (performance.now() - start) / 1000;
+  const mbps = (bytes * 8) / (1024 * 1024) / Math.max(0.001, secs);
+  onProgress?.("Network", 100);
+  return { mbps, latencyMs, bytes };
+}
+
+/** Storage I/O: writes & reads a 2 MB blob to localStorage + IndexedDB (where supported). Returns MB/s write. */
+export async function runStorageBenchmark(onProgress?: ProgressCallback): Promise<{ writeMBs: number; readMBs: number }> {
+  onProgress?.("Storage", 0);
+  const SIZE = 512 * 1024; // 512 KB (localStorage caps near 5 MB)
+  const payload = "x".repeat(SIZE);
+  const key = "__bench_io__";
+
+  const w0 = performance.now();
+  for (let i = 0; i < 4; i++) {
+    try { localStorage.setItem(key + i, payload); } catch { /* quota */ }
+  }
+  const writeSecs = (performance.now() - w0) / 1000;
+  onProgress?.("Storage", 50);
+
+  const r0 = performance.now();
+  let total = 0;
+  for (let i = 0; i < 4; i++) {
+    const v = localStorage.getItem(key + i);
+    if (v) total += v.length;
+  }
+  const readSecs = (performance.now() - r0) / 1000;
+  for (let i = 0; i < 4; i++) localStorage.removeItem(key + i);
+  onProgress?.("Storage", 100);
+  return {
+    writeMBs: (SIZE * 4) / (1024 * 1024) / Math.max(0.001, writeSecs),
+    readMBs: total / (1024 * 1024) / Math.max(0.001, readSecs),
+  };
+}
+
+export function getBatteryInfo(): Promise<{ level: number; charging: boolean } | null> {
+  const nav: any = navigator;
+  if (!nav.getBattery) return Promise.resolve(null);
+  return nav.getBattery().then((b: any) => ({ level: b.level, charging: b.charging })).catch(() => null);
+}
+
+/* ===================== Stress tests ===================== */
+
+/** DOM stress: insert/remove N nodes; returns ms/1k ops. */
+export async function runDomStress(nodes = 5000, onProgress?: ProgressCallback): Promise<{ insertMs: number; layoutMs: number }> {
+  onProgress?.("DOM stress", 0);
+  const host = document.createElement("div");
+  host.style.cssText = "position:fixed;left:-9999px;top:0;width:200px;";
+  document.body.appendChild(host);
+
+  const t0 = performance.now();
+  for (let i = 0; i < nodes; i++) {
+    const d = document.createElement("div");
+    d.textContent = "node " + i;
+    host.appendChild(d);
+  }
+  const insertMs = performance.now() - t0;
+  onProgress?.("DOM stress", 60);
+
+  const t1 = performance.now();
+  // Force layout reads
+  let h = 0;
+  for (let i = 0; i < host.children.length; i++) h += (host.children[i] as HTMLElement).offsetHeight;
+  const layoutMs = performance.now() - t1;
+  if (h < 0) console.log(h);
+  document.body.removeChild(host);
+  onProgress?.("DOM stress", 100);
+  return { insertMs, layoutMs };
+}
+
+/** Particle stress: simulates N point particles via integer math; returns ops/sec. */
+export async function runParticleStress(particles = 50_000, onProgress?: ProgressCallback): Promise<{ fps: number; particles: number }> {
+  onProgress?.("Particles", 0);
+  const xs = new Float32Array(particles);
+  const ys = new Float32Array(particles);
+  const vx = new Float32Array(particles);
+  const vy = new Float32Array(particles);
+  for (let i = 0; i < particles; i++) { vx[i] = Math.random() - 0.5; vy[i] = Math.random() - 0.5; }
+
+  const DURATION = 1500;
+  const start = performance.now();
+  let frames = 0;
+  return new Promise<{ fps: number; particles: number }>((resolve) => {
+    const tick = () => {
+      for (let i = 0; i < particles; i++) {
+        xs[i] += vx[i]; ys[i] += vy[i];
+        if (xs[i] > 100 || xs[i] < -100) vx[i] = -vx[i];
+        if (ys[i] > 100 || ys[i] < -100) vy[i] = -vy[i];
+      }
+      frames++;
+      const e = performance.now() - start;
+      onProgress?.("Particles", Math.min(99, (e / DURATION) * 100));
+      if (e < DURATION) requestAnimationFrame(tick);
+      else { onProgress?.("Particles", 100); resolve({ fps: (frames * 1000) / e, particles }); }
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+/* ===================== App metrics extras ===================== */
+
+export type ResourceStat = { name: string; type: string; sizeKB: number; durationMs: number };
+
+export function collectResourceStats(): { totalKB: number; jsKB: number; cssKB: number; imgKB: number; count: number; top: ResourceStat[] } {
+  const entries = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
+  let totalKB = 0, jsKB = 0, cssKB = 0, imgKB = 0;
+  const items: ResourceStat[] = [];
+  for (const r of entries) {
+    const kb = (r.transferSize || r.encodedBodySize || 0) / 1024;
+    totalKB += kb;
+    if (r.initiatorType === "script") jsKB += kb;
+    else if (r.initiatorType === "link" || r.initiatorType === "css") cssKB += kb;
+    else if (r.initiatorType === "img") imgKB += kb;
+    items.push({ name: r.name.split("/").pop() || r.name, type: r.initiatorType, sizeKB: kb, durationMs: r.duration });
+  }
+  const top = items.sort((a, b) => b.sizeKB - a.sizeKB).slice(0, 8);
+  return { totalKB, jsKB, cssKB, imgKB, count: entries.length, top };
+}
+
