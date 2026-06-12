@@ -251,6 +251,9 @@ function AppMetricsTab() {
             hint={vitals.jsHeapLimitMB ? `of ${vitals.jsHeapLimitMB.toFixed(0)} MB` : undefined}
           />
         </div>
+
+        <ResourceBreakdown />
+
         <p className="text-xs text-muted-foreground pt-2">
           Tip: click around the app then return here — interactions feed live INP samples.
         </p>
@@ -258,6 +261,40 @@ function AppMetricsTab() {
     </Card>
   );
 }
+
+function ResourceBreakdown() {
+  const [stats, setStats] = useState(() => collectResourceStats());
+  useEffect(() => {
+    const id = setInterval(() => setStats(collectResourceStats()), 2500);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="pt-2 border-t space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase text-muted-foreground">Bundle & Resources</p>
+        <Badge variant="outline" className="text-[10px]">{stats.count} files</Badge>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <SimpleStat label="Total" value={`${stats.totalKB.toFixed(0)} KB`} />
+        <SimpleStat label="JS" value={`${stats.jsKB.toFixed(0)} KB`} />
+        <SimpleStat label="CSS" value={`${stats.cssKB.toFixed(0)} KB`} />
+        <SimpleStat label="Images" value={`${stats.imgKB.toFixed(0)} KB`} />
+      </div>
+      {stats.top.length > 0 && (
+        <div className="rounded-lg border bg-card/50 p-2 max-h-40 overflow-auto">
+          <p className="text-[10px] text-muted-foreground mb-1 px-1">Heaviest resources</p>
+          {stats.top.map((r, i) => (
+            <div key={i} className="flex items-center justify-between text-xs px-1 py-0.5">
+              <span className="truncate flex-1 font-mono">{r.name}</span>
+              <span className="text-muted-foreground ml-2 font-mono">{r.sizeKB.toFixed(1)} KB</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function VitalCard({ label, value, rating, desc }: { label: string; value: string; rating: { label: string; color: string }; desc: string }) {
   return (
