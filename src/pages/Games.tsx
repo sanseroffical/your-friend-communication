@@ -2,7 +2,8 @@ import { lazy, Suspense, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Box, Boxes, Gamepad2, Rocket, Swords, TrendingUp, Trophy } from "lucide-react";
+import { ArrowLeft, Box, Boxes, Gamepad2, Plane, Rocket, Swords, TrendingUp } from "lucide-react";
+import ArcadeLeaderboards from "@/components/ArcadeLeaderboards";
 
 const TowerStacker = lazy(() => import("@/components/games/three/TowerStacker"));
 const AsteroidGunner = lazy(() => import("@/components/games/three/AsteroidGunner"));
@@ -10,8 +11,9 @@ const NeonRacer = lazy(() => import("@/components/games/three/NeonRacer"));
 const PlazaParkour = lazy(() => import("@/components/games/three/PlazaParkour"));
 const PlazaArena = lazy(() => import("@/components/games/three/PlazaArena"));
 const CubeRunner = lazy(() => import("@/components/games/three/CubeRunner"));
+const SkyShooter = lazy(() => import("@/components/games/three/SkyShooter"));
 
-type GameId = "tower" | "asteroid" | "racer" | "parkour" | "arena" | "runner" | null;
+type GameId = "tower" | "asteroid" | "racer" | "parkour" | "arena" | "runner" | "sky" | null;
 
 const GAMES: { id: Exclude<GameId, null>; title: string; desc: string; icon: any; gradient: string; tag: string }[] = [
   { id: "tower", title: "Tower Stacker 3D", desc: "Stack blocks higher and higher. One slip and it's over.", icon: TrendingUp, gradient: "from-purple-500/30 to-pink-500/30", tag: "Single-player" },
@@ -19,6 +21,7 @@ const GAMES: { id: Exclude<GameId, null>; title: string; desc: string; icon: any
   { id: "racer", title: "Neon Racer", desc: "3-lap time trial on a glowing neon circuit.", icon: Gamepad2, gradient: "from-pink-500/30 to-orange-500/30", tag: "Single-player" },
   { id: "parkour", title: "Plaza Parkour", desc: "First-person platforming. Reach the gold goal.", icon: Box, gradient: "from-emerald-500/30 to-cyan-500/30", tag: "Single-player" },
   { id: "runner", title: "Cube Runner", desc: "Endless dodge-runner. Survive the cube storm.", icon: Boxes, gradient: "from-cyan-500/30 to-purple-500/30", tag: "Single-player" },
+  { id: "sky", title: "Sky Shooter", desc: "Free-flight aerial shooter. Dodge, blast, survive.", icon: Plane, gradient: "from-indigo-500/30 to-cyan-500/30", tag: "Single-player" },
   { id: "arena", title: "Plaza Arena", desc: "Real-time multiplayer deathmatch. Up to 8 players.", icon: Swords, gradient: "from-red-500/30 to-purple-500/30", tag: "Multiplayer" },
 ];
 
@@ -32,6 +35,9 @@ export default function Games() {
   if (active === "parkour") return <Suspense fallback={<Loader />}><PlazaParkour onExit={() => setActive(null)} /></Suspense>;
   if (active === "arena") return <Suspense fallback={<Loader />}><PlazaArena onExit={() => setActive(null)} /></Suspense>;
   if (active === "runner") return <Suspense fallback={<Loader />}><CubeRunner onExit={() => setActive(null)} /></Suspense>;
+  if (active === "sky") return <Suspense fallback={<Loader />}><SkyShooter onExit={() => setActive(null)} /></Suspense>;
+
+
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
@@ -40,9 +46,9 @@ export default function Games() {
           <Button variant="ghost" onClick={() => navigate(-1)} size="sm">
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
-          <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-primary" />
-            <span className="text-sm text-muted-foreground">Scores saved to your profile</span>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline text-sm text-muted-foreground">Scores saved to your profile</span>
+            <ArcadeLeaderboards />
           </div>
         </div>
 
