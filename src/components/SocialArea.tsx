@@ -1,4 +1,4 @@
-import { Heart, ExternalLink, Coffee, Tv } from 'lucide-react';
+import { Heart, ExternalLink, Coffee, Tv, Gamepad2, Twitter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -54,6 +54,24 @@ const SupportArea = () => {
               >
                 <Tv className="h-4 w-4" />
                 Sub to Twitch Channel
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => window.open('https://x.com/sanserofficial', '_blank')}
+              >
+                <Twitter className="h-4 w-4" />
+                Follow SanserOfficial on X
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => window.open('https://scratch.mit.edu/users/sanser2/', '_blank')}
+              >
+                <Gamepad2 className="h-4 w-4" />
+                Follow Sanser2 on Scratch
                 <ExternalLink className="h-4 w-4" />
               </Button>
               <p className="text-xs text-muted-foreground text-center pt-2">
