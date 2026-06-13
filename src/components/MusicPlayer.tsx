@@ -270,6 +270,48 @@ const MusicPlayer = ({ isOpen, onClose, profileAnthem, onSetAnthem, userId }: Mu
           </TabsContent>
 
           <TabsContent value="custom" className="mt-2 space-y-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-8 text-xs"
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "audio/*";
+                input.onchange = async (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (!file) return;
+                  if (file.size > 10 * 1024 * 1024) {
+                    toast({ title: "File too large", description: "Max 10MB per track", variant: "destructive" });
+                    return;
+                  }
+                  const ext = file.name.split(".").pop();
+                  const path = `${userId || "anon"}/music-${Date.now()}.${ext}`;
+                  const { error: uploadError } = await supabase.storage
+                    .from("chat-attachments")
+                    .upload(path, file);
+                  if (uploadError) {
+                    toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+                    return;
+                  }
+                  const { data: urlData } = supabase.storage.from("chat-attachments").getPublicUrl(path);
+                  const track: Track = {
+                    id: `custom-${Date.now()}`,
+                    title: file.name.replace(/\.[^.]+$/, ""),
+                    artist: "Uploaded",
+                    url: urlData.publicUrl,
+                  };
+                  const updated = [...customTracks, track];
+                  setCustomTracks(updated);
+                  localStorage.setItem("custom_tracks", JSON.stringify(updated));
+                  toast({ title: "Track uploaded! 🎵" });
+                };
+                input.click();
+              }}
+            >
+              <Upload className="h-3 w-3 mr-1" />
+              Upload Audio File
+            </Button>
             <div className="flex gap-1">
               <Input placeholder="Track name" value={newTrackTitle} onChange={(e) => setNewTrackTitle(e.target.value)} className="text-xs h-8" />
               <Input placeholder="Audio URL" value={newTrackUrl} onChange={(e) => setNewTrackUrl(e.target.value)} className="text-xs h-8 flex-1" />

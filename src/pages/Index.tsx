@@ -475,7 +475,7 @@ const Index = () => {
               />
             )}
 
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-3xl mx-auto relative z-10">
               {messages.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
                   <p>No messages yet. Start the conversation!</p>
