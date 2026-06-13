@@ -15,11 +15,17 @@ interface Row {
 
 const GAMES: { id: string; title: string }[] = [
   { id: "tower_stacker_3d", title: "Tower Stacker" },
-  { id: "asteroid_gunner", title: "Asteroid Gunner" },
-  { id: "neon_racer", title: "Neon Racer" },
-  { id: "plaza_parkour", title: "Plaza Parkour" },
+  { id: "asteroid_gunner_3d", title: "Asteroid Gunner" },
+  { id: "neon_racer_3d", title: "Neon Racer" },
+  { id: "plaza_parkour_3d", title: "Plaza Parkour" },
+  { id: "plaza_arena_3d", title: "Plaza Arena" },
   { id: "cube_runner", title: "Cube Runner" },
   { id: "sky_shooter", title: "Sky Shooter" },
+  { id: "snake", title: "Snake" },
+  { id: "2048", title: "2048" },
+  { id: "whack-a-mole", title: "Whack-a-Mole" },
+  { id: "math-challenge", title: "Math Challenge" },
+  { id: "crossword", title: "Crossword" },
 ];
 
 export default function ArcadeLeaderboards() {
