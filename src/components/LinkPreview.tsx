@@ -213,7 +213,7 @@ const LinkPreview = ({ text, maxPreviews = 3 }: LinkPreviewProps) => {
   useEffect(() => {
     if (urls.length === 0) return;
 
-    const nonEmbedUrls = urls.filter((u) => !isEmbeddableApp(u));
+    const nonEmbedUrls = urls.filter((u) => !toEmbedUrl(u));
     const uncached = nonEmbedUrls.filter((u) => !previewCache.has(u));
 
     // Immediately apply cached results
