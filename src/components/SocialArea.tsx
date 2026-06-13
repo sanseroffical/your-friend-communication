@@ -56,6 +56,24 @@ const SupportArea = () => {
                 Sub to Twitch Channel
                 <ExternalLink className="h-4 w-4" />
               </Button>
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => window.open('https://x.com/sanserofficial', '_blank')}
+              >
+                <Twitter className="h-4 w-4" />
+                Follow SanserOfficial on X
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => window.open('https://scratch.mit.edu/users/sanser2/', '_blank')}
+              >
+                <Gamepad2 className="h-4 w-4" />
+                Follow Sanser2 on Scratch
+                <ExternalLink className="h-4 w-4" />
+              </Button>
               <p className="text-xs text-muted-foreground text-center pt-2">
                 Every contribution helps! Thank you for your support 💜
               </p>
