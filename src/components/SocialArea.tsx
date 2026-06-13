@@ -1,4 +1,4 @@
-import { Heart, ExternalLink, Coffee, Tv } from 'lucide-react';
+import { Heart, ExternalLink, Coffee, Tv, Gamepad2, Twitter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
