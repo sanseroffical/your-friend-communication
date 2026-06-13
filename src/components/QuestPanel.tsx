@@ -105,7 +105,7 @@ const QuestPanel = ({ onClose }: QuestPanelProps) => {
   };
 
   const QuestList = ({ quests, emptyMessage }: { quests: typeof dailyQuests; emptyMessage: string }) => (
-    <ScrollArea className="h-[400px]">
+    <ScrollArea className="h-[min(60vh,500px)] max-h-[60vh]">
       <div className="space-y-3 pr-4">
         {quests.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
