@@ -12,7 +12,6 @@ interface LinkPreviewData {
 }
 
 const STREAM_DOMAIN = 'stream-smile-share.lovable.app';
-const EMBED_HOST_REGEX = /^https?:\/\/([^\/]*\.)?(lovable\.app|base44\.app)(\/|$)/i;
 
 const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
 
@@ -23,36 +22,114 @@ export function extractUrls(text: string): string[] {
   return text.match(URL_REGEX) || [];
 }
 
-function isEmbeddableApp(url: string): boolean {
-  return EMBED_HOST_REGEX.test(url);
+// Transform certain known URLs into their embeddable form
+function toEmbedUrl(raw: string): { src: string; height: number } | null {
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^www\./, '');
+
+    // YouTube
+    if (host === 'youtube.com' || host === 'm.youtube.com') {
+      const v = u.searchParams.get('v');
+      if (v) return { src: `https://www.youtube.com/embed/${v}`, height: 360 };
+      if (u.pathname.startsWith('/shorts/')) {
+        return { src: `https://www.youtube.com/embed/${u.pathname.split('/')[2]}`, height: 560 };
+      }
+      if (u.pathname.startsWith('/embed/')) return { src: raw, height: 360 };
+    }
+    if (host === 'youtu.be') {
+      const id = u.pathname.replace('/', '');
+      if (id) return { src: `https://www.youtube.com/embed/${id}`, height: 360 };
+    }
+
+    // Vimeo
+    if (host === 'vimeo.com') {
+      const id = u.pathname.split('/').filter(Boolean)[0];
+      if (id && /^\d+$/.test(id)) return { src: `https://player.vimeo.com/video/${id}`, height: 360 };
+    }
+
+    // Twitch
+    if (host === 'twitch.tv') {
+      const parts = u.pathname.split('/').filter(Boolean);
+      const parent = window.location.hostname;
+      if (parts[0] && !['videos', 'directory'].includes(parts[0])) {
+        return { src: `https://player.twitch.tv/?channel=${parts[0]}&parent=${parent}`, height: 360 };
+      }
+    }
+
+    // SoundCloud
+    if (host === 'soundcloud.com') {
+      return { src: `https://w.soundcloud.com/player/?url=${encodeURIComponent(raw)}&color=%23a855f7&auto_play=false`, height: 166 };
+    }
+
+    // Spotify
+    if (host === 'open.spotify.com') {
+      return { src: raw.replace('open.spotify.com/', 'open.spotify.com/embed/'), height: 232 };
+    }
+
+    // CodePen / CodeSandbox / StackBlitz
+    if (host === 'codepen.io') {
+      return { src: raw.replace('/pen/', '/embed/'), height: 400 };
+    }
+    if (host === 'codesandbox.io') {
+      return { src: raw.includes('/embed/') ? raw : raw.replace('/s/', '/embed/').replace('/sandbox/', '/embed/'), height: 500 };
+    }
+    if (host === 'stackblitz.com') {
+      return { src: raw.includes('embed=') ? raw : `${raw}${raw.includes('?') ? '&' : '?'}embed=1`, height: 500 };
+    }
+
+    // Google Maps
+    if (host === 'google.com' && u.pathname.startsWith('/maps')) {
+      return { src: `https://maps.google.com/maps?q=${encodeURIComponent(u.searchParams.get('q') || '')}&output=embed`, height: 360 };
+    }
+
+    // Loom
+    if (host === 'loom.com' && u.pathname.startsWith('/share/')) {
+      return { src: raw.replace('/share/', '/embed/'), height: 400 };
+    }
+
+    // Lovable / Base44 apps & generic *.app demo hosts
+    if (
+      host === 'lovable.app' || host.endsWith('.lovable.app') ||
+      host === 'base44.app' || host.endsWith('.base44.app') ||
+      host.endsWith('.vercel.app') || host.endsWith('.netlify.app') ||
+      host.endsWith('.pages.dev') || host.endsWith('.github.io')
+    ) {
+      return { src: raw, height: 420 };
+    }
+
+    // Fallback: try iframe — many sites block it via X-Frame-Options, but
+    // when they do the OG-card still renders below as a usable fallback.
+    return { src: raw, height: 420 };
+  } catch {
+    return null;
+  }
 }
 
 function getEmbedLabel(url: string): string {
   try {
     const host = new URL(url).hostname;
     if (host === STREAM_DOMAIN) return 'Open on Stream Smile Share';
-    if (host.endsWith('.lovable.app') || host === 'lovable.app') return 'Open Lovable app';
-    if (host.endsWith('.base44.app') || host === 'base44.app') return 'Open Base44 app';
-    return 'Open app';
+    return `Open ${host.replace(/^www\./, '')}`;
   } catch {
-    return 'Open app';
+    return 'Open link';
   }
 }
 
-const AppEmbed = memo(({ url }: { url: string }) => {
+const AppEmbed = memo(({ url, height }: { url: string; height: number }) => {
   return (
     <div className="mt-2 rounded-lg overflow-hidden border border-border bg-card">
       <iframe
         src={url}
         width="100%"
-        height="420"
+        height={height}
         frameBorder="0"
         loading="lazy"
         allow="autoplay; fullscreen; clipboard-write; encrypted-media; picture-in-picture"
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
         referrerPolicy="no-referrer-when-downgrade"
         className="w-full bg-background"
-        title="Embedded app preview"
+        title="Embedded preview"
       />
       <a
         href={url}
@@ -183,8 +260,9 @@ const LinkPreview = ({ text, maxPreviews = 3 }: LinkPreviewProps) => {
   return (
     <div className="space-y-2">
       {urls.map((url) => {
-        if (isEmbeddableApp(url)) {
-          return <AppEmbed key={url} url={url} />;
+        const embed = toEmbedUrl(url);
+        if (embed) {
+          return <AppEmbed key={url} url={embed.src} height={embed.height} />;
         }
 
         if (loading.has(url)) {
