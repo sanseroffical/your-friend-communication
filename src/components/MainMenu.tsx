@@ -160,10 +160,10 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
 
   if (mode === "history") {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-hero flex flex-col">
         <StatusBar />
         <div className="flex-1 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-md glass-card">
             <CardHeader>
               <Button
                 variant="ghost"
@@ -174,7 +174,7 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Back
               </Button>
-              <CardTitle>Chat History</CardTitle>
+              <CardTitle className="text-gradient-primary">Chat History</CardTitle>
               <CardDescription>Your recent conversations</CardDescription>
             </CardHeader>
             <CardContent>
@@ -192,10 +192,10 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
                       <div
                         key={item.id}
                         onClick={() => onJoinRoom(item.room_code)}
-                        className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80 cursor-pointer transition-colors"
+                        className="group flex items-center justify-between p-3 rounded-xl border border-border/60 bg-card/50 hover:bg-accent hover:border-primary/30 hover:shadow-md cursor-pointer transition-all"
                       >
                         <div>
-                          <p className="font-mono font-semibold">{item.room_code}</p>
+                          <p className="font-mono font-semibold tracking-wider">{item.room_code}</p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(item.last_accessed_at).toLocaleDateString()}
                           </p>
@@ -203,7 +203,7 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => handleDeleteHistory(item.id, e)}
                         >
                           <Trash2 className="h-4 w-4" />
