@@ -117,10 +117,10 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
 
   if (mode === "join") {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-hero flex flex-col">
         <StatusBar />
         <div className="flex-1 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-md glass-card">
             <CardHeader>
               <Button
                 variant="ghost"
@@ -131,7 +131,7 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Back
               </Button>
-              <CardTitle>Join Room</CardTitle>
+              <CardTitle className="text-gradient-primary">Join Room</CardTitle>
               <CardDescription>Enter the 6-character room code</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -145,7 +145,7 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
               />
               <Button
                 onClick={handleJoinRoom}
-                className="w-full"
+                className="w-full bg-gradient-primary hover:opacity-90 shadow-glow"
                 disabled={roomCode.trim().length !== 6}
               >
                 Join Room
@@ -160,10 +160,10 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
 
   if (mode === "history") {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-hero flex flex-col">
         <StatusBar />
         <div className="flex-1 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-md glass-card">
             <CardHeader>
               <Button
                 variant="ghost"
@@ -174,7 +174,7 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Back
               </Button>
-              <CardTitle>Chat History</CardTitle>
+              <CardTitle className="text-gradient-primary">Chat History</CardTitle>
               <CardDescription>Your recent conversations</CardDescription>
             </CardHeader>
             <CardContent>
@@ -192,10 +192,10 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
                       <div
                         key={item.id}
                         onClick={() => onJoinRoom(item.room_code)}
-                        className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80 cursor-pointer transition-colors"
+                        className="group flex items-center justify-between p-3 rounded-xl border border-border/60 bg-card/50 hover:bg-accent hover:border-primary/30 hover:shadow-md cursor-pointer transition-all"
                       >
                         <div>
-                          <p className="font-mono font-semibold">{item.room_code}</p>
+                          <p className="font-mono font-semibold tracking-wider">{item.room_code}</p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(item.last_accessed_at).toLocaleDateString()}
                           </p>
@@ -203,7 +203,7 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => handleDeleteHistory(item.id, e)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -222,34 +222,39 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-hero flex flex-col">
       <StatusBar />
       <div className="flex-1 flex items-center justify-center p-4">
-        <Card className={`w-full max-w-md ${isMobileUI ? 'border-0 shadow-none' : ''}`}>
-          <CardHeader className="text-center">
+        <Card className={`w-full max-w-lg glass-card ${isMobileUI ? 'border-0 shadow-none bg-transparent backdrop-blur-none' : ''}`}>
+          <CardHeader className="text-center pb-4">
             <div className="flex items-center justify-between">
               <QuickSettings />
-              <div className="flex-1 text-center">
-                <CardTitle className="text-2xl">Welcome, {userName}!</CardTitle>
-              </div>
-              <div className="w-9" /> {/* Spacer for balance */}
+              <div className="flex-1" />
+              <div className="w-9" />
             </div>
+            <div className="mx-auto mb-3 h-16 w-16 rounded-2xl bg-gradient-primary shadow-glow flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-primary-foreground" />
+            </div>
+            <CardTitle className="text-3xl font-bold text-gradient-primary">
+              Welcome, {userName}!
+            </CardTitle>
             <CardDescription>
-              <button 
+              <button
                 onClick={copyClipId}
-                className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-xs hover:bg-muted hover:text-foreground transition-colors mt-2"
               >
-                clipID: <span className="font-mono">{clipId}</span>
+                clipID: <span className="font-mono font-semibold">{clipId}</span>
                 {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               </button>
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between items-center mb-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2"
+          <CardContent className="space-y-4">
+            {/* Social row */}
+            <div className="flex justify-between items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 flex-1"
                 onClick={() => setIsSocialOpen(true)}
               >
                 <Users className="h-4 w-4" />
@@ -257,46 +262,57 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
               </Button>
               <DirectMessagesPanel userId={userId} userName={userName} />
             </div>
-            <Button onClick={() => onJoinRoom(PUBLIC_ROOM_CODE)} variant="default" className="w-full" size="lg">
+
+            {/* Hero CTA */}
+            <Button
+              onClick={() => onJoinRoom(PUBLIC_ROOM_CODE)}
+              className="w-full bg-gradient-primary hover:opacity-90 shadow-glow h-12 text-base font-semibold"
+              size="lg"
+            >
               <Globe className="mr-2 h-5 w-5" />
               Join Public Chat
             </Button>
-            <Button onClick={() => navigate("/plaza")} variant="default" className="w-full" size="lg">
-              <Box className="mr-2 h-5 w-5" />
-              Enter 3D Plaza
-            </Button>
-            <Button onClick={() => navigate("/games")} variant="default" className="w-full" size="lg">
-              <Box className="mr-2 h-5 w-5" />
-              3D Games Arcade
-            </Button>
-            <Button onClick={() => navigate("/benchmark")} variant="outline" className="w-full" size="lg">
-              <Box className="mr-2 h-5 w-5" />
-              Benchmark Lab
-            </Button>
-            <Button onClick={handleCreateRoom} variant="outline" className="w-full" size="lg">
-              <MessageSquare className="mr-2 h-5 w-5" />
-              Create Private Room
-            </Button>
-            <Button onClick={() => setMode("join")} variant="outline" className="w-full" size="lg">
-              <Users className="mr-2 h-5 w-5" />
-              Join Existing Room
-            </Button>
-            <Button onClick={() => setMode("history")} variant="outline" className="w-full" size="lg">
-              <History className="mr-2 h-5 w-5" />
-              Chat History
-            </Button>
+
+            {/* 3D experiences grid */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button onClick={() => navigate("/plaza")} variant="secondary" className="h-11 justify-start">
+                <Box className="mr-2 h-4 w-4" />
+                3D Plaza
+              </Button>
+              <Button onClick={() => navigate("/games")} variant="secondary" className="h-11 justify-start">
+                <Box className="mr-2 h-4 w-4" />
+                Arcade
+              </Button>
+              <Button onClick={handleCreateRoom} variant="outline" className="h-11 justify-start">
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Create Room
+              </Button>
+              <Button onClick={() => setMode("join")} variant="outline" className="h-11 justify-start">
+                <Users className="mr-2 h-4 w-4" />
+                Join Room
+              </Button>
+              <Button onClick={() => setMode("history")} variant="outline" className="h-11 justify-start">
+                <History className="mr-2 h-4 w-4" />
+                History
+              </Button>
+              <Button onClick={() => navigate("/benchmark")} variant="outline" className="h-11 justify-start">
+                <Box className="mr-2 h-4 w-4" />
+                Benchmark
+              </Button>
+            </div>
+
             <div className="flex gap-2 justify-center pt-2">
               <UpdateLog />
               <CommunityRules />
               <SupportArea />
             </div>
-            <div className="pt-2">
-              <Button onClick={handleLogout} variant="ghost" className="w-full text-muted-foreground">
+            <div className="pt-1">
+              <Button onClick={handleLogout} variant="ghost" size="sm" className="w-full text-muted-foreground">
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </Button>
             </div>
-            <div className="flex justify-center pt-2">
+            <div className="flex justify-center">
               <LegalPages />
             </div>
           </CardContent>
