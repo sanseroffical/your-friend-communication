@@ -170,7 +170,7 @@ All colors MUST be HSL.
   }
 }
 
-/* Glassmorphism utility */
+/* Glassmorphism + shell utilities */
 @layer utilities {
   .glass {
     background: var(--glass-bg);
@@ -178,12 +178,39 @@ All colors MUST be HSL.
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
   }
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-lg);
+  }
+  .bg-hero {
+    background-image: var(--gradient-hero);
+    background-color: hsl(var(--background));
+  }
+  .bg-gradient-primary {
+    background-image: var(--gradient-primary);
+  }
+  .text-gradient-primary {
+    background-image: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .shadow-glow {
+    box-shadow: var(--glow-primary);
+  }
+  .ring-primary-glow {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.4), 0 0 24px hsl(var(--primary) / 0.25);
+  }
 }
 
 /* Apply user-controlled base font size */
 html {
   font-size: var(--base-font-size, 16px);
 }
+
 
 /* Font family overrides */
 .font-comic, .font-comic body, .font-comic * {
