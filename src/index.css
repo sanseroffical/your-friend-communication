@@ -87,50 +87,51 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 230 20% 8%;
-    --foreground: 220 15% 95%;
+    --background: 240 25% 6%;
+    --foreground: 240 15% 96%;
 
-    --card: 230 18% 12%;
-    --card-foreground: 220 15% 95%;
+    --card: 240 22% 10%;
+    --card-foreground: 240 15% 96%;
 
-    --popover: 230 18% 10%;
-    --popover-foreground: 220 15% 95%;
+    --popover: 240 22% 9%;
+    --popover-foreground: 240 15% 96%;
 
-    --primary: 250 80% 65%;
+    --primary: 265 90% 68%;
     --primary-foreground: 0 0% 100%;
+    --primary-glow: 285 95% 75%;
 
-    --secondary: 230 15% 18%;
-    --secondary-foreground: 220 15% 95%;
+    --secondary: 240 18% 16%;
+    --secondary-foreground: 240 15% 96%;
 
-    --muted: 230 15% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 240 18% 16%;
+    --muted-foreground: 240 10% 62%;
 
-    --accent: 250 40% 22%;
-    --accent-foreground: 250 80% 80%;
+    --accent: 265 45% 22%;
+    --accent-foreground: 265 90% 85%;
 
-    --destructive: 0 62% 40%;
+    --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 15% 22%;
-    --input: 230 15% 22%;
-    --ring: 250 80% 65%;
+    --border: 240 18% 20%;
+    --input: 240 18% 20%;
+    --ring: 265 90% 68%;
 
-    --sidebar-background: 230 20% 10%;
-    --sidebar-foreground: 220 15% 95%;
-    --sidebar-primary: 250 80% 65%;
+    --sidebar-background: 240 25% 8%;
+    --sidebar-foreground: 240 15% 96%;
+    --sidebar-primary: 265 90% 68%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 250 40% 22%;
-    --sidebar-accent-foreground: 250 80% 80%;
-    --sidebar-border: 230 15% 22%;
-    --sidebar-ring: 250 80% 65%;
+    --sidebar-accent: 265 45% 22%;
+    --sidebar-accent-foreground: 265 90% 85%;
+    --sidebar-border: 240 18% 20%;
+    --sidebar-ring: 265 90% 68%;
 
-    --chart-1: 250 80% 65%;
+    --chart-1: 265 90% 68%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    --sidebar: 230 20% 10%;
+    --sidebar: 240 25% 8%;
 
     --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.15);
     --shadow-xs: 0 1px 3px 0 hsl(0 0% 0% / 0.2);
@@ -141,15 +142,21 @@ All colors MUST be HSL.
     --shadow-xl: 0 20px 40px -8px hsl(0 0% 0% / 0.4);
     --shadow-2xl: 0 32px 64px -12px hsl(0 0% 0% / 0.5);
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
     --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
     --font-serif: "Crimson Text", ui-serif, Georgia, Cambria, Times New Roman, Times, serif;
     --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
 
     /* Glassmorphism tokens - dark */
-    --glass-bg: hsl(230 18% 12% / 0.6);
+    --glass-bg: hsl(240 22% 10% / 0.55);
     --glass-border: hsl(0 0% 100% / 0.08);
-    --glass-blur: 16px;
+    --glass-blur: 18px;
+
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
+    --gradient-hero: radial-gradient(1200px 600px at 10% -10%, hsl(265 60% 20%) 0%, transparent 60%),
+                     radial-gradient(1000px 500px at 100% 0%, hsl(200 60% 18%) 0%, transparent 55%),
+                     radial-gradient(800px 400px at 50% 100%, hsl(320 60% 18%) 0%, transparent 60%);
+    --glow-primary: 0 0 60px hsl(var(--primary) / 0.35);
   }
 }
 
