@@ -38,12 +38,14 @@ const ChatHeader = ({
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-card border-b border-border">
+    <div className="relative flex items-center justify-between px-4 py-3 glass border-b border-border/60">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-gradient-primary opacity-70" />
       <div className="flex items-center gap-3">
         <div className="relative">
-          <Avatar className="h-10 w-10">
+          <div className="absolute -inset-0.5 rounded-full bg-gradient-primary opacity-70 blur-sm" />
+          <Avatar className="relative h-10 w-10 ring-2 ring-background">
             <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback className="bg-primary text-primary-foreground font-medium">
+            <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold">
               {userName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -54,11 +56,11 @@ const ChatHeader = ({
             {isAdmin && <AdminBadge role="admin" />}
             {isModerator && !isAdmin && <AdminBadge role="moderator" />}
           </div>
-          <button 
+          <button
             onClick={copyRoomCode}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="mt-0.5 inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
-            <span className="font-mono">{roomCode}</span>
+            <span className="font-mono tracking-wider">{roomCode}</span>
             <Copy className="w-3 h-3" />
           </button>
         </div>
