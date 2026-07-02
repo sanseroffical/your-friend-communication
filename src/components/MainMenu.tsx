@@ -117,10 +117,10 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
 
   if (mode === "join") {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-hero flex flex-col">
         <StatusBar />
         <div className="flex-1 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-md glass-card">
             <CardHeader>
               <Button
                 variant="ghost"
@@ -131,7 +131,7 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Back
               </Button>
-              <CardTitle>Join Room</CardTitle>
+              <CardTitle className="text-gradient-primary">Join Room</CardTitle>
               <CardDescription>Enter the 6-character room code</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -145,7 +145,7 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
               />
               <Button
                 onClick={handleJoinRoom}
-                className="w-full"
+                className="w-full bg-gradient-primary hover:opacity-90 shadow-glow"
                 disabled={roomCode.trim().length !== 6}
               >
                 Join Room
