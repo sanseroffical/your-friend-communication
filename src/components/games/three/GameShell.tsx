@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Pause, Play, RotateCcw, Trophy } from "lucide-react";
 import { useGameScores, GameScoreRow } from "@/hooks/useGameScores";
+import { useGamepadProfile } from "@/hooks/useGamepad";
 
 interface Props {
   title: string;
@@ -17,6 +18,7 @@ interface Props {
 export default function GameShell({ title, gameType, onBack, onRestart, paused, onTogglePause, hud, children }: Props) {
   const [showBoard, setShowBoard] = useState(false);
   const { scores } = useGameScores(gameType, 10);
+  useGamepadProfile(gameType);
 
   return (
     <div className="fixed inset-0 bg-black text-foreground overflow-hidden">

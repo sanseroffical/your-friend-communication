@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Users, History, ArrowLeft, Trash2, LogOut, Copy, Check, Globe, Heart, Sparkles, Box } from "lucide-react";
+import { MessageSquare, Users, History, ArrowLeft, Trash2, LogOut, Copy, Check, Globe, Heart, Sparkles, Box, Gamepad2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,7 @@ import SocialHub from "./social/SocialHub";
 import StatusBar from "./StatusBar";
 import QuickSettings from "./QuickSettings";
 import { useMobileUI } from "./MobileUIToggle";
+import GamepadSettings from "./GamepadSettings";
 
 const PUBLIC_ROOM_CODE = "C6ZC9N";
 
@@ -299,6 +300,14 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
                 <Box className="mr-2 h-4 w-4" />
                 Benchmark
               </Button>
+              <GamepadSettings
+                trigger={
+                  <Button variant="outline" className="h-11 justify-start">
+                    <Gamepad2 className="mr-2 h-4 w-4" />
+                    Controller
+                  </Button>
+                }
+              />
             </div>
 
             <div className="flex gap-2 justify-center pt-2">
