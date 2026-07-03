@@ -18,6 +18,7 @@ import StatusBar from "./StatusBar";
 import QuickSettings from "./QuickSettings";
 import { useMobileUI } from "./MobileUIToggle";
 import GamepadSettings from "./GamepadSettings";
+import { ControllerHints } from "./ControllerHint";
 
 const PUBLIC_ROOM_CODE = "C6ZC9N";
 
@@ -324,6 +325,15 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
             <div className="flex justify-center">
               <LegalPages />
             </div>
+            <ControllerHints
+              className="justify-center pt-1"
+              hints={[
+                { button: "b0", label: "Select" },
+                { button: "b1", label: "Back" },
+                { button: "dpad", label: "Navigate" },
+                { button: "b9", label: "Menu" },
+              ]}
+            />
           </CardContent>
         </Card>
         <ClippyButton />
