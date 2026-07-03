@@ -8,6 +8,7 @@ import MobileUIToggle, { MobileUIProvider } from "./components/MobileUIToggle";
 import ClippyButton from "./components/ClippyButton";
 import GlobalReadAloud from "./components/GlobalReadAloud";
 import { useCmdModeSettings } from "./hooks/useCmdModeSettings";
+import { useGamepadBridge } from "./hooks/useGamepad";
 
 // Lazy load pages to reduce initial bundle size
 const Index = lazy(() => import("./pages/Index"));
@@ -45,6 +46,7 @@ const PageLoader = () => (
 
 const App = () => {
   useCmdModeSettings(); // applies CSS vars for scanline + caret
+  useGamepadBridge(); // maps game controllers → keyboard events app-wide
   return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
