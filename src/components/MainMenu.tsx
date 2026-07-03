@@ -18,6 +18,7 @@ import StatusBar from "./StatusBar";
 import QuickSettings from "./QuickSettings";
 import { useMobileUI } from "./MobileUIToggle";
 import GamepadSettings from "./GamepadSettings";
+import { ControllerHints } from "./ControllerHint";
 
 const PUBLIC_ROOM_CODE = "C6ZC9N";
 

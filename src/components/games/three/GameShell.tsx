@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Pause, Play, RotateCcw, Trophy } from "lucide-react";
 import { useGameScores, GameScoreRow } from "@/hooks/useGameScores";
 import { useGamepadProfile } from "@/hooks/useGamepad";
+import { ControllerHints, type Hint } from "@/components/ControllerHint";
 
 interface Props {
   title: string;
@@ -12,10 +13,19 @@ interface Props {
   paused?: boolean;
   onTogglePause?: () => void;
   hud?: ReactNode;
+  /** Optional per-game controller prompts. Falls back to Confirm/Back/Pause. */
+  controllerHints?: Hint[];
   children: ReactNode;
 }
 
-export default function GameShell({ title, gameType, onBack, onRestart, paused, onTogglePause, hud, children }: Props) {
+const DEFAULT_HINTS: Hint[] = [
+  { button: "b0", label: "Confirm" },
+  { button: "b1", label: "Back / Pause" },
+  { button: "lstick", label: "Move" },
+  { button: "b9", label: "Menu" },
+];
+
+export default function GameShell({ title, gameType, onBack, onRestart, paused, onTogglePause, hud, controllerHints, children }: Props) {
   const [showBoard, setShowBoard] = useState(false);
   const { scores } = useGameScores(gameType, 10);
   useGamepadProfile(gameType);
@@ -73,9 +83,19 @@ export default function GameShell({ title, gameType, onBack, onRestart, paused, 
           <div className="glass rounded-2xl p-6 text-center">
             <div className="text-xl font-semibold mb-3">Paused</div>
             <Button onClick={onTogglePause}>Resume</Button>
+            <ControllerHints
+              className="mt-4 justify-center"
+              hints={[{ button: "b0", label: "Resume" }, { button: "b1", label: "Also resume" }]}
+            />
           </div>
         </div>
       )}
+
+      {/* Controller prompts (only visible when a gamepad is connected) */}
+      <ControllerHints
+        hints={controllerHints ?? DEFAULT_HINTS}
+        className="absolute bottom-3 right-3 z-20 glass rounded-xl px-3 py-2 pointer-events-none"
+      />
     </div>
   );
 }
