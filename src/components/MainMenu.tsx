@@ -325,6 +325,15 @@ const MainMenu = ({ onJoinRoom, userName, clipId, userId }: MainMenuProps) => {
             <div className="flex justify-center">
               <LegalPages />
             </div>
+            <ControllerHints
+              className="justify-center pt-1"
+              hints={[
+                { button: "b0", label: "Select" },
+                { button: "b1", label: "Back" },
+                { button: "dpad", label: "Navigate" },
+                { button: "b9", label: "Menu" },
+              ]}
+            />
           </CardContent>
         </Card>
         <ClippyButton />
