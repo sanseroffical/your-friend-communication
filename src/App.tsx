@@ -70,6 +70,7 @@ const App = () => {
         <MobileUIToggle />
         <ClippyButton />
         <GlobalReadAloud />
+        <MaintenanceOverlay />
       </MobileUIProvider>
     </TooltipProvider>
   </QueryClientProvider>
