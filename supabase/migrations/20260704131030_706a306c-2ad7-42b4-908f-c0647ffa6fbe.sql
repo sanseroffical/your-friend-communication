@@ -1,0 +1,2 @@
+ALTER TABLE public.game_scores DROP CONSTRAINT IF EXISTS game_scores_game_type_format_check;
+ALTER TABLE public.game_scores ADD CONSTRAINT game_scores_game_type_format_check CHECK (game_type ~ '^[a-z0-9_-]{1,40}$');
