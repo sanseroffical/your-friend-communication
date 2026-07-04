@@ -189,8 +189,15 @@ export class WebRTCConnection {
   private static readonly ICE_SERVERS: RTCIceServer[] = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun.cloudflare.com:3478' },
+    // Free public TURN — required so peers behind symmetric NAT can connect.
+    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
   ];
+
+  private restartTimer: number | null = null;
+  private onConnectionStateChange: (state: RTCPeerConnectionState) => void;
 
   constructor(
     signaling: WebRTCSignaling,
@@ -201,20 +208,20 @@ export class WebRTCConnection {
     this.signaling = signaling;
     this.remoteUserId = remoteUserId;
     this.remoteStream = new MediaStream();
+    this.onConnectionStateChange = onConnectionStateChange;
 
     this.peerConnection = new RTCPeerConnection({
       iceServers: WebRTCConnection.ICE_SERVERS,
+      iceCandidatePoolSize: 4,
     });
 
     this.peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
-        console.log('Sending ICE candidate to:', remoteUserId);
         this.signaling.sendIceCandidate(remoteUserId, event.candidate.toJSON());
       }
     };
 
     this.peerConnection.ontrack = (event) => {
-      console.log('Received remote track:', event.track.kind);
       event.streams[0].getTracks().forEach((track) => {
         this.remoteStream.addTrack(track);
       });
@@ -222,13 +229,41 @@ export class WebRTCConnection {
     };
 
     this.peerConnection.onconnectionstatechange = () => {
-      console.log('Connection state:', this.peerConnection.connectionState);
-      onConnectionStateChange(this.peerConnection.connectionState);
+      const state = this.peerConnection.connectionState;
+      console.log('[webrtc] connection state:', state);
+      onConnectionStateChange(state);
+      if (state === 'failed') {
+        // Try one ICE restart before giving up.
+        this.tryIceRestart();
+      }
     };
 
     this.peerConnection.oniceconnectionstatechange = () => {
-      console.log('ICE connection state:', this.peerConnection.iceConnectionState);
+      const s = this.peerConnection.iceConnectionState;
+      console.log('[webrtc] ice state:', s);
+      if (s === 'disconnected') {
+        // Wait a moment; often recovers on its own.
+        if (this.restartTimer) window.clearTimeout(this.restartTimer);
+        this.restartTimer = window.setTimeout(() => {
+          if (this.peerConnection.iceConnectionState === 'disconnected') {
+            this.tryIceRestart();
+          }
+        }, 4000);
+      } else if (s === 'connected' || s === 'completed') {
+        if (this.restartTimer) { window.clearTimeout(this.restartTimer); this.restartTimer = null; }
+      }
     };
+  }
+
+  private async tryIceRestart() {
+    try {
+      const offer = await this.peerConnection.createOffer({ iceRestart: true });
+      await this.peerConnection.setLocalDescription(offer);
+      await this.signaling.sendOffer(this.remoteUserId, offer);
+      console.log('[webrtc] ICE restart offer sent');
+    } catch (e) {
+      console.warn('[webrtc] ICE restart failed', e);
+    }
   }
 
   setLocalStream(stream: MediaStream) {

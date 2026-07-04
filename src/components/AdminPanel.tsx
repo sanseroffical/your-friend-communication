@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Shield, UserX, Users, Search, ShieldCheck, ShieldOff, Megaphone, Trash2, Ban, ScrollText, Zap, EyeOff } from 'lucide-react';
+import { Shield, UserX, Users, Search, ShieldCheck, ShieldOff, Megaphone, Trash2, Ban, ScrollText, Zap, EyeOff, Wrench, Globe } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -59,6 +60,11 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
   const [xpBoostAmount, setXpBoostAmount] = useState('100');
   const [shadowBanReason, setShadowBanReason] = useState('');
   const [shadowBanTarget, setShadowBanTarget] = useState<User | null>(null);
+  const [maintenance, setMaintenance] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState("We'll be right back.");
+  const [ipToBan, setIpToBan] = useState('');
+  const [ipBanReason, setIpBanReason] = useState('');
+  const [bannedIps, setBannedIps] = useState<Array<{ id: string; ip: string; reason: string | null }>>([]);
   const { deleteUserAccount, grantRole, revokeRole, clearAllMessages, createAnnouncement, deleteAnnouncement } = useAdminActions(isAdmin, isModerator);
   const { toast } = useToast();
 
@@ -116,8 +122,44 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
     fetchUsers();
     fetchAnnouncements();
     fetchAuditLog();
+
+    // Load app settings + banned IPs
+    supabase.from('app_settings').select('maintenance, maintenance_message').maybeSingle()
+      .then(({ data }) => {
+        if (data) { setMaintenance(!!data.maintenance); setMaintenanceMessage(data.maintenance_message || "We'll be right back."); }
+      });
+    (supabase.from('banned_ips') as any).select('id, ip, reason').order('created_at', { ascending: false })
+      .then(({ data }: any) => { if (data) setBannedIps(data); });
   }, [isAdmin]);
 
+  const saveMaintenance = async (nextEnabled: boolean, nextMsg?: string) => {
+    const { error } = await (supabase.from('app_settings') as any)
+      .update({ maintenance: nextEnabled, maintenance_message: nextMsg ?? maintenanceMessage, updated_at: new Date().toISOString() })
+      .eq('id', true);
+    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
+    setMaintenance(nextEnabled);
+    if (nextMsg !== undefined) setMaintenanceMessage(nextMsg);
+    await logAction('toggle_maintenance', undefined, { enabled: nextEnabled });
+    toast({ title: nextEnabled ? 'Maintenance mode ON' : 'Maintenance mode OFF' });
+  };
+
+  const banIp = async () => {
+    if (!ipToBan.trim()) return;
+    const { error } = await supabase.rpc('admin_ban_ip' as any, { p_ip: ipToBan.trim(), p_reason: ipBanReason || null });
+    if (error) { toast({ title: 'Ban failed', description: error.message, variant: 'destructive' }); return; }
+    await logAction('ban_ip', undefined, { ip: ipToBan, reason: ipBanReason });
+    setIpToBan(''); setIpBanReason('');
+    const { data } = await (supabase.from('banned_ips') as any).select('id, ip, reason').order('created_at', { ascending: false });
+    setBannedIps(data || []);
+    toast({ title: 'IP banned' });
+  };
+
+  const unbanIp = async (id: string) => {
+    const { error } = await (supabase.from('banned_ips') as any).delete().eq('id', id);
+    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
+    setBannedIps(prev => prev.filter(b => b.id !== id));
+    await logAction('unban_ip', undefined, { id });
+  };
   const logAction = async (action: string, targetUserId?: string, details?: Record<string, unknown>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -127,7 +169,6 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
       target_user_id: targetUserId || null,
       details: details || {},
     });
-    // Refresh audit log
     const { data } = await supabase
       .from('admin_audit_log')
       .select('*')
@@ -466,6 +507,53 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
                     </div>
                   ))}
                 </ScrollArea>
+              </div>
+            )}
+
+            {isAdmin && (
+              <div className="space-y-3 border-t border-border pt-4">
+                <h3 className="font-medium flex items-center gap-2">
+                  <Wrench className="h-4 w-4" /> Maintenance Mode
+                </h3>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Show a "we'll be right back" screen to non-admins</span>
+                  <Switch checked={maintenance} onCheckedChange={(v) => saveMaintenance(v)} />
+                </div>
+                <Textarea
+                  placeholder="Maintenance message"
+                  value={maintenanceMessage}
+                  onChange={(e) => setMaintenanceMessage(e.target.value)}
+                  rows={2}
+                />
+                <Button variant="outline" size="sm" onClick={() => saveMaintenance(maintenance, maintenanceMessage)}>
+                  Save message
+                </Button>
+              </div>
+            )}
+
+            {isAdmin && (
+              <div className="space-y-3 border-t border-border pt-4">
+                <h3 className="font-medium flex items-center gap-2">
+                  <Globe className="h-4 w-4" /> IP Bans
+                </h3>
+                <div className="flex gap-2">
+                  <Input placeholder="e.g. 203.0.113.42" value={ipToBan} onChange={(e) => setIpToBan(e.target.value)} />
+                  <Input placeholder="Reason" value={ipBanReason} onChange={(e) => setIpBanReason(e.target.value)} />
+                  <Button size="sm" onClick={banIp}>Ban</Button>
+                </div>
+                {bannedIps.length > 0 && (
+                  <ScrollArea className="h-24">
+                    {bannedIps.map((b) => (
+                      <div key={b.id} className="flex items-center justify-between p-2 bg-muted rounded mb-1 text-sm">
+                        <span className="font-mono">{b.ip}</span>
+                        <span className="text-xs text-muted-foreground flex-1 mx-2 truncate">{b.reason}</span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => unbanIp(b.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </ScrollArea>
+                )}
               </div>
             )}
 

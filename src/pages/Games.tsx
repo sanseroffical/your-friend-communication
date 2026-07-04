@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Box, Boxes, Gamepad2, Plane, Rocket, Swords, TrendingUp } from "lucide-react";
+import { ArrowLeft, Box, Boxes, Gamepad2, Plane, Rocket, Swords, TrendingUp, Wind } from "lucide-react";
 import ArcadeLeaderboards from "@/components/ArcadeLeaderboards";
 
 const TowerStacker = lazy(() => import("@/components/games/three/TowerStacker"));
@@ -12,8 +12,9 @@ const PlazaParkour = lazy(() => import("@/components/games/three/PlazaParkour"))
 const PlazaArena = lazy(() => import("@/components/games/three/PlazaArena"));
 const CubeRunner = lazy(() => import("@/components/games/three/CubeRunner"));
 const SkyShooter = lazy(() => import("@/components/games/three/SkyShooter"));
+const SkySurfer = lazy(() => import("@/components/games/three/SkySurfer"));
 
-type GameId = "tower" | "asteroid" | "racer" | "parkour" | "arena" | "runner" | "sky" | null;
+type GameId = "tower" | "asteroid" | "racer" | "parkour" | "arena" | "runner" | "sky" | "surfer" | null;
 
 const GAMES: { id: Exclude<GameId, null>; title: string; desc: string; icon: any; gradient: string; tag: string }[] = [
   { id: "tower", title: "Tower Stacker 3D", desc: "Stack blocks higher and higher. One slip and it's over.", icon: TrendingUp, gradient: "from-purple-500/30 to-pink-500/30", tag: "Single-player" },
@@ -22,6 +23,7 @@ const GAMES: { id: Exclude<GameId, null>; title: string; desc: string; icon: any
   { id: "parkour", title: "Plaza Parkour", desc: "First-person platforming. Reach the gold goal.", icon: Box, gradient: "from-emerald-500/30 to-cyan-500/30", tag: "Single-player" },
   { id: "runner", title: "Cube Runner", desc: "Endless dodge-runner. Survive the cube storm.", icon: Boxes, gradient: "from-cyan-500/30 to-purple-500/30", tag: "Single-player" },
   { id: "sky", title: "Sky Shooter", desc: "Free-flight aerial shooter. Dodge, blast, survive.", icon: Plane, gradient: "from-indigo-500/30 to-cyan-500/30", tag: "Single-player" },
+  { id: "surfer", title: "Sky Surfer", desc: "Ride a hover-board through neon rings. 90-second combo runs.", icon: Wind, gradient: "from-sky-500/30 to-rose-500/30", tag: "Single-player" },
   { id: "arena", title: "Plaza Arena", desc: "Real-time multiplayer deathmatch. Up to 8 players.", icon: Swords, gradient: "from-red-500/30 to-purple-500/30", tag: "Multiplayer" },
 ];
 
@@ -36,6 +38,7 @@ export default function Games() {
   if (active === "arena") return <Suspense fallback={<Loader />}><PlazaArena onExit={() => setActive(null)} /></Suspense>;
   if (active === "runner") return <Suspense fallback={<Loader />}><CubeRunner onExit={() => setActive(null)} /></Suspense>;
   if (active === "sky") return <Suspense fallback={<Loader />}><SkyShooter onExit={() => setActive(null)} /></Suspense>;
+  if (active === "surfer") return <Suspense fallback={<Loader />}><SkySurfer onExit={() => setActive(null)} /></Suspense>;
 
 
 
