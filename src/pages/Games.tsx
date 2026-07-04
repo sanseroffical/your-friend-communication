@@ -23,6 +23,7 @@ const GAMES: { id: Exclude<GameId, null>; title: string; desc: string; icon: any
   { id: "parkour", title: "Plaza Parkour", desc: "First-person platforming. Reach the gold goal.", icon: Box, gradient: "from-emerald-500/30 to-cyan-500/30", tag: "Single-player" },
   { id: "runner", title: "Cube Runner", desc: "Endless dodge-runner. Survive the cube storm.", icon: Boxes, gradient: "from-cyan-500/30 to-purple-500/30", tag: "Single-player" },
   { id: "sky", title: "Sky Shooter", desc: "Free-flight aerial shooter. Dodge, blast, survive.", icon: Plane, gradient: "from-indigo-500/30 to-cyan-500/30", tag: "Single-player" },
+  { id: "surfer", title: "Sky Surfer", desc: "Ride a hover-board through neon rings. 90-second combo runs.", icon: Wind, gradient: "from-sky-500/30 to-rose-500/30", tag: "Single-player" },
   { id: "arena", title: "Plaza Arena", desc: "Real-time multiplayer deathmatch. Up to 8 players.", icon: Swords, gradient: "from-red-500/30 to-purple-500/30", tag: "Multiplayer" },
 ];
 
