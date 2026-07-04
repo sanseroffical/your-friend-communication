@@ -1,87 +1,61 @@
-# 3D Games Arcade
+# Plaza cleanup + Games + Calling + Admin + Discord
 
-Add a full 3D games suite using React Three Fiber, accessible from both the Plaza and a new standalone `/games` route. Visual style: "advanced" — physically-based shading, post-processing (bloom + vignette), particle effects, and the existing purple-glass UI for menus/HUDs.
+Big batch, split into 5 focused workstreams. Everything ships behind existing routes/panels — no new top-level pages.
 
-## The 5 Games
+## 1. Plaza cleanup (`src/components/plaza/PlazaScene.tsx`, `RoomEnvironment.tsx`, `Plaza.tsx`)
 
-1. **Neon Racer** — Time-trial racer on a glowing track. WASD/arrow steering, drift particles, lap timer, ghost of best run, online leaderboard.
-2. **Plaza Parkour** — First/third-person parkour course with moving platforms, wall-runs, checkpoints, and a global speedrun leaderboard.
-3. **Asteroid Gunner** — 6DOF space shooter. Procedural asteroid field, homing missiles, shield/health, wave-based scoring, high-score table.
-4. **Tower Stacker 3D** — Physics block-stacking with rigid bodies (Rapier). Wind/sway mechanic, height score, daily seed.
-5. **Plaza Arena** (multiplayer) — Up to 8-player real-time deathmatch in a small 3D arena. Supabase Realtime for presence, position sync, and hit events. Respawns, kill feed, round timer, ELO-lite ranking.
+- **Visuals**: swap ambient + single directional light for `<Environment preset="sunset">` + soft directional with shadow map 1024, add subtle fog, replace flat sky with gradient shader background. Upgrade ground to PBR material (roughness 0.8, subtle normal noise).
+- **Declutter**: audit props, remove duplicates, group decorative items into a single `<InstancedMesh>` (trees, lamps, benches). Cap decorative props at ~40.
+- **Perf**: wrap far props in `<Detailed>` LOD with 2 levels; enable `frameloop="demand"` when tab hidden; memoize geometry/material singletons; disable shadows on small props.
+- **UI overlay**: consolidate floating HUD into one bottom bar (`PlazaHUD`) — chat toggle, avatar, exit, settings. Move mini-map to a collapsible top-right card. Add `glass` styling to match app.
 
-## Architecture
+## 2. New games (4)
 
-```text
-src/
-  pages/
-    Games.tsx              new /games hub
-    games/
-      NeonRacer.tsx
-      PlazaParkour.tsx
-      AsteroidGunner.tsx
-      TowerStacker.tsx
-      PlazaArena.tsx
-  components/games/
-    GameShell.tsx          glass HUD frame, pause, exit, settings
-    Leaderboard.tsx        shared score panel
-    Minimap.tsx
-    fx/
-      PostFX.tsx           bloom + vignette + chromatic
-      Particles.tsx
-    arena/
-      NetPlayer.tsx        remote player avatar
-      useArenaNetcode.ts   Realtime channel hook
-  hooks/
-    useGameScores.ts       read/write scores
-```
+- **2D arcade — Breakout Blitz** (`src/components/games/BreakoutBlitzGame.tsx`): timed brick-breaker with power-ups. Uses `useGameScores("breakout_blitz")`.
+- **2D arcade — Frogger Dash** (`src/components/games/FroggerDashGame.tsx`): lane-crossing, score = lanes cleared.
+- **3D GameShell — Sky Surfer** (`src/components/games/three/SkySurfer.tsx`): endless slalom through rings, reuses `GameShell` + gamepad profile "sky_surfer".
+- **Party — Trivia Royale** (`src/components/games/party/TriviaRoyale.tsx`): realtime lobby via Supabase Realtime channel `trivia:<room>`, host picks category, 10 questions, live scoreboard. Uses existing `TriviaGame` question bank.
+- **PvP — Duel Arena** (`src/components/plaza/PvPArena.tsx` extension): add "Best of 5" mode + rematch button + ELO stored in new `pvp_stats` table.
+- Register all in `MiniGamesPanel.tsx` and `Games.tsx`.
 
-Plaza integration: add an **Arcade Cabinet** model on the Plaza grid that, when interacted with, opens an in-world overlay listing the 5 games (reuses `Games.tsx` content). The standalone route remains the canonical home.
+## 3. Calling fix (`src/utils/webrtc.ts`, `src/components/VideoCall.tsx`)
 
-## Tech
+Root cause suspected: signaling messages sent before both peers subscribe → offer/answer dropped; no TURN server → NAT'd peers can't connect.
 
-- `@react-three/fiber@^8.18`, `@react-three/drei@^9.122.0`, `three@^0.160`
-- `@react-three/rapier@^1.5` for physics (Tower Stacker, Parkour, Racer collisions)
-- `@react-three/postprocessing@^2.16` for bloom/vignette
-- Multiplayer: Supabase Realtime broadcast (position @ 15 Hz) + presence; authoritative hit checks done client-side with server-side rate limiting via RPC (game-jam scope, not anti-cheat hardened).
-- Keyboard + gamepad input (Gamepad API), mobile touch joystick fallback.
+- Add STUN + free TURN (`openrelay.metered.ca`) fallbacks to `RTCPeerConnection` config.
+- Queue outgoing ICE candidates until remote description is set; buffer offers until callee subscribes to signaling channel.
+- Add `presence` handshake: both sides broadcast `ready` before offer is sent.
+- Add connection-state logging + on-screen status ("Connecting… / Connected / Reconnecting").
+- Auto-retry ICE restart on `disconnected` for 10s before hanging up.
 
-## Backend
+## 4. Admin powers (`src/components/AdminPanel.tsx` + new RPCs)
 
-New tables (with proper GRANTs + RLS, per project conventions):
+- **Bulk moderation**: multi-select messages in admin view → `admin_bulk_delete_messages(ids uuid[])` security definer RPC.
+- **IP ban**: new `banned_ips` table + `admin_ban_ip(ip inet, reason)` RPC. Edge function `check-ip-ban` called on sign-in blocks banned IPs.
+- **Server announcement**: broadcast dialog → inserts into existing `announcements` table with `is_pinned` for 24h + toast to all connected clients via Realtime broadcast.
+- **Maintenance mode**: `app_settings` singleton row `{ maintenance: bool, message: text }`. When true, non-admins see full-screen "We'll be right back" overlay. Toggle from admin panel.
 
-- `game_scores` — `user_id`, `game_id` (text), `score` (numeric), `meta` (jsonb), `created_at`. Insert: authenticated user inserts own row. Select: public read for leaderboards.
-- `arena_matches` — `id`, `started_at`, `ended_at`, `winner_id`.
-- `arena_match_players` — `match_id`, `user_id`, `kills`, `deaths`, `score`.
-- RPC `submit_game_score(game_id, score, meta)` — SECURITY DEFINER, validates score sanity (per-game caps), awards XP via existing XP RPC.
+## 5. Discord
 
-Realtime topic policy: extend the existing `realtime.messages` topic allowlist to include `arena-{matchId}` patterns scoped to authenticated users.
+- **OAuth linking (per-user)**: Discord OAuth isn't a native Cloud provider, so use a manual flow — new edge function `discord-oauth` handles the code exchange, stores `discord_id`, `discord_username`, `discord_avatar` on `profiles`. Requires user-provided `DISCORD_CLIENT_ID` + `DISCORD_CLIENT_SECRET` (I'll request via add_secret after you approve). Profile card shows Discord badge when linked.
+- **Webhook relay**: admin-configurable `DISCORD_WEBHOOK_URL` secret. Edge function `discord-notify` posts embeds when: new user report filed, new feature request, admin announcement. Toggle per-event in admin panel.
 
-## UX / Style
+## Technical details
 
-- Hub page: bento-grid of 5 game cards using the existing glassmorphism. Each card shows a live `<Canvas>` mini-preview (low DPR) of the game's signature visual.
-- HUD: top bar with glass blur, purple accent, neon score readouts. Pause menu with resume/restart/quit.
-- Loading: skeleton with progress bar; lazy-load each game route with `React.lazy`.
-- Accessibility: respect `prefers-reduced-motion` (disable post-FX bloom intensity, freeze particles). Keyboard remap stored in localStorage.
+**New tables** (single migration): `banned_ips`, `pvp_stats`, `app_settings`, plus `discord_id`/`discord_username`/`discord_avatar` columns on `profiles`. Full RLS + GRANTs. Admin-only writes via `has_role(auth.uid(), 'admin')`.
 
-## Performance
+**New edge functions**: `discord-oauth` (JWT verified), `discord-notify` (JWT verified, admin-only), `check-ip-ban` (public — called during auth).
 
-- Lazy import each game; preload Three only on hub.
-- `dpr={[1, 1.5]}`, frustum culling, instanced meshes for asteroids/blocks, single shared `Suspense` per game.
-- Multiplayer broadcasts batched and interpolated (no per-frame sends).
+**New secrets to request after approval**: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_WEBHOOK_URL`.
 
-## Out of scope (this round)
+## Order of implementation
+1. Migration (tables + columns + policies + GRANTs) — approve first
+2. Plaza cleanup + games (frontend only, ships fast)
+3. Calling fix + verify with Playwright on two contexts
+4. Admin tools wired to new RPCs
+5. Discord (after you provide the 3 secrets)
 
-- Custom 3D character animations / rigged models (use primitives + drei helpers).
-- Voice chat in arena.
-- Anti-cheat beyond basic score caps.
-- Tournament/bracket system.
-
-## Build order
-
-1. DB migration (scores, matches, RPC, realtime topic policy).
-2. Install deps + `GameShell`, `PostFX`, `Leaderboard`.
-3. `/games` hub route + Plaza arcade cabinet entry point.
-4. Tower Stacker → Asteroid Gunner → Neon Racer → Plaza Parkour (single-player first, share systems).
-5. Plaza Arena multiplayer last (largest risk).
-6. Wire XP rewards, leaderboards, mobile controls, QA pass.
+## Out of scope for this batch
+- Voice/video group calls (only 1:1 fix)
+- Discord bot commands (webhook one-way only)
+- Custom game creator / user-submitted games

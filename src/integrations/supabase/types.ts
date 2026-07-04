@@ -131,6 +131,60 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          discord_notify_announcements: boolean
+          discord_notify_feature_requests: boolean
+          discord_notify_reports: boolean
+          id: boolean
+          maintenance: boolean
+          maintenance_message: string
+          updated_at: string
+        }
+        Insert: {
+          discord_notify_announcements?: boolean
+          discord_notify_feature_requests?: boolean
+          discord_notify_reports?: boolean
+          id?: boolean
+          maintenance?: boolean
+          maintenance_message?: string
+          updated_at?: string
+        }
+        Update: {
+          discord_notify_announcements?: boolean
+          discord_notify_feature_requests?: boolean
+          discord_notify_reports?: boolean
+          id?: boolean
+          maintenance?: boolean
+          maintenance_message?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      banned_ips: {
+        Row: {
+          banned_by: string | null
+          created_at: string
+          id: string
+          ip: unknown
+          reason: string | null
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string
+          id?: string
+          ip: unknown
+          reason?: string | null
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string
+          id?: string
+          ip?: unknown
+          reason?: string | null
+        }
+        Relationships: []
+      }
       benchmark_results: {
         Row: {
           avg_fps: number | null
@@ -767,6 +821,9 @@ export type Database = {
           card_style: string | null
           clip_id: string
           created_at: string
+          discord_avatar: string | null
+          discord_id: string | null
+          discord_username: string | null
           display_name: string | null
           gif_avatar_url: string | null
           id: string
@@ -783,6 +840,9 @@ export type Database = {
           card_style?: string | null
           clip_id: string
           created_at?: string
+          discord_avatar?: string | null
+          discord_id?: string | null
+          discord_username?: string | null
           display_name?: string | null
           gif_avatar_url?: string | null
           id: string
@@ -799,6 +859,9 @@ export type Database = {
           card_style?: string | null
           clip_id?: string
           created_at?: string
+          discord_avatar?: string | null
+          discord_id?: string | null
+          discord_username?: string | null
           display_name?: string | null
           gif_avatar_url?: string | null
           id?: string
@@ -806,6 +869,30 @@ export type Database = {
           profile_theme?: string | null
           twitch_username?: string | null
           visitor_count?: number | null
+        }
+        Relationships: []
+      }
+      pvp_stats: {
+        Row: {
+          elo: number
+          losses: number
+          updated_at: string
+          user_id: string
+          wins: number
+        }
+        Insert: {
+          elo?: number
+          losses?: number
+          updated_at?: string
+          user_id: string
+          wins?: number
+        }
+        Update: {
+          elo?: number
+          losses?: number
+          updated_at?: string
+          user_id?: string
+          wins?: number
         }
         Relationships: []
       }
@@ -1487,10 +1574,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_ban_ip: {
+        Args: { p_ip: unknown; p_reason?: string }
+        Returns: string
+      }
       admin_boost_xp: {
         Args: { p_target_user_id: string; p_xp_amount: number }
         Returns: undefined
       }
+      admin_bulk_delete_messages: { Args: { p_ids: string[] }; Returns: number }
       award_badge: {
         Args: { p_badge_name: string; p_badge_type: string }
         Returns: boolean
@@ -1507,6 +1599,10 @@ export type Database = {
       }
       increment_user_xp: {
         Args: { p_user_id: string; p_xp_amount: number }
+        Returns: undefined
+      }
+      record_pvp_result: {
+        Args: { p_opponent: string; p_won: boolean }
         Returns: undefined
       }
     }
