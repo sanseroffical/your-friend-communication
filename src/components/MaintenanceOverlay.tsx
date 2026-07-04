@@ -10,7 +10,12 @@ interface Settings {
 
 export default function MaintenanceOverlay() {
   const [settings, setSettings] = useState<Settings | null>(null);
-  const { isAdmin } = useUserRole();
+  const [uid, setUid] = useState<string | null>(null);
+  const { isAdmin } = useUserRole(uid);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUid(data.user?.id ?? null));
+  }, []);
 
   useEffect(() => {
     let mounted = true;
