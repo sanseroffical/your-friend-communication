@@ -9,6 +9,7 @@ import ClippyButton from "./components/ClippyButton";
 import GlobalReadAloud from "./components/GlobalReadAloud";
 import { useCmdModeSettings } from "./hooks/useCmdModeSettings";
 import { useGamepadBridge } from "./hooks/useGamepad";
+import MaintenanceOverlay from "./components/MaintenanceOverlay";
 
 // Lazy load pages to reduce initial bundle size
 const Index = lazy(() => import("./pages/Index"));
