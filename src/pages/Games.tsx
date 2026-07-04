@@ -12,8 +12,9 @@ const PlazaParkour = lazy(() => import("@/components/games/three/PlazaParkour"))
 const PlazaArena = lazy(() => import("@/components/games/three/PlazaArena"));
 const CubeRunner = lazy(() => import("@/components/games/three/CubeRunner"));
 const SkyShooter = lazy(() => import("@/components/games/three/SkyShooter"));
+const SkySurfer = lazy(() => import("@/components/games/three/SkySurfer"));
 
-type GameId = "tower" | "asteroid" | "racer" | "parkour" | "arena" | "runner" | "sky" | null;
+type GameId = "tower" | "asteroid" | "racer" | "parkour" | "arena" | "runner" | "sky" | "surfer" | null;
 
 const GAMES: { id: Exclude<GameId, null>; title: string; desc: string; icon: any; gradient: string; tag: string }[] = [
   { id: "tower", title: "Tower Stacker 3D", desc: "Stack blocks higher and higher. One slip and it's over.", icon: TrendingUp, gradient: "from-purple-500/30 to-pink-500/30", tag: "Single-player" },
