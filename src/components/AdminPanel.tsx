@@ -60,6 +60,11 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
   const [xpBoostAmount, setXpBoostAmount] = useState('100');
   const [shadowBanReason, setShadowBanReason] = useState('');
   const [shadowBanTarget, setShadowBanTarget] = useState<User | null>(null);
+  const [maintenance, setMaintenance] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState("We'll be right back.");
+  const [ipToBan, setIpToBan] = useState('');
+  const [ipBanReason, setIpBanReason] = useState('');
+  const [bannedIps, setBannedIps] = useState<Array<{ id: string; ip: string; reason: string | null }>>([]);
   const { deleteUserAccount, grantRole, revokeRole, clearAllMessages, createAnnouncement, deleteAnnouncement } = useAdminActions(isAdmin, isModerator);
   const { toast } = useToast();
 
