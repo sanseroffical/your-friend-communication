@@ -122,9 +122,45 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
     fetchUsers();
     fetchAnnouncements();
     fetchAuditLog();
+
+    // Load app settings + banned IPs
+    supabase.from('app_settings').select('maintenance, maintenance_message').maybeSingle()
+      .then(({ data }) => {
+        if (data) { setMaintenance(!!data.maintenance); setMaintenanceMessage(data.maintenance_message || "We'll be right back."); }
+      });
+    (supabase.from('banned_ips') as any).select('id, ip, reason').order('created_at', { ascending: false })
+      .then(({ data }: any) => { if (data) setBannedIps(data); });
   }, [isAdmin]);
 
-  const logAction = async (action: string, targetUserId?: string, details?: Record<string, unknown>) => {
+  const saveMaintenance = async (nextEnabled: boolean, nextMsg?: string) => {
+    const { error } = await (supabase.from('app_settings') as any)
+      .update({ maintenance: nextEnabled, maintenance_message: nextMsg ?? maintenanceMessage, updated_at: new Date().toISOString() })
+      .eq('id', true);
+    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
+    setMaintenance(nextEnabled);
+    if (nextMsg !== undefined) setMaintenanceMessage(nextMsg);
+    await logAction('toggle_maintenance', undefined, { enabled: nextEnabled });
+    toast({ title: nextEnabled ? 'Maintenance mode ON' : 'Maintenance mode OFF' });
+  };
+
+  const banIp = async () => {
+    if (!ipToBan.trim()) return;
+    const { error } = await supabase.rpc('admin_ban_ip' as any, { p_ip: ipToBan.trim(), p_reason: ipBanReason || null });
+    if (error) { toast({ title: 'Ban failed', description: error.message, variant: 'destructive' }); return; }
+    await logAction('ban_ip', undefined, { ip: ipToBan, reason: ipBanReason });
+    setIpToBan(''); setIpBanReason('');
+    const { data } = await (supabase.from('banned_ips') as any).select('id, ip, reason').order('created_at', { ascending: false });
+    setBannedIps(data || []);
+    toast({ title: 'IP banned' });
+  };
+
+  const unbanIp = async (id: string) => {
+    const { error } = await (supabase.from('banned_ips') as any).delete().eq('id', id);
+    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
+    setBannedIps(prev => prev.filter(b => b.id !== id));
+    await logAction('unban_ip', undefined, { id });
+  };
+  const _dummy = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     await (supabase.from('admin_audit_log') as any).insert({
