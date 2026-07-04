@@ -38,6 +38,7 @@ export default function Games() {
   if (active === "arena") return <Suspense fallback={<Loader />}><PlazaArena onExit={() => setActive(null)} /></Suspense>;
   if (active === "runner") return <Suspense fallback={<Loader />}><CubeRunner onExit={() => setActive(null)} /></Suspense>;
   if (active === "sky") return <Suspense fallback={<Loader />}><SkyShooter onExit={() => setActive(null)} /></Suspense>;
+  if (active === "surfer") return <Suspense fallback={<Loader />}><SkySurfer onExit={() => setActive(null)} /></Suspense>;
 
 
 
