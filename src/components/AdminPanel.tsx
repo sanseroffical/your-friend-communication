@@ -510,6 +510,53 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
               </div>
             )}
 
+            {isAdmin && (
+              <div className="space-y-3 border-t border-border pt-4">
+                <h3 className="font-medium flex items-center gap-2">
+                  <Wrench className="h-4 w-4" /> Maintenance Mode
+                </h3>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Show a "we'll be right back" screen to non-admins</span>
+                  <Switch checked={maintenance} onCheckedChange={(v) => saveMaintenance(v)} />
+                </div>
+                <Textarea
+                  placeholder="Maintenance message"
+                  value={maintenanceMessage}
+                  onChange={(e) => setMaintenanceMessage(e.target.value)}
+                  rows={2}
+                />
+                <Button variant="outline" size="sm" onClick={() => saveMaintenance(maintenance, maintenanceMessage)}>
+                  Save message
+                </Button>
+              </div>
+            )}
+
+            {isAdmin && (
+              <div className="space-y-3 border-t border-border pt-4">
+                <h3 className="font-medium flex items-center gap-2">
+                  <Globe className="h-4 w-4" /> IP Bans
+                </h3>
+                <div className="flex gap-2">
+                  <Input placeholder="e.g. 203.0.113.42" value={ipToBan} onChange={(e) => setIpToBan(e.target.value)} />
+                  <Input placeholder="Reason" value={ipBanReason} onChange={(e) => setIpBanReason(e.target.value)} />
+                  <Button size="sm" onClick={banIp}>Ban</Button>
+                </div>
+                {bannedIps.length > 0 && (
+                  <ScrollArea className="h-24">
+                    {bannedIps.map((b) => (
+                      <div key={b.id} className="flex items-center justify-between p-2 bg-muted rounded mb-1 text-sm">
+                        <span className="font-mono">{b.ip}</span>
+                        <span className="text-xs text-muted-foreground flex-1 mx-2 truncate">{b.reason}</span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => unbanIp(b.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </ScrollArea>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <h3 className="font-medium text-destructive flex items-center gap-2">
                 <Ban className="h-4 w-4" />
