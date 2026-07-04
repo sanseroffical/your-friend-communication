@@ -160,7 +160,7 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
     setBannedIps(prev => prev.filter(b => b.id !== id));
     await logAction('unban_ip', undefined, { id });
   };
-  const _dummy = () => {
+  const logAction = async (action: string, targetUserId?: string, details?: Record<string, unknown>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     await (supabase.from('admin_audit_log') as any).insert({
@@ -169,7 +169,6 @@ const AdminPanel = ({ isAdmin, isModerator, isOpen, onOpenChange }: AdminPanelPr
       target_user_id: targetUserId || null,
       details: details || {},
     });
-    // Refresh audit log
     const { data } = await supabase
       .from('admin_audit_log')
       .select('*')
