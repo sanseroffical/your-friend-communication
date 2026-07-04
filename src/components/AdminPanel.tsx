@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Shield, UserX, Users, Search, ShieldCheck, ShieldOff, Megaphone, Trash2, Ban, ScrollText, Zap, EyeOff } from 'lucide-react';
+import { Shield, UserX, Users, Search, ShieldCheck, ShieldOff, Megaphone, Trash2, Ban, ScrollText, Zap, EyeOff, Wrench, Globe } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
