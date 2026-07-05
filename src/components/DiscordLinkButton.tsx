@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Link as LinkIcon, Unlink } from "lucide-react";
+import { Link as LinkIcon, Unlink, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Discord OAuth client-side redirect flow. The redirect URI must be added in the
 // Discord developer portal for the configured DISCORD_CLIENT_ID.
