@@ -28,6 +28,12 @@ const CardMatchSpeedGame = lazy(() => import("./CardMatchSpeedGame"));
 const CrosswordGame = lazy(() => import("./CrosswordGame"));
 const MathChallengeGame = lazy(() => import("./MathChallengeGame"));
 const WhackAMoleGame = lazy(() => import("./WhackAMoleGame"));
+const TicTacToeGame = lazy(() => import("./TicTacToeGame"));
+const RockPaperScissorsGame = lazy(() => import("./RockPaperScissorsGame"));
+const WordGuessGame = lazy(() => import("./WordGuessGame"));
+const Connect4Game = lazy(() => import("./Connect4Game"));
+const CheckersGame = lazy(() => import("./CheckersGame"));
+const TriviaGame = lazy(() => import("./TriviaGame"));
 
 type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing" | "simon" | "pong" | "flappy" | "brickbreaker" | "tetris" | "invaders" | "sudoku" | "wordle" | "maze" | "solitaire" | "colormatch" | "reaction" | "sliding" | "pacman" | "cardspeed" | "crossword" | "math" | "whackamole";
 
