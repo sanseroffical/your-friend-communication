@@ -107,6 +107,12 @@ const MiniGamesPanel = () => {
       crossword: CrosswordGame,
       math: MathChallengeGame,
       whackamole: WhackAMoleGame,
+      tictactoe: TicTacToeGame,
+      rps: RockPaperScissorsGame,
+      wordguess: WordGuessGame,
+      connect4: Connect4Game,
+      checkers: CheckersGame,
+      trivia: TriviaGame,
     }[activeGame];
 
     if (!GameComponent) return null;
