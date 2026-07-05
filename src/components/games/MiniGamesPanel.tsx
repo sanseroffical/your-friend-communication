@@ -28,8 +28,14 @@ const CardMatchSpeedGame = lazy(() => import("./CardMatchSpeedGame"));
 const CrosswordGame = lazy(() => import("./CrosswordGame"));
 const MathChallengeGame = lazy(() => import("./MathChallengeGame"));
 const WhackAMoleGame = lazy(() => import("./WhackAMoleGame"));
+const TicTacToeGame = lazy(() => import("./TicTacToeGame"));
+const RockPaperScissorsGame = lazy(() => import("./RockPaperScissorsGame"));
+const WordGuessGame = lazy(() => import("./WordGuessGame"));
+const Connect4Game = lazy(() => import("./Connect4Game"));
+const CheckersGame = lazy(() => import("./CheckersGame"));
+const TriviaGame = lazy(() => import("./TriviaGame"));
 
-type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing" | "simon" | "pong" | "flappy" | "brickbreaker" | "tetris" | "invaders" | "sudoku" | "wordle" | "maze" | "solitaire" | "colormatch" | "reaction" | "sliding" | "pacman" | "cardspeed" | "crossword" | "math" | "whackamole";
+type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing" | "simon" | "pong" | "flappy" | "brickbreaker" | "tetris" | "invaders" | "sudoku" | "wordle" | "maze" | "solitaire" | "colormatch" | "reaction" | "sliding" | "pacman" | "cardspeed" | "crossword" | "math" | "whackamole" | "tictactoe" | "rps" | "wordguess" | "connect4" | "checkers" | "trivia";
 
 const miniGames = [
   { id: "snake" as MiniGame, name: "🐍 Snake", desc: "Classic snake game" },
@@ -57,6 +63,12 @@ const miniGames = [
   { id: "crossword" as MiniGame, name: "🧩 Crossword", desc: "Word puzzle", isNew: true },
   { id: "math" as MiniGame, name: "🔢 Math Challenge", desc: "Quick arithmetic", isNew: true },
   { id: "whackamole" as MiniGame, name: "🔨 Whack-a-Mole", desc: "Whack the moles!", isNew: true },
+  { id: "tictactoe" as MiniGame, name: "❌ Tic-Tac-Toe", desc: "Classic 3-in-a-row", isNew: true },
+  { id: "rps" as MiniGame, name: "✂️ Rock Paper Scissors", desc: "Beat the CPU", isNew: true },
+  { id: "wordguess" as MiniGame, name: "📝 Word Guess", desc: "Guess the word", isNew: true },
+  { id: "connect4" as MiniGame, name: "🔴 Connect 4", desc: "Line up four", isNew: true },
+  { id: "checkers" as MiniGame, name: "♟️ Checkers", desc: "Jump and capture", isNew: true },
+  { id: "trivia" as MiniGame, name: "❓ Trivia", desc: "Test your knowledge", isNew: true },
 ];
 
 const GameLoader = () => (
@@ -95,6 +107,12 @@ const MiniGamesPanel = () => {
       crossword: CrosswordGame,
       math: MathChallengeGame,
       whackamole: WhackAMoleGame,
+      tictactoe: TicTacToeGame,
+      rps: RockPaperScissorsGame,
+      wordguess: WordGuessGame,
+      connect4: Connect4Game,
+      checkers: CheckersGame,
+      trivia: TriviaGame,
     }[activeGame];
 
     if (!GameComponent) return null;
