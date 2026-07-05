@@ -63,6 +63,12 @@ const miniGames = [
   { id: "crossword" as MiniGame, name: "🧩 Crossword", desc: "Word puzzle", isNew: true },
   { id: "math" as MiniGame, name: "🔢 Math Challenge", desc: "Quick arithmetic", isNew: true },
   { id: "whackamole" as MiniGame, name: "🔨 Whack-a-Mole", desc: "Whack the moles!", isNew: true },
+  { id: "tictactoe" as MiniGame, name: "❌ Tic-Tac-Toe", desc: "Classic 3-in-a-row", isNew: true },
+  { id: "rps" as MiniGame, name: "✂️ Rock Paper Scissors", desc: "Beat the CPU", isNew: true },
+  { id: "wordguess" as MiniGame, name: "📝 Word Guess", desc: "Guess the word", isNew: true },
+  { id: "connect4" as MiniGame, name: "🔴 Connect 4", desc: "Line up four", isNew: true },
+  { id: "checkers" as MiniGame, name: "♟️ Checkers", desc: "Jump and capture", isNew: true },
+  { id: "trivia" as MiniGame, name: "❓ Trivia", desc: "Test your knowledge", isNew: true },
 ];
 
 const GameLoader = () => (
