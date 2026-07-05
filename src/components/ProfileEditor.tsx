@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Upload, Palette, Tv } from 'lucide-react';
 import ProfileCustomization from './ProfileCustomization';
+import DiscordLinkButton from './DiscordLinkButton';
 import { getStorageRef } from '@/hooks/useSignedStorageUrl';
 
 interface ProfileEditorProps {
