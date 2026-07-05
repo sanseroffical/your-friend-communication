@@ -77,14 +77,16 @@ export default function DiscordLinkButton() {
   };
 
   const unlink = async () => {
+    setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
     const { error } = await supabase.from("profiles")
       .update({ discord_id: null, discord_username: null, discord_avatar: null })
       .eq("id", user.id);
+    setLoading(false);
     if (error) { toast.error(error.message); return; }
     setDiscord({ id: null, username: null, avatar: null });
-    toast.success("Discord unlinked");
+    toast.success("Discord disconnected");
   };
 
   useEffect(() => {
@@ -94,25 +96,59 @@ export default function DiscordLinkButton() {
 
   if (discord.id) {
     return (
-      <div className="flex items-center gap-2">
-        {discord.avatar && (
-          <img
-            src={`https://cdn.discordapp.com/avatars/${discord.id}/${discord.avatar}.png?size=64`}
-            alt=""
-            className="h-6 w-6 rounded-full"
-          />
-        )}
-        <span className="text-sm">{discord.username}</span>
-        <Button size="sm" variant="ghost" onClick={unlink}>
-          <Unlink className="h-3 w-3 mr-1" /> Unlink
-        </Button>
+      <div className="flex items-center justify-between gap-3 w-full">
+        <div className="flex items-center gap-2 min-w-0">
+          {discord.avatar ? (
+            <img
+              src={`https://cdn.discordapp.com/avatars/${discord.id}/${discord.avatar}.png?size=64`}
+              alt=""
+              className="h-8 w-8 rounded-full"
+            />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-xs">
+              {discord.username?.[0]?.toUpperCase() ?? "?"}
+            </div>
+          )}
+          <div className="min-w-0">
+            <div className="text-sm font-medium truncate flex items-center gap-1">
+              {discord.username}
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
+            </div>
+            <div className="text-xs text-muted-foreground">Connected</div>
+          </div>
+        </div>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button size="sm" variant="ghost" disabled={loading}>
+              {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Unlink className="h-3 w-3 mr-1" />}
+              Disconnect
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Disconnect Discord?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will unlink <span className="font-medium">{discord.username}</span> from your profile.
+                You can reconnect at any time.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={unlink}>Disconnect</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
 
   return (
-    <Button size="sm" variant="outline" onClick={beginOAuth} disabled={loading}>
-      <LinkIcon className="h-3 w-3 mr-1" /> Link Discord
-    </Button>
+    <div className="flex items-center justify-between gap-3 w-full">
+      <div className="text-sm text-muted-foreground">Not connected</div>
+      <Button size="sm" variant="outline" onClick={beginOAuth} disabled={loading}>
+        {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <LinkIcon className="h-3 w-3 mr-1" />}
+        Link Discord
+      </Button>
+    </div>
   );
 }
