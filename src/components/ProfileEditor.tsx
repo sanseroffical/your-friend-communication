@@ -198,6 +198,14 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
             <p className="text-xs text-muted-foreground">Link your Twitch to show live status on your profile</p>
           </div>
 
+          <div className="space-y-2">
+            <Label>Discord</Label>
+            <div className="rounded-md border p-3 glass">
+              <DiscordLinkButton />
+            </div>
+            <p className="text-xs text-muted-foreground">Link your Discord account to show it on your profile</p>
+          </div>
+
           <div className="pt-2">
             <Button 
               variant="outline" 
