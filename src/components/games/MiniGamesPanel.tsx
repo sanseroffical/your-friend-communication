@@ -35,7 +35,7 @@ const Connect4Game = lazy(() => import("./Connect4Game"));
 const CheckersGame = lazy(() => import("./CheckersGame"));
 const TriviaGame = lazy(() => import("./TriviaGame"));
 
-type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing" | "simon" | "pong" | "flappy" | "brickbreaker" | "tetris" | "invaders" | "sudoku" | "wordle" | "maze" | "solitaire" | "colormatch" | "reaction" | "sliding" | "pacman" | "cardspeed" | "crossword" | "math" | "whackamole";
+type MiniGame = "none" | "snake" | "memory" | "clicker" | "hangman" | "2048" | "minesweeper" | "typing" | "simon" | "pong" | "flappy" | "brickbreaker" | "tetris" | "invaders" | "sudoku" | "wordle" | "maze" | "solitaire" | "colormatch" | "reaction" | "sliding" | "pacman" | "cardspeed" | "crossword" | "math" | "whackamole" | "tictactoe" | "rps" | "wordguess" | "connect4" | "checkers" | "trivia";
 
 const miniGames = [
   { id: "snake" as MiniGame, name: "🐍 Snake", desc: "Classic snake game" },
