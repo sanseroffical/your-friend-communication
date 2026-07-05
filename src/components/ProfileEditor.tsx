@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Upload, Palette, Tv } from 'lucide-react';
 import ProfileCustomization from './ProfileCustomization';
+import DiscordLinkButton from './DiscordLinkButton';
 import { getStorageRef } from '@/hooks/useSignedStorageUrl';
 
 interface ProfileEditorProps {
@@ -195,6 +196,14 @@ const ProfileEditor = ({ isOpen, onClose, profile, onProfileUpdated }: ProfileEd
               maxLength={25}
             />
             <p className="text-xs text-muted-foreground">Link your Twitch to show live status on your profile</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Discord</Label>
+            <div className="rounded-md border p-3 glass">
+              <DiscordLinkButton />
+            </div>
+            <p className="text-xs text-muted-foreground">Link your Discord account to show it on your profile</p>
           </div>
 
           <div className="pt-2">
