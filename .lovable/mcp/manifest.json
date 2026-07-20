@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://iepuueapgtqoqbmlswlc.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "friendchat-mcp",
+      "version": "0.1.0",
+      "title": "FriendChat"
+    },
+    "tools": [
+      {
+        "name": "get_my_profile",
+        "title": "Get my profile",
+        "description": "Fetch the signed-in FriendChat user's profile (display name, clipID, bio, level, XP).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_friends",
+        "title": "List friends",
+        "description": "List the signed-in user's accepted friendships with display names and clipIDs.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_my_quests",
+        "title": "List my quests",
+        "description": "List the signed-in user's active quest progress with completion status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_recent_messages",
+        "title": "Get recent room messages",
+        "description": "Fetch the most recent messages from a FriendChat room the user has access to.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "room_code": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9]{1,20}$",
+              "description": "Alphanumeric room code."
+            },
+            "limit": {
+              "description": "How many messages to return (default 25).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "room_code"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "send_chat_message",
+        "title": "Send chat message",
+        "description": "Post a message to a FriendChat room as the signed-in user. Room codes are alphanumeric (e.g. 'C6ZC9N').",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "room_code": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9]{1,20}$",
+              "description": "Alphanumeric room code."
+            },
+            "content": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 10000,
+              "description": "Message text (1-10000 chars)."
+            }
+          },
+          "required": [
+            "room_code",
+            "content"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
