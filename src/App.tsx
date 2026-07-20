@@ -18,6 +18,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Plaza = lazy(() => import("./pages/Plaza"));
 const Games = lazy(() => import("./pages/Games"));
 const Benchmark = lazy(() => import("./pages/Benchmark"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => {
               <Route path="/plaza" element={<Plaza />} />
               <Route path="/games" element={<Games />} />
               <Route path="/benchmark" element={<Benchmark />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
