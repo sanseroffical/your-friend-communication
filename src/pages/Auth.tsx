@@ -66,7 +66,7 @@ const Auth = () => {
         title: "Welcome back!",
         description: "Successfully logged in",
       });
-      navigate("/");
+      window.location.href = safeNext;
     } catch (error: any) {
       toast({
         title: "Error",
