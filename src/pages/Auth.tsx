@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,24 +19,29 @@ const Auth = () => {
   const [copied, setCopied] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+
+  // Same-origin relative-path safe next target (default "/")
+  const nextParam = searchParams.get("next") ?? "/";
+  const safeNext = nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/";
 
   // Check if already logged in & listen for auth changes (e.g. OAuth redirect)
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/");
+        window.location.href = safeNext;
       }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        window.location.href = safeNext;
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [safeNext]);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -61,7 +66,7 @@ const Auth = () => {
         title: "Welcome back!",
         description: "Successfully logged in",
       });
-      navigate("/");
+      window.location.href = safeNext;
     } catch (error: any) {
       toast({
         title: "Error",
@@ -137,7 +142,7 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}${safeNext}`;
       
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -188,7 +193,7 @@ const Auth = () => {
   };
 
   const continueToApp = () => {
-    navigate("/");
+    window.location.href = safeNext;
   };
 
   if (mode === "welcome") {
@@ -313,7 +318,7 @@ const Auth = () => {
             <Button
               onClick={async () => {
                 const { error } = await lovable.auth.signInWithOAuth("google", {
-                  redirect_uri: window.location.origin,
+                  redirect_uri: `${window.location.origin}${safeNext}`,
                 });
                 if (error) {
                   toast({
