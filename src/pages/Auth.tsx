@@ -142,7 +142,7 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}${safeNext}`;
       
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -193,7 +193,7 @@ const Auth = () => {
   };
 
   const continueToApp = () => {
-    navigate("/");
+    window.location.href = safeNext;
   };
 
   if (mode === "welcome") {
