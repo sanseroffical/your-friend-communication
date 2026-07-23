@@ -1485,6 +1485,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          label: string
+          profile_data: Json | null
+          settings_data: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          label?: string
+          profile_data?: Json | null
+          settings_data?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          label?: string
+          profile_data?: Json | null
+          settings_data?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_streaks: {
         Row: {
           created_at: string
